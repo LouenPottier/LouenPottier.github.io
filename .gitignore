@@ -1,0 +1,18 @@
+# Dossier des logos originaux (non redimensionnés, inutile en prod)
+logos_originaux/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Editeurs
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# PDF confidentiels éventuels — à retirer si tu veux les servir
+# pdf/
+
+# Vidéos lourdes — héberge-les sur un CDN externe si > 50 MB
+# videos/
