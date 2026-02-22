@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Louen Pottier — Research Engineer</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Source+Sans+3:wght@300;400;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <div class="lang-bar">
+    <button class="lang-btn active" onclick="setLang('en')">EN</button>
+    <span class="lang-sep">·</span>
+    <button class="lang-btn" onclick="setLang('fr')">FR</button>
+  </div>
+
+  <nav>
+    <a class="nav-name" href="index.html">Louen Pottier</a>
+    <ul>
+      <li><a href="index.html" class="active" data-en="CV" data-fr="CV">CV</a></li>
+      <li><a href="publications.html" data-en="Publications" data-fr="Publications">Publications</a></li>
+      <li><a href="projects.html" data-en="Projects" data-fr="Projets">Projects</a></li>
+      <li><a href="teaching.html" data-en="Teaching" data-fr="Enseignement">Teaching</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <!-- ══ HERO ══════════════════════════════════════════════════ -->
+    <section class="hero">
+      <div class="hero-photo">
+        <!-- Replace with: <img src="./img/photo.jpg" alt="Louen Pottier" /> -->
+        <div class="photo-placeholder">Photo</div>
+      </div>
+      <div class="hero-text">
+        <h1>Louen Pottier</h1>
+        <p class="tagline"
+           data-en="Research Engineer · AI &amp; Scientific Computing"
+           data-fr="Ingénieur Chercheur · IA &amp; Calcul Scientifique">
+          Research Engineer · AI &amp; Scientific Computing
+        </p>
+        <p class="bio"
+           data-en="Graduate of &lt;strong&gt;ENS Paris-Saclay&lt;/strong&gt; with a dual background in structural mechanics and artificial intelligence. Three years at &lt;strong&gt;CEA&lt;/strong&gt; on AI-driven simulation and scientific computing, including a European research programme. Experienced lecturer and independent consultant across diverse industries."
+           data-fr="Diplômé de l&apos;&lt;strong&gt;ENS Paris-Saclay&lt;/strong&gt; avec une double formation en mécanique des structures et intelligence artificielle. Trois ans au &lt;strong&gt;CEA&lt;/strong&gt; sur l&apos;IA appliquée à la simulation numérique, dont un projet européen. Enseignant vacataire et consultant indépendant dans des domaines variés.">
+          Graduate of <strong>ENS Paris-Saclay</strong> with a dual background in structural mechanics and artificial intelligence.
+          Three years at <strong>CEA</strong> on AI-driven simulation and scientific computing, including a European research programme.
+          Experienced lecturer and independent consultant across diverse industries.
+        </p>
+
+        <!-- Chiffres clés -->
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="hero-stat-value">4</span>
+            <span class="hero-stat-label" data-en="publications" data-fr="publications">publications</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-value">9</span>
+            <span class="hero-stat-label" data-en="projects delivered" data-fr="projets livrés">projects delivered</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-value">~500</span>
+            <span class="hero-stat-label" data-en="students taught" data-fr="étudiants encadrés">students taught</span>
+          </div>
+        </div>
+
+        <div class="contact-links">
+          <a href="mailto:louen.pottier@gmail.com">louen.pottier@gmail.com</a>
+          <a href="https://www.linkedin.com/in/louen-pottier/" target="_blank">LinkedIn</a>
+          <a href="https://scholar.google.fr/citations?hl=fr&user=dX-KWKQAAAAJ" target="_blank">Google Scholar</a>
+          <a href="./pdf/cv.pdf" target="_blank" class="cv-pdf-link" data-en="↓ CV (PDF)" data-fr="↓ CV (PDF)">↓ CV (PDF)</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ EXPÉRIENCE ════════════════════════════════════════════ -->
+    <section class="timeline-section">
+      <h2 class="section-label" data-en="Experience" data-fr="Expérience">Experience</h2>
+      <div class="timeline">
+
+        <div class="timeline-item">
+          <div class="timeline-left">
+            <span class="timeline-date">2021 — 2024</span>
+            <div class="timeline-logo">
+              <img src="./logos/cea-list.png" alt="CEA-LIST"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+              <span class="logo-fallback">CEA-LIST</span>
+            </div>
+          </div>
+          <div class="timeline-content">
+            <h3 data-en="Research Engineer" data-fr="Ingénieur Chercheur">Research Engineer</h3>
+            <p data-en="AI and numerical simulation research within a major national research organisation, initially as a doctoral fellow (2021–2022). Contributed to a European research programme and to a data science consulting mission as an external provider. Published several papers in AI and scientific computing."
+               data-fr="Recherche en IA et simulation numérique au sein d'un grand organisme national, initialement en tant que doctorant (2021–2022). Participation à un projet européen et à une mission data science comme prestataire externe. Plusieurs publications scientifiques en IA et calcul numérique.">
+              AI and numerical simulation research within a major national research organisation, initially as a doctoral fellow (2021–2022).
+              Contributed to a European research programme and to a data science consulting mission as an external provider.
+              Published several papers in AI and scientific computing.
+            </p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-left">
+            <span class="timeline-date">2019 — 2024</span>
+            <div class="timeline-logo">
+              <span class="logo-fallback" style="display:block" data-en="Independent" data-fr="Indépendant">Independent</span>
+            </div>
+          </div>
+          <div class="timeline-content">
+            <h3 data-en="Independent Consulting" data-fr="Consulting Indépendant">Independent Consulting</h3>
+            <p data-en="Applied data science missions for private clients across diverse sectors: NLP, automatic patent drafting, AI for physics simulations. One mission led to a peer-reviewed publication."
+               data-fr="Missions de data science appliquée pour des clients privés dans des secteurs variés : TAL, rédaction automatique de brevets, IA pour la simulation physique. L'une d'elles a abouti à une publication scientifique.">
+              Applied data science missions for private clients across diverse sectors: NLP, automatic patent drafting, AI for physics simulations. One mission led to a peer-reviewed publication.
+            </p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-left">
+            <span class="timeline-date">2020 — 2024</span>
+            <div class="timeline-logo">
+              <img src="./logos/esilv.png" alt="ESILV" class="logo-esilv"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+              <span class="logo-fallback">ESILV</span>
+            </div>
+          </div>
+          <div class="timeline-content">
+            <h3 data-en="Part-time Lecturer" data-fr="Enseignant Vacataire">Part-time Lecturer</h3>
+            <p data-en="Fluid mechanics, thermodynamics, and partial differential equations for engineering students."
+               data-fr="Mécanique des fluides, thermodynamique et équations aux dérivées partielles pour des élèves ingénieurs.">
+              Fluid mechanics, thermodynamics, and partial differential equations for engineering students.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══ COMPÉTENCES ══════════════════════════════════════════ -->
+    <section class="skills-section">
+      <h2 class="section-label" data-en="Skills" data-fr="Compétences">Skills</h2>
+      <div class="skills-grid">
+
+        <div class="skill-group">
+          <h4 data-en="Scientific Computing & Simulation" data-fr="Calcul Scientifique & Simulation">Scientific Computing & Simulation</h4>
+          <p>FEniCS · Cast3M · Ansys · Matlab · HPC / SLURM · MPI / OpenMP · C++</p>
+        </div>
+
+        <div class="skill-group">
+          <h4 data-en="Machine Learning & SciML" data-fr="Machine Learning & SciML">Machine Learning & SciML</h4>
+          <p>PyTorch · Libtorch · JAX · scikit-learn · Optuna · PINNs · Surrogate Modeling · ROM · ONNX / TorchScript</p>
+        </div>
+
+        <div class="skill-group">
+          <h4 data-en="LLM & NLP" data-fr="LLM & TAL">LLM & NLP</h4>
+          <p>OpenAI API · Transformers · RAG · Word2Vec</p>
+        </div>
+
+        <div class="skill-group">
+          <h4 data-en="Dev & Data" data-fr="Dev & Data">Dev & Data</h4>
+          <p>Python · SciPy · Git · Docker · FastAPI</p>
+        </div>
+
+        <div class="skill-group">
+          <h4 data-en="Languages" data-fr="Langues">Languages</h4>
+          <p data-en="French (native) · English C1 — Cambridge English Qualification" data-fr="Français (natif) · Anglais C1 — Cambridge English Qualification">French (native) · English C1 — Cambridge English Qualification</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══ FORMATION ═════════════════════════════════════════════ -->
+    <section class="timeline-section">
+      <h2 class="section-label" data-en="Education" data-fr="Formation">Education</h2>
+      <div class="timeline">
+
+        <div class="timeline-item">
+          <div class="timeline-left">
+            <span class="timeline-date">2021 — 2022</span>
+            <div class="timeline-logo">
+              <img src="./logos/cs.png" alt="CentraleSupélec"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+              <span class="logo-fallback">CentraleSupélec</span>
+            </div>
+          </div>
+          <div class="timeline-content">
+            <h3 data-en="M.Sc. — Mechanical Simulation of Structures &amp; Coupled Systems"
+                data-fr="M2 — Simulation Mécanique des Structures et Systèmes Couplés">
+              M.Sc. — Mechanical Simulation of Structures &amp; Coupled Systems
+            </h3>
+            <p data-en="CentraleSupélec."
+               data-fr="CentraleSupélec.">
+              CentraleSupélec.
+            </p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-left">
+            <span class="timeline-date">2020 — 2021</span>
+            <div class="timeline-logo">
+              <img src="./logos/ens.png" alt="ENS Paris-Saclay" class="logo-ens"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+              <span class="logo-fallback">ENS Paris-Saclay</span>
+            </div>
+          </div>
+          <div class="timeline-content">
+            <h3 data-en="Diploma in Artificial Intelligence"
+                data-fr="Diplôme d'Établissement en Intelligence Artificielle">
+              Diploma in Artificial Intelligence
+            </h3>
+            <p data-en="ENS Paris-Saclay."
+               data-fr="ENS Paris-Saclay.">
+              ENS Paris-Saclay.
+            </p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-left">
+            <span class="timeline-date">2019 — 2020</span>
+            <div class="timeline-logo">
+              <img src="./logos/ens.png" alt="ENS Paris-Saclay" class="logo-ens"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+              <span class="logo-fallback">ENS Paris-Saclay</span>
+            </div>
+          </div>
+          <div class="timeline-content">
+            <h3 data-en="M.Sc. — Mechanics of Materials and Structures"
+                data-fr="M1 — Mécanique des Matériaux et des Structures">
+              M.Sc. — Mechanics of Materials and Structures
+            </h3>
+            <p data-en="ENS Paris-Saclay."
+               data-fr="ENS Paris-Saclay.">
+              ENS Paris-Saclay.
+            </p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-left">
+            <span class="timeline-date">2018 — 2019</span>
+            <div class="timeline-logo">
+              <img src="./logos/ens.png" alt="ENS Paris-Saclay" class="logo-ens"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+              <span class="logo-fallback">ENS Paris-Saclay</span>
+            </div>
+          </div>
+          <div class="timeline-content">
+            <h3 data-en="B.Sc. (Honours) — Engineering Sciences"
+                data-fr="L3 renforcée — Sciences de l'Ingénieur">
+              B.Sc. (Honours) — Engineering Sciences
+            </h3>
+            <p data-en="ENS Paris-Saclay."
+               data-fr="ENS Paris-Saclay.">
+              ENS Paris-Saclay.
+            </p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-left">
+            <span class="timeline-date">2016 — 2018</span>
+            <div class="timeline-logo">
+              <img src="./logos/blaisepascal.png" alt="Lycée Blaise-Pascal"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+              <span class="logo-fallback">Lycée Blaise-Pascal</span>
+            </div>
+          </div>
+          <div class="timeline-content">
+            <h3 data-en="Classe Préparatoire aux Grandes Écoles"
+                data-fr="Classe Préparatoire aux Grandes Écoles">
+              Classe Préparatoire aux Grandes Écoles
+            </h3>
+            <p data-en="Lycée Blaise-Pascal, Rouen."
+               data-fr="Lycée Blaise-Pascal, Rouen.">
+              Lycée Blaise-Pascal, Rouen.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>© 2025 Louen Pottier</p>
+  </footer>
+
+  <script src="lang.js"></script>
+</body>
+</html>

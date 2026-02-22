@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-en="Publications — Louen Pottier" data-fr="Publications — Louen Pottier">Publications — Louen Pottier</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Source+Sans+3:wght@300;400;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <div class="lang-bar">
+    <button class="lang-btn active" onclick="setLang('en')">EN</button>
+    <span class="lang-sep">·</span>
+    <button class="lang-btn" onclick="setLang('fr')">FR</button>
+  </div>
+
+  <nav>
+    <a class="nav-name" href="index.html">Louen Pottier</a>
+    <ul>
+      <li><a href="index.html" data-en="CV" data-fr="CV">CV</a></li>
+      <li><a href="publications.html" class="active" data-en="Publications" data-fr="Publications">Publications</a></li>
+      <li><a href="projects.html" data-en="Projects" data-fr="Projets">Projects</a></li>
+      <li><a href="teaching.html" data-en="Teaching" data-fr="Enseignement">Teaching</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <h1 class="page-title" data-en="Publications" data-fr="Publications">Publications</h1>
+    <p class="page-intro"
+       data-en="Peer-reviewed articles in AI, scientific computing, and NLP."
+       data-fr="Articles publiés en IA, calcul scientifique et traitement automatique des langues.">
+      Peer-reviewed articles in AI, scientific computing, and NLP.
+    </p>
+
+    <!-- ══════════════════════════════════════════════
+         Publication 1 — Latent-Energy-Based NNs (JMPS, submitted 2024)
+    ══════════════════════════════════════════════ -->
+    <article class="card">
+      <div class="card-image-col">
+        <a href="./pdf/partially-linear-autoencoder.pdf#page=6" target="_blank" class="card-image-link" title="Open PDF at figure page">
+          <div class="card-image card-video">
+            <!-- Replace with your video:
+            <video autoplay loop muted playsinline loading="lazy"
+                   poster="./img/partially-linear-ae-poster.jpg">
+              <source src="./videos/partially-linear-ae.mp4" type="video/mp4" />
+            </video>
+            -->
+            <div class="img-placeholder"></div>
+          </div>
+        </a>
+        <p class="card-caption"
+           data-en="Latent space traversal — the partially-linear structure enforces interpretable axes aligned with physical parameters."
+           data-fr="Parcours de l'espace latent — la structure partiellement linéaire impose des axes interprétables alignés sur les paramètres physiques."
+        >Latent space traversal — the partially-linear structure enforces interpretable axes aligned with physical parameters.</p>
+      </div>
+      <div class="card-body">
+        <span class="card-tag"
+              data-en="Journal · Submitted 2025 · Representation Learning · Solid Mechanics"
+              data-fr="Revue · Soumis 2025 · Apprentissage de représentations · Mécanique des solides">
+          Journal · Submitted 2025 · Representation Learning · Solid Mechanics
+        </span>
+        <h2 class="card-title">Capability of Partially-Linear Autoencoder</h2>
+        <p class="card-authors"><strong>Pottier Louen</strong>, Anders Thorin, [Co-author]</p>
+        <p class="card-desc"
+           data-en="We study the expressive power of autoencoders whose decoder is constrained to be partially linear, showing that this architectural choice achieves near-optimal reconstruction while preserving physical interpretability of the latent space. Submitted to [Journal name]."
+           data-fr="Nous étudions la capacité expressive des autoencodeurs dont le décodeur est contraint à être partiellement linéaire, montrant que ce choix architectural atteint une reconstruction quasi-optimale tout en préservant l'interprétabilité physique de l'espace latent. Soumis à [Nom de la revue].">
+          We study the expressive power of autoencoders whose decoder is constrained to be partially linear, showing that this architectural choice achieves near-optimal reconstruction while preserving physical interpretability of the latent space. Submitted to [Journal name].
+        </p>
+        <div class="card-links">
+          <a href="[DOI or preprint URL]" target="_blank" data-en="Article" data-fr="Article">Article</a>
+          <a href="./pdf/partially-linear-autoencoder.pdf" target="_blank" class="card-link-pdf" data-en="↓ PDF" data-fr="↓ PDF">↓ PDF</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-image-col">
+        <a href="./pdf/latent-energy-nn.pdf#page=8" target="_blank" class="card-image-link" title="Open PDF at figure page">
+          <div class="card-image">
+            <!-- Replace with: <img src="./img/latent-energy.png" alt="Latent energy figure" /> -->
+            <div class="img-placeholder"></div>
+          </div>
+        </a>
+        <p class="card-caption"
+           data-en="Energy landscape of a nonlinear structure — the model learns physically consistent latent deformation modes."
+           data-fr="Paysage d'énergie latente — le modèle apprend des modes de déformation physiquement cohérents."
+        >Energy landscape of a nonlinear structure — the model learns physically consistent latent deformation modes.</p>
+      </div>
+      <div class="card-body">
+        <span class="card-tag"
+              data-en="Journal · Submitted August 2024 · Solid Mechanics"
+              data-fr="Revue · Soumis août 2024 · Mécanique des solides">
+          Journal · Submitted August 2024 · Solid Mechanics
+        </span>
+        <h2 class="card-title">Latent-Energy-Based NNs: An interpretable Neural Network architecture for model-order reduction of nonlinear statics in solid mechanics</h2>
+        <p class="card-authors"><strong>Pottier Louen</strong>, Anders Thorin, Francisco Chinesta</p>
+        <p class="card-desc"
+           data-en="Submitted to the Journal of the Mechanics and Physics of Solids."
+           data-fr="Soumis au Journal of the Mechanics and Physics of Solids.">
+          Submitted to the Journal of the Mechanics and Physics of Solids.
+        </p>
+        <div class="card-links">
+          <a href="https://doi.org/10.1016/j.jmps.2024" target="_blank" data-en="Article" data-fr="Article">Article</a>
+          <a href="./pdf/latent-energy-nn.pdf" target="_blank" class="card-link-pdf" data-en="↓ PDF" data-fr="↓ PDF">↓ PDF</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-image-col">
+        <a href="./pdf/plc-verification.pdf#page=5" target="_blank" class="card-image-link" title="Open PDF at figure page">
+          <div class="card-image">
+            <!-- Replace with: <img src="./img/plc-verification.png" alt="PLC verification figure" /> -->
+            <div class="img-placeholder"></div>
+          </div>
+        </a>
+        <p class="card-caption"
+           data-en="Formal verification pipeline applied to PLC Structured Text — state automaton extracted from program logic."
+           data-fr="Pipeline de vérification formelle appliqué à un programme ST pour API — automate d'états extrait de la logique du programme."
+        >Formal verification pipeline applied to PLC Structured Text — state automaton extracted from program logic.</p>
+      </div>
+      <div class="card-body">
+        <span class="card-tag"
+              data-en="Journal · 2023 · Formal Verification · From a Junior Enterprise mission"
+              data-fr="Revue · 2023 · Vérification formelle · Issu d'une mission Junior Entreprise">
+          Journal · 2023 · Formal Verification · From a Junior Enterprise mission
+        </span>
+        <h2 class="card-title">Fresh Approaches for Structured Text Programmable Logic Controllers Programs Verification</h2>
+        <p class="card-authors">Siboulet Emile, <strong>Pottier Louen</strong>, Ranger Tom, Riera Bernard</p>
+        <p class="card-desc"
+           data-en="Published in MDPI Processes, Vol. 11(3), p. 687. Basel, Switzerland."
+           data-fr="Publié dans MDPI Processes, Vol. 11(3), p. 687. Bâle, Suisse.">
+          Published in MDPI Processes, Vol. 11(3), p. 687. Basel, Switzerland.
+        </p>
+        <div class="card-links">
+          <a href="https://doi.org/10.3390/pr11030687" target="_blank" data-en="Article" data-fr="Article">Article</a>
+          <a href="./pdf/plc-verification.pdf" target="_blank" class="card-link-pdf" data-en="↓ PDF" data-fr="↓ PDF">↓ PDF</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-image-col">
+        <a href="./pdf/deep-surrogate.pdf#page=3" target="_blank" class="card-image-link" title="Open PDF at figure page">
+          <div class="card-image">
+            <!-- Replace with: <img src="./img/deep-surrogate.png" alt="Deep surrogate figure" /> -->
+            <div class="img-placeholder"></div>
+          </div>
+        </a>
+        <p class="card-caption"
+           data-en="Predicted vs. simulated fluid velocity field at t+Δt — the surrogate matches the reference solver in real-time."
+           data-fr="Champ de vitesse fluide prédit vs. simulé à t+Δt — le modèle de substitution approche le solveur de référence en temps réel."
+        >Predicted vs. simulated fluid velocity field at t+Δt — the surrogate matches the reference solver in real-time.</p>
+      </div>
+      <div class="card-body">
+        <span class="card-tag"
+              data-en="Workshop · NeurIPS 2021 · Scientific ML"
+              data-fr="Workshop · NeurIPS 2021 · ML scientifique">
+          Workshop · NeurIPS 2021 · Scientific ML
+        </span>
+        <h2 class="card-title">Deep Surrogate for Direct Time Fluid Dynamics</h2>
+        <p class="card-authors">Meyer Lucas, <strong>Pottier Louen</strong>, Ribes Alejandro, Raffin Bruno</p>
+        <p class="card-desc"
+           data-en="NeurIPS 2021 — Thirty-fifth Workshop on Machine Learning and the Physical Sciences. Vancouver, Canada, pp. 1–7."
+           data-fr="NeurIPS 2021 — Thirty-fifth Workshop on Machine Learning and the Physical Sciences. Vancouver, Canada, pp. 1–7.">
+          NeurIPS 2021 — Thirty-fifth Workshop on Machine Learning and the Physical Sciences. Vancouver, Canada, pp. 1–7.
+        </p>
+        <div class="card-links">
+          <a href="https://hal.archive-ouvertes.fr/hal-0345142" target="_blank" data-en="Article" data-fr="Article">Article</a>
+          <a href="./pdf/deep-surrogate.pdf" target="_blank" class="card-link-pdf" data-en="↓ PDF" data-fr="↓ PDF">↓ PDF</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-image-col">
+        <a href="./pdf/gacrnn-poster.pdf#page=1" target="_blank" class="card-image-link" title="Open PDF at figure page">
+          <div class="card-image">
+            <img src="./img/gacrnn.png" alt="IUTAM poster figure — stability of recurrent cells" />
+          </div>
+        </a>
+        <p class="card-caption"
+           data-en="Key result: our architecture structurally prevents the emergence of stable orbits."
+           data-fr="Résultat clé : notre architecture empêche structurellement l'apparition d'orbites stables."
+        >Key result: our architecture structurally prevents the emergence of stable orbits.</p>
+      </div>
+      <div class="card-body">
+        <span class="card-tag"
+              data-en="Poster · IUTAM Symposium · Dynamical Systems"
+              data-fr="Poster · Symposium IUTAM · Systèmes dynamiques">
+          Poster · IUTAM Symposium · Dynamical Systems
+        </span>
+        <h2 class="card-title">Designing recurrent cells to enforce stability in real-time dynamical simulations</h2>
+        <p class="card-authors"><strong>Pottier Louen</strong>, Anders Thorin</p>
+        <p class="card-desc"
+           data-en="Poster presented at the IUTAM Symposium on Data-driven mechanics."
+           data-fr="Poster présenté au symposium IUTAM on Data-driven mechanics.">
+          Poster presented at the IUTAM Symposium on Data-driven mechanics.
+        </p>
+        <div class="card-links">
+          <a href="https://hal.science/hal-04048373" target="_blank" data-en="HAL" data-fr="HAL">HAL</a>
+          <a href="./pdf/gacrnn-poster.pdf" target="_blank" class="card-link-pdf" data-en="↓ PDF" data-fr="↓ PDF">↓ PDF</a>
+        </div>
+      </div>
+    </article>
+
+  </main>
+
+  <footer><p>© 2026 Louen Pottier</p></footer>
+  <script src="lang.js"></script>
+</body>
+</html>

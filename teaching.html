@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Louen Pottier — Teaching</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Source+Sans+3:wght@300;400;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <div class="lang-bar">
+    <button class="lang-btn active" onclick="setLang('en')">EN</button>
+    <span class="lang-sep">·</span>
+    <button class="lang-btn" onclick="setLang('fr')">FR</button>
+  </div>
+
+  <nav>
+    <a class="nav-name" href="index.html">Louen Pottier</a>
+    <ul>
+      <li><a href="index.html" data-en="CV" data-fr="CV">CV</a></li>
+      <li><a href="publications.html" data-en="Publications" data-fr="Publications">Publications</a></li>
+      <li><a href="projects.html" data-en="Projects" data-fr="Projets">Projects</a></li>
+      <li><a href="teaching.html" class="active" data-en="Teaching" data-fr="Enseignement">Teaching</a></li>
+      
+    </ul>
+  </nav>
+
+  <main>
+    <h1 class="page-title" data-en="Teaching" data-fr="Enseignement">Teaching</h1>
+    <p class="page-intro"
+       data-en="Part-time lecturer at ESILV and ENS alongside my research activities."
+       data-fr="Enseignant vacataire à l'ESILV et à l'ENS en parallèle de mes activités de recherche.">
+      Part-time lecturer at ESILV and ENS alongside my research activities.
+    </p>
+
+    <div class="teaching-grid">
+
+      <!-- EDP — en premier -->
+      <div class="teaching-card">
+        <div class="teaching-card-media">
+          <!-- Replace with: <img src="./img/teaching-pde.png" alt="PDE illustration" class="teaching-card-img" /> -->
+          <div class="img-placeholder"></div>
+          <img src="./logos/esilv.png" alt="ESILV" class="teaching-card-school-logo" />
+        </div>
+        <h3 data-en="Partial Differential Equations" data-fr="Équations aux Dérivées Partielles">Partial Differential Equations</h3>
+        <p class="teaching-meta"
+           data-en="ESILV · L3 · 30 students"
+           data-fr="ESILV · L3 · 30 étudiants">
+          ESILV · L3 · 30 students
+        </p>
+        <p data-en="Classification of PDEs, analytical methods (separation of variables, Green functions), introduction to numerical methods."
+           data-fr="Classification des EDP, méthodes analytiques (séparation des variables, fonctions de Green), introduction aux méthodes numériques.">
+          Classification of PDEs, analytical methods (separation of variables, Green functions), introduction to numerical methods.
+        </p>
+      </div>
+
+      <!-- Fluid Mechanics EN -->
+      <div class="teaching-card">
+        <div class="teaching-card-media">
+          <!-- Replace with: <img src="./img/teaching-fluids-en.png" alt="Fluid mechanics illustration" class="teaching-card-img" /> -->
+          <div class="img-placeholder"></div>
+          <img src="./logos/esilv.png" alt="ESILV" class="teaching-card-school-logo" />
+        </div>
+        <h3 data-en="Fluid Mechanics" data-fr="Mécanique des Fluides">Fluid Mechanics</h3>
+        <p class="teaching-meta"
+           data-en="ESILV · M1 · 2×30 students"
+           data-fr="ESILV · M1 · 2×30 étudiants">
+          ESILV · M1 · 2×30 students
+        </p>
+        <p data-en="Lectures and tutorials: incompressible flow, Navier-Stokes equations, boundary layers, introduction to turbulence."
+           data-fr="Cours et TD : écoulements incompressibles, équations de Navier-Stokes, couche limite, introduction à la turbulence.">
+          Lectures and tutorials: incompressible flow, Navier-Stokes equations, boundary layers, introduction to turbulence.
+        </p>
+      </div>
+
+      <!-- Mécanique des fluides FR -->
+      <div class="teaching-card">
+        <div class="teaching-card-media">
+          <!-- Replace with: <img src="./img/teaching-fluids-fr.png" alt="Mécanique des fluides illustration" class="teaching-card-img" /> -->
+          <div class="img-placeholder"></div>
+          <img src="./logos/esilv.png" alt="ESILV" class="teaching-card-school-logo" />
+        </div>
+        <h3 data-en="Fluid Mechanics (French)" data-fr="Mécanique des Fluides">Fluid Mechanics</h3>
+        <p class="teaching-meta"
+           data-en="ESILV · L3 &amp; M1 · 4×30 students"
+           data-fr="ESILV · L3 &amp; M1 · 4×30 étudiants">
+          ESILV · L3 &amp; M1 · 4×30 students
+        </p>
+        <p data-en="Lectures and tutorials: incompressible flow, Navier-Stokes equations, boundary layers, introduction to turbulence."
+           data-fr="Cours et TD : écoulements incompressibles, équations de Navier-Stokes, couche limite, introduction à la turbulence.">
+          Lectures and tutorials: incompressible flow, Navier-Stokes equations, boundary layers, introduction to turbulence.
+        </p>
+      </div>
+
+      <!-- Thermodynamique -->
+      <div class="teaching-card">
+        <div class="teaching-card-media">
+          <!-- Replace with: <img src="./img/teaching-thermo.png" alt="Thermodynamics illustration" class="teaching-card-img" /> -->
+          <div class="img-placeholder"></div>
+          <img src="./logos/esilv.png" alt="ESILV" class="teaching-card-school-logo" />
+        </div>
+        <h3 data-en="Thermodynamics" data-fr="Thermodynamique">Thermodynamics</h3>
+        <p class="teaching-meta"
+           data-en="ESILV · L2 · 11×30 students"
+           data-fr="ESILV · L2 · 11×30 étudiants">
+          ESILV · L2 · 11×30 students
+        </p>
+        <p data-en="Thermodynamic systems, entropy, thermodynamic cycles and applications to engineering."
+           data-fr="Systèmes thermodynamiques, entropie, cycles thermodynamiques et applications à l'ingénierie.">
+          Thermodynamic systems, entropy, thermodynamic cycles and applications to engineering.
+        </p>
+      </div>
+
+      <!-- ENS — Tutorat maths -->
+      <div class="teaching-card">
+        <div class="teaching-card-media">
+          <!-- Replace with: <img src="./img/teaching-ens-maths.png" alt="Mathematics tutoring illustration" class="teaching-card-img" /> -->
+          <div class="img-placeholder"></div>
+          <img src="./logos/ens.png" alt="ENS" class="teaching-card-school-logo" />
+        </div>
+        <h3 data-en="Mathematics Tutoring" data-fr="Tutorat en Mathématiques">Mathematics Tutoring</h3>
+        <p class="teaching-meta"
+           data-en="ENS · [Level] · [Students]"
+           data-fr="ENS · [Niveau] · [Étudiants]">
+          ENS · [Level] · [Students]
+        </p>
+        <p data-en="[To be completed.]"
+           data-fr="[À compléter.]">
+          [To be completed.]
+        </p>
+      </div>
+
+    </div>
+  </main>
+
+  <footer><p>© 2026 Louen Pottier</p></footer>
+  <script src="lang.js"></script>
+</body>
+</html>
