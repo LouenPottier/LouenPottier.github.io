@@ -319,6 +319,32 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
   </script>
 
+  <script>
+    // Sur mobile, déplace les logos dans la rangée tech-pills (à droite)
+    function setupMobileLogos() {
+      const isMobile = window.innerWidth <= 720;
+      document.querySelectorAll('.card-with-logo').forEach(card => {
+        const pills = card.querySelector('.tech-pills');
+        const logoCol = card.querySelector('.card-logo-col');
+        if (!pills || !logoCol) return;
+
+        // Nettoie les logos mobiles déjà injectés
+        pills.querySelectorAll('.mobile-logo').forEach(el => el.remove());
+
+        if (isMobile) {
+          const wrapper = document.createElement('li');
+          wrapper.className = 'mobile-logo';
+          logoCol.querySelectorAll('img').forEach(img => {
+            wrapper.appendChild(img.cloneNode());
+          });
+          pills.appendChild(wrapper);
+        }
+      });
+    }
+
+    setupMobileLogos();
+    window.addEventListener('resize', setupMobileLogos);
+  </script>
   <script src="lang.js"></script>
 </body>
 </html>
