@@ -113,6 +113,14 @@ nav a {
   transition: color 0.15s, border-color 0.15s;
 }
 
+/* nav-name is not a nav link, reset line-height so it doesn't blow up when wrapping */
+a.nav-name {
+  line-height: 1.25;
+  padding: 0;
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
 nav a:hover { color: var(--navy-mid); }
 nav a.active {
   color: var(--navy);
@@ -767,9 +775,10 @@ footer {
 
 /* ── RESPONSIVE ── */
 @media (max-width: 720px) {
-  nav { padding: 0 1.25rem; }
+  nav { padding: 0 1.25rem; height: auto; min-height: 52px; flex-wrap: wrap; align-items: center; }
   nav ul { gap: 0; }
   nav a { padding: 0 0.6rem; font-size: 0.78rem; }
+  .nav-name { line-height: 1.2; padding: 0.4rem 0; white-space: normal; max-width: 7rem; }
   main { padding: 2rem 1.25rem 4rem; }
 
   .hero { grid-template-columns: 1fr; }
