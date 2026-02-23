@@ -30,7 +30,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Source Sans 3', 'Helvetica Neue', sans-serif;
-  font-size: 1rem;
+  font-size: 1.05rem;
   line-height: 1.65;
   min-height: 100vh;
   display: flex;
@@ -131,7 +131,7 @@ nav a.active {
 /* ── MAIN ── */
 main {
   flex: 1;
-  max-width: 960px;
+  max-width: 1200px;
   width: 100%;
   margin: 0 auto;
   padding: 3.5rem 2rem 6rem;
@@ -417,7 +417,7 @@ main {
 /* ── CARDS (publications / projects) ── */
 .card {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 275px 1fr;
   gap: 2rem;
   padding: 2rem 0;
   border-bottom: 1px solid var(--border-soft);
@@ -427,7 +427,7 @@ main {
 
 /* Projects: 3-column layout  image | logo | text */
 .card.card-with-logo {
-  grid-template-columns: 220px 1fr 80px;
+  grid-template-columns: 275px 1fr 80px;
   gap: 1.5rem;
 }
 
@@ -450,8 +450,8 @@ main {
 }
 
 .card-image {
-  width: 220px;
-  height: 160px;
+  width: 275px;
+  height: 200px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
@@ -477,7 +477,7 @@ main {
   color: var(--text-faint);
   letter-spacing: 0.02em;
   margin-top: 0.4rem;
-  max-width: 220px;
+  max-width: 275px;
   font-style: italic;
 }
 

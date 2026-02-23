@@ -34,20 +34,15 @@
       Peer-reviewed articles in AI, scientific computing, and NLP.
     </p>
 
-    <!-- ══════════════════════════════════════════════
-         Publication 1 — Latent-Energy-Based NNs (JMPS, submitted 2024)
-    ══════════════════════════════════════════════ -->
+    <!-- Publication 1 — Partially-Linear Autoencoder -->
     <article class="card">
       <div class="card-image-col">
-        <a href="./pdf/partially-linear-autoencoder.pdf#page=6" target="_blank" class="card-image-link" title="Open PDF at figure page">
-          <div class="card-image card-video">
-            <video autoplay loop muted playsinline loading="lazy"
-                   poster="./img/partially-linear-ae-poster.jpg">
-              <source src="./videos/lenc.mp4" type="video/mp4" />
-            </video>
-
-          </div>
-        </a>
+        <div class="card-image card-video card-image-clickable"
+             onclick="openLightboxVideo('./videos/lenc.mp4')" title="Cliquer pour agrandir">
+          <video autoplay loop muted playsinline loading="lazy">
+            <source src="./videos/lenc.mp4" type="video/mp4" />
+          </video>
+        </div>
         <p class="card-caption"
            data-en="Latent space trajectory for the video test case. Our method (right) produces a smooth latent space without discontinuities."
            data-fr="Parcours de l'espace latent pour le cas test vidéo. Notre méthode (droite) produit un espace latent lisse et sans discontinuité."
@@ -73,19 +68,17 @@
       </div>
     </article>
 
+    <!-- Publication 2 — Latent-Energy-Based NNs -->
     <article class="card">
       <div class="card-image-col">
-        <a href="./pdf/latent-energy-nn.pdf#page=8" target="_blank" class="card-image-link" title="Open PDF at figure page">
-          <div class="card-image">
-            <img src="./img/publications/lebnn.png" alt="Latent energy figure" />
-            <div class="img-placeholder"></div>
-          </div>
-        </a>
+        <div class="card-image card-image-clickable"
+             onclick="openLightboxImg('./img/publications/lebnn.png', 'Architecture with double autoencoder')" title="Cliquer pour agrandir">
+          <img src="./img/publications/lebnn.png" alt="Latent energy figure" />
+        </div>
         <p class="card-caption"
            data-en="Architecture with double autoencoder used to learn multiple static equilibria of an hyperelastic structure."
            data-fr="Architecture en double autoencoder utilisée pour apprendre les multiples équilibres statiques d'une structure hyperélastique."
-        > Architecture with double autoencoder used to learn multiple static equilibria of an hyperelastic structure.
-</p>
+        >Architecture with double autoencoder used to learn multiple static equilibria of an hyperelastic structure.</p>
       </div>
       <div class="card-body">
         <span class="card-tag"
@@ -107,16 +100,16 @@
       </div>
     </article>
 
+    <!-- Publication 3 — PLC Verification -->
     <article class="card">
       <div class="card-image-col">
-        <a href="./pdf/plc-verification.pdf#page=5" target="_blank" class="card-image-link" title="Open PDF at figure page">
-          <div class="card-image">
-            <img src="./img/publications/dglstm.png" alt="PLC verification figure" />
-          </div>
-        </a>
+        <div class="card-image card-image-clickable"
+             onclick="openLightboxImg('./img/publications/dglstm.png', 'PLC verification figure')" title="Cliquer pour agrandir">
+          <img src="./img/publications/dglstm.png" alt="PLC verification figure" />
+        </div>
         <p class="card-caption"
            data-en="Example of causality graphs and the associated DGLSTM network employed to extract information from ST code."
-           data-fr="Example de graphes de causalité et réseau DGLSTM associé utilisés pour extraire l’information du code ST."
+           data-fr="Example de graphes de causalité et réseau DGLSTM associé utilisés pour extraire l'information du code ST."
         >Example of causality graphs and the associated DGLSTM network employed to extract information from ST code.</p>
       </div>
       <div class="card-body">
@@ -139,20 +132,18 @@
       </div>
     </article>
 
+    <!-- Publication 4 — Deep Surrogate -->
     <article class="card">
       <div class="card-image-col">
-        <a href="./pdf/deep-surrogate.pdf#page=3" target="_blank" class="card-image-link" title="Open PDF at figure page">
-          <div class="card-image card-video">
-            <video autoplay loop muted playsinline loading="lazy"
-                   poster="./img/partially-linear-ae-poster.jpg">
-              <source src="./videos/vonkarman.mp4" type="video/mp4" />
-            </video>
-
-          </div>
-        </a>
+        <div class="card-image card-video card-image-clickable"
+             onclick="openLightboxVideo('./videos/vonkarman.mp4')" title="Cliquer pour agrandir">
+          <video autoplay loop muted playsinline loading="lazy">
+            <source src="./videos/vonkarman.mp4" type="video/mp4" />
+          </video>
+        </div>
         <p class="card-caption"
            data-en="Predicted and simulated fluid velocity fields, along with the error field, for the von Kármán test case using our GNN architecture."
-           data-fr="Champ de vitesse du fluide prédit vs simulé et champ d’erreur pour le cas test de Von Kármán avec notre architecture GNN."
+           data-fr="Champ de vitesse du fluide prédit vs simulé et champ d'erreur pour le cas test de Von Kármán avec notre architecture GNN."
         >Predicted and simulated fluid velocity fields, along with the error field, for the von Kármán test case using our GNN architecture.</p>
       </div>
       <div class="card-body">
@@ -175,13 +166,13 @@
       </div>
     </article>
 
+    <!-- Publication 5 — GACRNN poster -->
     <article class="card">
       <div class="card-image-col">
-        <a href="./pdf/gacrnn-poster.pdf#page=1" target="_blank" class="card-image-link" title="Open PDF at figure page">
-          <div class="card-image">
-            <img src="./img/publications/gacrnn.png" alt="IUTAM poster figure — stability of recurrent cells" />
-          </div>
-        </a>
+        <div class="card-image card-image-clickable"
+             onclick="openLightboxImg('./img/publications/gacrnn.png', 'IUTAM poster — stability of recurrent cells')" title="Cliquer pour agrandir">
+          <img src="./img/publications/gacrnn.png" alt="IUTAM poster figure — stability of recurrent cells" />
+        </div>
         <p class="card-caption"
            data-en="Key result: our architecture structurally prevents the emergence of stable orbits."
            data-fr="Résultat clé : notre architecture empêche structurellement l'apparition d'orbites stables."
@@ -210,6 +201,49 @@
   </main>
 
   <footer><p>© 2026 Louen Pottier</p></footer>
+
+  <!-- ── LIGHTBOX (image + video) ── -->
+  <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <img id="lightbox-img" src="" alt="" style="display:none" />
+    <video id="lightbox-video" autoplay loop muted playsinline
+           style="display:none; max-width:90vw; max-height:88vh; border-radius:3px; box-shadow:0 8px 48px rgba(0,0,0,0.5);">
+    </video>
+  </div>
+  <script>
+    function openLightboxImg(src, alt) {
+      const lb = document.getElementById('lightbox');
+      const img = document.getElementById('lightbox-img');
+      const vid = document.getElementById('lightbox-video');
+      img.src = src; img.alt = alt;
+      img.style.display = 'block';
+      vid.style.display = 'none';
+      vid.pause();
+      lb.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function openLightboxVideo(src) {
+      const lb = document.getElementById('lightbox');
+      const img = document.getElementById('lightbox-img');
+      const vid = document.getElementById('lightbox-video');
+      img.style.display = 'none';
+      vid.src = src;
+      vid.style.display = 'block';
+      vid.play();
+      lb.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeLightbox() {
+      const lb = document.getElementById('lightbox');
+      const vid = document.getElementById('lightbox-video');
+      lb.classList.remove('active');
+      vid.pause();
+      vid.src = '';
+      document.body.style.overflow = '';
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+  </script>
+
   <script src="lang.js"></script>
 </body>
 </html>
