@@ -27,13 +27,112 @@
   </nav>
 
   <main>
-    <h1 class="page-title" data-en="Publications" data-fr="Publications">Publications</h1>
-    <p class="page-intro"
-       data-en="Peer-reviewed articles in AI, scientific computing, and NLP."
-       data-fr="Articles publiés en IA, calcul scientifique et traitement automatique des langues.">
-      Peer-reviewed articles in AI, scientific computing, and NLP.
-    </p>
+    <h1 class="page-title"
+        data-en="Research Activity"
+        data-fr="Activité de Recherche">Research Activity</h1>
 
+    <!-- ══ RESEARCH THREAD ══════════════════════════════════════ -->
+    <section class="research-thread">
+      <p class="thread-intro"
+         data-en="Over the past four years, my research has focused on a central question: how to embed physical priors into neural network architectures for interactive simulation and model-order reduction. Early explorations (Deep Surrogate, GACRNN) established the landscape of the problem. LEBNN emerged as a foundational answer — an interpretable architecture grounded in energy mechanics, later applied in the European ARISE project. This line of work then branched in two directions: LLNN extends LEBNN to nonlinear dynamical systems, while PL-Autoencoder provides the theoretical grounding for structured latent spaces. Both converge into our most ambitious work, Learning Physics from Video."
+         data-fr="Au cours des quatre dernières années, mes recherches ont porté sur une question centrale : comment intégrer des a priori physiques dans des architectures de réseaux de neurones pour la simulation interactive et la réduction de modèles. Des explorations préliminaires (Deep Surrogate, GACRNN) ont permis de délimiter le problème. LEBNN en est la réponse fondatrice — une architecture interprétable ancrée dans la mécanique énergétique, appliquée par la suite dans le projet européen ARISE. Ce travail s'est ensuite ramifié dans deux directions : LLNN étend LEBNN aux systèmes dynamiques non linéaires, tandis que PL-Autoencoder fournit le cadre théorique des espaces latents structurés. Les deux convergent vers notre travail le plus ambitieux, Learning Physics from Video.">
+        Over the past four years, my research has focused on a central question: how to embed physical priors into neural network architectures for interactive simulation and model-order reduction. Early explorations (Deep Surrogate, GACRNN) established the landscape of the problem. LEBNN emerged as a foundational answer — an interpretable architecture grounded in energy mechanics, later applied in the European ARISE project. This line of work then branched in two directions: LLNN extends LEBNN to nonlinear dynamical systems, while PL-Autoencoder provides the theoretical grounding for structured latent spaces. Both converge into our most ambitious work, Learning Physics from Video.
+      </p>
+
+      <div class="thread-graph-wrap">
+        <svg class="thread-svg" viewBox="0 0 960 300" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#1a2e4a" />
+            </marker>
+            <marker id="arr-prep" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#4a7a5a" />
+            </marker>
+          </defs>
+
+          <!-- GACRNN -->
+          <g class="thread-node">
+            <rect class="thread-box" x="10" y="30" width="160" height="46" rx="3"/>
+            <text class="thread-title" x="90" y="52" text-anchor="middle">GACRNN</text>
+            <text class="thread-sub"  x="90" y="67" text-anchor="middle">IUTAM Poster · 2022</text>
+          </g>
+
+          <!-- MORTech 2023 -->
+          <g class="thread-node">
+            <rect class="thread-box" x="250" y="30" width="180" height="46" rx="3"/>
+            <text class="thread-title" x="340" y="52" text-anchor="middle">LEBNN</text>
+            <text class="thread-sub"  x="340" y="67" text-anchor="middle">MORTech Poster · 2023</text>
+          </g>
+
+          <!-- LEBNN -->
+          <g class="thread-node">
+            <rect class="thread-box" x="250" y="130" width="180" height="46" rx="3"/>
+            <text class="thread-title" x="340" y="152" text-anchor="middle">LEBNN</text>
+            <text class="thread-sub"  x="340" y="167" text-anchor="middle">JMPS · 2024</text>
+          </g>
+
+          <!-- LLNN -->
+          <g class="thread-node">
+            <rect class="thread-box" x="500" y="130" width="190" height="46" rx="3"/>
+            <text class="thread-title" x="595" y="152" text-anchor="middle">LLNN</text>
+            <text class="thread-sub"  x="595" y="167" text-anchor="middle">MORTech 2025</text>
+          </g>
+
+          <!-- PL-AE -->
+          <g class="thread-node">
+            <rect class="thread-box thread-box-prep" x="250" y="230" width="180" height="46" rx="3"/>
+            <text class="thread-title thread-title-prep" x="340" y="252" text-anchor="middle">PL-Autoencoder</text>
+            <text class="thread-sub" x="340" y="267" text-anchor="middle"
+                  data-en="JMLR · in preparation" data-fr="JMLR · en préparation">JMLR · in preparation</text>
+          </g>
+
+          <!-- Learning Physics from Video -->
+          <g class="thread-node">
+            <rect class="thread-box thread-box-prep" x="710" y="230" width="210" height="46" rx="3"/>
+            <text class="thread-title thread-title-prep" x="815" y="249" text-anchor="middle"
+                  data-en="Learning Physics from Video" data-fr="Learning Physics from Video">Learning Physics from Video</text>
+            <text class="thread-sub" x="815" y="264" text-anchor="middle"
+                  data-en="in preparation" data-fr="en préparation">in preparation</text>
+          </g>
+
+          <!-- GACRNN → MORTech 2023 -->
+          <line class="thread-edge" x1="170" y1="53" x2="248" y2="53" />
+          <text class="thread-edge-label" x="209" y="45" text-anchor="middle"
+                data-en="inspires" data-fr="inspire">inspires</text>
+
+          <!-- MORTech 2023 → LEBNN -->
+          <line class="thread-edge" x1="340" y1="76" x2="340" y2="128" />
+          <text class="thread-edge-label" x="356" y="107" text-anchor="start"
+                data-en="formalized by" data-fr="formalisé par">formalized by</text>
+
+          <!-- LEBNN → LLNN -->
+          <line class="thread-edge" x1="430" y1="153" x2="498" y2="153" />
+          <text class="thread-edge-label" x="464" y="145" text-anchor="middle"
+                data-en="extends" data-fr="étend">extends</text>
+
+          <!-- LEBNN → PL-AE -->
+          <line class="thread-edge-prep" x1="340" y1="176" x2="340" y2="228" />
+          <text class="thread-edge-label" x="356" y="207" text-anchor="start"
+                data-en="motivates" data-fr="motive">motivates</text>
+
+          <!-- LLNN descend verticalement -->
+          <line class="thread-edge-prep-noarrow" x1="595" y1="176" x2="595" y2="253"/>
+          <!-- PL-AE → point sous LLNN -->
+          <line class="thread-edge-prep-noarrow" x1="430" y1="253" x2="595" y2="253"/>
+          <!-- → point de fusion -->
+          <line class="thread-edge-prep-noarrow" x1="595" y1="253" x2="658" y2="253"/>
+          <!-- → Learning Physics -->
+          <line class="thread-edge-prep" x1="660" y1="253" x2="708" y2="253" />
+          <text class="thread-edge-label" x="660" y="245" text-anchor="end"
+                data-en="combines" data-fr="combine">combines</text>
+
+        </svg>
+      </div>
+    </section>
+
+    <h2 class="publications-subtitle"
+        data-en="Publications"
+        data-fr="Publications">Publications</h2>
 
     <!-- Publication 0 — Learning Physics from Video (in preparation) -->
     <article class="card">

@@ -843,3 +843,93 @@ footer {
 
   .lang-bar { padding: 0.35rem 1.25rem; }
 }
+
+/* ══ RESEARCH THREAD GRAPH ══════════════════════════════════ */
+.research-thread {
+  margin: 2.5rem 0 3rem;
+}
+
+.thread-intro {
+  font-size: 0.95rem;
+  color: var(--navy);
+  line-height: 1.65;
+  margin-bottom: 1.75rem;
+  max-width: 680px;
+}
+
+.thread-graph-wrap {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.thread-svg {
+  display: block;
+  width: 72%;
+  min-width: 500px;
+  height: auto;
+}
+
+.thread-divider {
+  border: none;
+  border-top: 2px solid var(--navy);
+  margin: 2rem 0 2.5rem;
+}
+
+/* Nodes */
+.thread-box {
+  fill: var(--bg);
+  stroke: var(--navy);
+  stroke-width: 1.5;
+}
+.thread-box-prep {
+  stroke: #4a7a5a;
+  stroke-dasharray: 5 3;
+}
+.thread-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  fill: var(--navy);
+}
+.thread-title-prep {
+  fill: #4a7a5a;
+}
+.thread-sub {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 10px;
+  fill: var(--muted);
+}
+
+/* Edges */
+.thread-edge {
+  fill: none;
+  stroke: var(--navy);
+  stroke-width: 1.5;
+  marker-end: url(#arr);
+}
+.thread-edge-prep {
+  fill: none;
+  stroke: #4a7a5a;
+  stroke-width: 1.5;
+  stroke-dasharray: 5 3;
+  marker-end: url(#arr-prep);
+}
+.thread-edge-prep-noarrow {
+  fill: none;
+  stroke: #4a7a5a;
+  stroke-width: 1.5;
+  stroke-dasharray: 5 3;
+}
+.thread-edge-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  fill: var(--muted);
+}
+
+.publications-subtitle {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 1.5rem;
+}
