@@ -846,15 +846,16 @@ footer {
 
 /* ══ RESEARCH THREAD GRAPH ══════════════════════════════════ */
 .research-thread {
-  margin: 2.5rem 0 3rem;
+  margin: 0 0 3rem;
 }
 
 .thread-intro {
-  font-size: 0.95rem;
-  color: var(--navy);
+  font-size: 0.97rem;
+  color: var(--text-muted);
   line-height: 1.65;
   margin-bottom: 1.75rem;
   max-width: 680px;
+  font-style: italic;
 }
 
 .thread-graph-wrap {
