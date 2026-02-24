@@ -934,3 +934,8 @@ footer {
   color: var(--navy);
   margin-bottom: 1.5rem;
 }
+
+/* Scroll offset for anchor links (sticky nav = 52px + margin) */
+article[id] {
+  scroll-margin-top: 72px;
+}

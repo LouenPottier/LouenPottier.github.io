@@ -35,20 +35,23 @@
 <article class="card card-with-logo">
 <div><div class="card-image card-video card-image-clickable" onclick='openLightboxVideo("./videos/arise.mp4")' title="Cliquer pour agrandir">
 <video autoplay loop muted playsinline loading="lazy"><source src="./videos/arise.mp4" type="video/mp4" /></video>
-</div><p class="card-caption" data-en="Architecture overview of the ARISE AI pipeline for robust industrial inspection." data-fr="Vue d'ensemble de l'architecture du pipeline IA ARISE pour l'inspection industrielle robuste.">Architecture overview of the ARISE AI pipeline for robust industrial inspection.</p></div>
+</div><p class="card-caption" data-en="Grasping operation by a soft gripper used in the ARISE project — contact simulation performed in real time by a LEBNN." data-fr="Opération de grasping par un préhenseur flexible utilisé par le projet ARISE — la simulation du contact est réalisée en temps réel par un LEBNN.">Grasping operation by a soft gripper used in the ARISE project — contact simulation performed in real time by a LEBNN.</p></div>
 <div class="card-body">
-<span class="card-tag" data-en="European Research Programme · CEA-List · 20XX–20XX" data-fr="Programme de Recherche Européen · CEA-List · 20XX–20XX">
-          European Research Programme · CEA-List · 20XX–20XX
+<span class="card-tag" data-en="European Research Programme · CEA-List · 2024–2027" data-fr="Programme de Recherche Européen · CEA-List · 2024–2027">
+          European Research Programme · CEA-List · 2024–2027
         </span>
 <h2 class="card-title">ARISE</h2>
 <ul class="tech-pills">
-<li>[Tool]</li>
-<li>[Tool]</li>
-<li>[Tool]</li>
+<li>Ansys</li>
+<li>PyTorch</li>
+<li>RL</li>
 </ul>
-<p class="card-desc" data-en="[Two or three sentences describing the objective, your contribution, and the key technical approaches. Mention the Horizon programme name if applicable.]" data-fr="[Deux ou trois phrases décrivant l'objectif, votre contribution et les approches clés. Mentionner le programme Horizon si applicable.]">
-          [Two or three sentences describing the objective, your contribution, and the key technical approaches. Mention the Horizon programme name if applicable.]
+<p class="card-desc" data-en="ARISE is a European research programme aimed at designing soft industrial robots operating in close contact with human operators. Robots are trained via reinforcement learning in a physically realistic virtual reality simulation developed by CEA. My LEBNN neural network architecture (published in JMPS, 2024) is used to simulate hyperelastic components in real time, making the full simulation tractable." data-fr="ARISE est un programme de recherche européen visant à concevoir des robots industriels souples opérant au contact d'opérateurs humains. Les robots sont entraînés par apprentissage par renforcement dans une simulation de réalité virtuelle physiquement réaliste, développée par le CEA. Mon architecture de réseaux de neurones LEBNN (publiée dans JMPS, 2024) est utilisée pour simuler les composants hyperélastiques en temps réel, rendant la simulation complète possible.">
+          ARISE is a European research programme aimed at designing soft industrial robots operating in close contact with human operators. Robots are trained via reinforcement learning in a physically realistic virtual reality simulation developed by CEA. My LEBNN neural network architecture (published in JMPS, 2024) is used to simulate hyperelastic components in real time, making the full simulation tractable.
         </p>
+<div class="card-links">
+<a data-en="Related publication →" data-fr="Publication associée →" href="publications.html#lebnn">Related publication →</a>
+</div>
 </div>
 <div class="card-logo-col">
 <img alt="European Commission" src="./logos/comissioneuropeene.png"/>
@@ -168,21 +171,21 @@
 <article class="card card-with-logo">
 <div><div class="card-image card-image-clickable" onclick='openLightbox("./img/projets/contact.png", "")' title="Cliquer pour agrandir">
 <img src="./img/projets/contact.png" alt="Coupling project" />
-</div><p class="card-caption" data-en="Coupled simulation convergence curves — the hybrid method reduces iteration count by ~40%." data-fr="Courbes de convergence de la simulation couplée — la méthode hybride réduit le nombre d'itérations de ~40%.">Coupled simulation convergence curves — the hybrid method reduces iteration count by ~40%.</p></div>
+</div><p class="card-caption" data-en="Contact simulation between a soft gripper (simulated by a neural network) and a rigid object (simulated by XDE)." data-fr="Simulation du contact entre un gripper souple (simulé par réseau de neurones) et un objet rigide (simulé par XDE).">Contact simulation between a soft gripper (simulated by a neural network) and a rigid object (simulated by XDE).</p></div>
 <div class="card-body">
-<span class="card-tag" data-en="Numerical Simulation · CEA-List · 20XX" data-fr="Simulation Numérique · CEA-List · 20XX">
-          Numerical Simulation · CEA-List · 20XX
+<span class="card-tag" data-en="Numerical Simulation · CEA-List · 2025–2026" data-fr="Simulation Numérique · CEA-List · 2025–2026">
+          Numerical Simulation · CEA-List · 2025–2026
         </span>
-<h2 class="card-title" data-en="Coupling [method A] / [method B]" data-fr="Couplage [méthode A] / [méthode B]">
-          Coupling [method A] / [method B]
+<h2 class="card-title" data-en="Neural Network / XDE Coupling" data-fr="Couplage Réseau de Neurones / XDE">
+          Neural Network / XDE Coupling
         </h2>
 <ul class="tech-pills">
-<li>[Tool]</li>
-<li>[Tool]</li>
-<li>[Tool]</li>
+<li>C++</li>
+<li>libtorch</li>
+<li>PyTorch</li>
 </ul>
-<p class="card-desc" data-en="[Description of the coupling approach, scientific challenge, and results achieved.]" data-fr="[Description de l'approche de couplage, du défi scientifique et des résultats obtenus.]">
-          [Description of the coupling approach, scientific challenge, and results achieved.]
+<p class="card-desc" data-en="Development of a real-time coupling method between a neural network surrogate and the XDE physics engine, implemented in C++ with libtorch. The neural network handles computationally intensive components, allowing the full simulation to run in real time." data-fr="Développement d'une méthode de couplage en temps réel entre un réseau de neurones substitut et le moteur physique XDE, implémenté en C++ avec libtorch. Le réseau de neurones prend en charge les composants coûteux en calcul, permettant à la simulation complète de tourner en temps réel.">
+          Development of a real-time coupling method between a neural network surrogate and the XDE physics engine, implemented in C++ with libtorch. The neural network handles computationally intensive components, allowing the full simulation to run in real time.
         </p>
 </div>
 <div class="card-logo-col">
@@ -210,7 +213,7 @@
           [Description of the project, your contribution, and results. Linked to the associated publication below.]
         </p>
 <div class="card-links">
-<a data-en="Related publication →" data-fr="Publication associée →" href="publications.html">Related publication →</a>
+<a data-en="Related publication →" data-fr="Publication associée →" href="publications.html#deep-surrogate">Related publication →</a>
 </div>
 </div>
 <div class="card-logo-col">
@@ -223,19 +226,19 @@
 <article class="card card-with-logo">
 <div><div class="card-image card-image-clickable" onclick='openLightbox("./img/projets/castem.png", "")' title="Cliquer pour agrandir">
 <img src="./img/projets/castem.png" alt="Cast3M project" />
-</div><p class="card-caption" data-en="Cast3M finite-element model of a biological structure — displacement field under physiological loading." data-fr="Modèle éléments finis Cast3M d'une structure biologique — champ de déplacement sous chargement physiologique.">Cast3M finite-element model of a biological structure — displacement field under physiological loading.</p></div>
+</div><p class="card-caption" data-en="Example result from the coupled simulation. The joint learned by the neural network is present 256 times in each grid of the fuel assembly." data-fr="Exemple de résultat de la simulation couplée. La liaison apprise par le réseau de neurones est présente en 256 exemplaires dans chaque grille de l'assemblage combustible.">Example result from the coupled simulation. The joint learned by the neural network is present 256 times in each grid of the fuel assembly.</p></div>
 <div class="card-body">
-<span class="card-tag" data-en="Numerical Simulation · CEA · Centre Borelli · 20XX" data-fr="Simulation Numérique · CEA · Centre Borelli · 20XX">
-          Numerical Simulation · CEA · Centre Borelli · 20XX
+<span class="card-tag" data-en="Numerical Simulation · CEA · Centre Borelli · 2020" data-fr="Simulation Numérique · CEA · Centre Borelli · 2020">
+          Numerical Simulation · CEA · Centre Borelli · 2020
         </span>
-<h2 class="card-title">Cast3M — [Project name]</h2>
+<h2 class="card-title" data-en="Neural Network / Cast3M Coupling — Nuclear Assembly" data-fr="Couplage Réseau de Neurones / Cast3M — Assemblage Nucléaire">Neural Network / Cast3M Coupling — Nuclear Assembly</h2>
 <ul class="tech-pills">
+<li>LSTM</li>
 <li>Cast3M</li>
-<li>FEM</li>
-<li>[Tool]</li>
+<li>PyTorch</li>
 </ul>
-<p class="card-desc" data-en="[Description of the numerical simulation work carried out with Cast3M, in collaboration with Centre Borelli.]" data-fr="[Description des travaux de simulation numérique réalisés avec Cast3M, en collaboration avec le Centre Borelli.]">
-          [Description of the numerical simulation work carried out with Cast3M, in collaboration with Centre Borelli.]
+<p class="card-desc" data-en="Research project carried out as part of the ENS AI Research Year. A LSTM network was trained to learn the behaviour of a mechanical joint present in very large numbers in nuclear fuel assemblies. The model was integrated into a Cast3M finite-element simulation via a PyTorch coupling, achieving a 5× speed-up in simulation time." data-fr="Projet de recherche réalisé dans le cadre de l'Année de Recherche en IA du diplôme de l'ENS. Un réseau LSTM a été entraîné à apprendre le comportement d'une liaison mécanique présente en très grand nombre dans les assemblages combustibles de centrales nucléaires. Le modèle a été intégré dans une simulation Cast3M d'assemblage combustible via un couplage PyTorch, divisant le temps de simulation par 5.">
+          Research project carried out as part of the ENS AI Research Year. A LSTM network was trained to learn the behaviour of a mechanical joint present in very large numbers in nuclear fuel assemblies. The model was integrated into a Cast3M finite-element simulation via a PyTorch coupling, achieving a 5× speed-up in simulation time.
         </p>
 </div>
 <div class="card-logo-col">
@@ -249,23 +252,22 @@
 <article class="card card-with-logo">
 <div><div class="card-image card-image-clickable" onclick='openLightbox("./img/publications/dglstm.png", "")' title="Cliquer pour agrandir">
 <img src="./img/publications/dglstm.png" alt="DGL-LSTM project" />
-</div><p class="card-caption" data-en="PLC sequence diagram predicted by the DGL-LSTM model — correctly reconstructs ladder logic transitions." data-fr="Diagramme de séquence API prédit par le modèle DGL-LSTM — reconstruit correctement les transitions en logique à contacts.">PLC sequence diagram predicted by the DGL-LSTM model — correctly reconstructs ladder logic transitions.</p></div>
+</div><p class="card-caption" data-en="Example of causality graphs and the associated DGLSTM network employed to extract information from ST code." data-fr="Exemple de graphes de causalité et réseau DGLSTM associé utilisés pour extraire l'information du code ST.">Example of causality graphs and the associated DGLSTM network employed to extract information from ST code.</p></div>
 <div class="card-body">
-<span class="card-tag" data-en="Deep Learning · SENS · Crestic · Université Champagne-Ardenne · 20XX" data-fr="Apprentissage Profond · SENS · Crestic · Université Champagne-Ardenne · 20XX">
-          Deep Learning · SENS · Crestic · Université Champagne-Ardenne · 20XX
+<span class="card-tag" data-en="Deep Learning · SENS · Crestic · Université Champagne-Ardenne · 2022" data-fr="Apprentissage Profond · SENS · Crestic · Université Champagne-Ardenne · 2022">
+          Deep Learning · SENS · Crestic · Université Champagne-Ardenne · 2022
         </span>
-<h2 class="card-title">DGL-LSTM</h2>
+<h2 class="card-title" data-en="PLC Language Processing" data-fr="Traitement du Langage Automate">PLC Language Processing</h2>
 <ul class="tech-pills">
 <li>LSTM</li>
-<li>Deep Learning</li>
 <li>PyTorch</li>
-<li>[Tool]</li>
+<li>NLP</li>
 </ul>
-<p class="card-desc" data-en="[Description of the DGL-LSTM architecture, the problem addressed, and the key results. Linked to the associated publication below.]" data-fr="[Description de l'architecture DGL-LSTM, du problème traité et des résultats clés. Lié à la publication associée ci-dessous.]">
-          [Description of the DGL-LSTM architecture, the problem addressed, and the key results. Linked to the associated publication below.]
+<p class="card-desc" data-en="Research mission carried out through the ENS junior enterprise. Design of a neural network architecture tailored to PLC ladder logic language processing, combining graph-based and recurrent components. Led to a peer-reviewed publication (MDPI Processes, 2023)." data-fr="Mission de recherche réalisée dans le cadre de la junior-entreprise de l'ENS. Conception d'une architecture de réseaux de neurones adaptée au traitement du langage automate (ladder logic), combinant des composants à base de graphes et récurrents. A abouti à une publication (MDPI Processes, 2023).">
+          Research mission carried out through the ENS junior enterprise. Design of a neural network architecture tailored to PLC ladder logic language processing, combining graph-based and recurrent components. Led to a peer-reviewed publication (MDPI Processes, 2023).
         </p>
 <div class="card-links">
-<a data-en="Related publication →" data-fr="Publication associée →" href="publications.html">Related publication →</a>
+<a data-en="Related publication →" data-fr="Publication associée →" href="publications.html#plc-verification">Related publication →</a>
 </div>
 </div>
 <div class="card-logo-col">
