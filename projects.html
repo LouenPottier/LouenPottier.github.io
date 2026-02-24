@@ -26,30 +26,27 @@
 </nav>
 <main>
 <h1 class="page-title" data-en="Projects" data-fr="Projets">Projects</h1>
-<p class="page-intro" data-en="Research, consulting, and engineering projects — from CEA and European programmes to independent freelance missions. Sorted by most recent. Code is not publicly available where confidentiality applies." data-fr="Projets de recherche, de conseil et d'ingénierie — du CEA et de programmes européens aux missions freelance indépendantes. Ordre antéchronologique. Le code n'est pas public lorsque la confidentialité s'applique.">
-      Research, consulting, and engineering projects — from CEA and European programmes to independent freelance missions. Sorted by most recent. Code is not publicly available where confidentiality applies.
-    </p>
-<!-- ══════════════════════════════════════════
-         ARISE — European Programme · CEA-List
-    ══════════════════════════════════════════ -->
-<article class="card card-with-logo">
+<p class="page-intro" data-en="A mix of research, industrial consulting, and freelance missions — spanning scientific computing, neural surrogates, and NLP. Most work was conducted within CEA-List; some missions were carried out independently. Sorted by most recent." data-fr="Un mélange de recherche, de consulting industriel et de missions freelance — couvrant le calcul scientifique, les modèles de substitution neuronaux et le TAL. La plupart des travaux sont liés au CEA-List ; certaines missions ont été réalisées de manière indépendante. Ordre antéchronologique.">
+      A mix of research, industrial consulting, and freelance missions — spanning scientific computing, neural surrogates, and NLP. Most work was conducted within CEA-List; some missions were carried out independently. Sorted by most recent.
+    </p><article class="card card-with-logo">
 <div><div class="card-image card-video card-image-clickable" onclick='openLightboxVideo("./videos/arise.mp4")' title="Cliquer pour agrandir">
-<video autoplay loop muted playsinline loading="lazy"><source src="./videos/arise.mp4" type="video/mp4" /></video>
+<video autoplay="" loading="lazy" loop="" muted="" playsinline=""><source src="./videos/arise.mp4" type="video/mp4"/></video>
 </div><p class="card-caption" data-en="Grasping operation by a soft gripper used in the ARISE project — contact simulation performed in real time by a LEBNN." data-fr="Opération de grasping par un préhenseur flexible utilisé par le projet ARISE — la simulation du contact est réalisée en temps réel par un LEBNN.">Grasping operation by a soft gripper used in the ARISE project — contact simulation performed in real time by a LEBNN.</p></div>
 <div class="card-body">
-<span class="card-tag" data-en="European Research Programme · CEA-List · 2024–2027" data-fr="Programme de Recherche Européen · CEA-List · 2024–2027">
+<span class="card-tag" data-en="European Research Programme · CEA-List · 2024–2027" data-fr="Programme de recherche européen · CEA-List · 2024–2027">
           European Research Programme · CEA-List · 2024–2027
         </span>
 <h2 class="card-title">ARISE</h2>
 <ul class="tech-pills">
 <li>Ansys</li>
+<li>Omniverse</li>
 <li>PyTorch</li>
-<li>RL</li>
 </ul>
 <p class="card-desc" data-en="ARISE is a European research programme aimed at designing soft industrial robots operating in close contact with human operators. Robots are trained via reinforcement learning in a physically realistic virtual reality simulation developed by CEA. My LEBNN neural network architecture (published in JMPS, 2024) is used to simulate hyperelastic components in real time, making the full simulation tractable." data-fr="ARISE est un programme de recherche européen visant à concevoir des robots industriels souples opérant au contact d'opérateurs humains. Les robots sont entraînés par apprentissage par renforcement dans une simulation de réalité virtuelle physiquement réaliste, développée par le CEA. Mon architecture de réseaux de neurones LEBNN (publiée dans JMPS, 2024) est utilisée pour simuler les composants hyperélastiques en temps réel, rendant la simulation complète possible.">
           ARISE is a European research programme aimed at designing soft industrial robots operating in close contact with human operators. Robots are trained via reinforcement learning in a physically realistic virtual reality simulation developed by CEA. My LEBNN neural network architecture (published in JMPS, 2024) is used to simulate hyperelastic components in real time, making the full simulation tractable.
         </p>
 <div class="card-links">
+<a data-en="Project website →" data-fr="Site du projet →" href="https://arise-robotics.eu/" target="_blank">Project website →</a>
 <a data-en="Related publication →" data-fr="Publication associée →" href="publications.html#lebnn">Related publication →</a>
 </div>
 </div>
@@ -57,43 +54,57 @@
 <img alt="European Commission" src="./logos/comissioneuropeene.png"/>
 <img alt="CEA-List" src="./logos/cea-list.png"/>
 </div>
-</article>
-<!-- ══════════════════════════════════════════
-         RENAULT — CEA-List
-    ══════════════════════════════════════════ -->
-<article class="card card-with-logo">
-<div><div class="card-image card-image-clickable" onclick='openLightbox("./img/project-renault.png", "")' title="Cliquer pour agrandir">
-<!-- <img src="./img/project-renault.png" alt="Renault project" /> -->
-<div class="img-placeholder"></div>
-</div><p class="card-caption" data-en="Surrogate model replacing finite-element crash simulation — speed-up of several orders of magnitude." data-fr="Modèle de substitution remplaçant la simulation EF de crash — gain de vitesse de plusieurs ordres de grandeur.">Surrogate model replacing finite-element crash simulation — speed-up of several orders of magnitude.</p></div>
+</article><article class="card card-with-logo">
+<div><div class="card-image card-image-clickable" onclick='openLightbox("./img/projets/contact.png", "")' title="Cliquer pour agrandir">
+<img alt="Coupling project" src="./img/projets/contact.png"/>
+</div><p class="card-caption" data-en="Contact simulation between a soft gripper (simulated by a neural network) and a rigid object (simulated by XDE)." data-fr="Simulation du contact entre un gripper souple (simulé par réseau de neurones) et un objet rigide (simulé par XDE).">Contact simulation between a soft gripper (simulated by a neural network) and a rigid object (simulated by XDE).</p></div>
 <div class="card-body">
-<span class="card-tag" data-en="Industrial Consulting · CEA-List · 20XX" data-fr="Consulting Industriel · CEA-List · 20XX">
-          Industrial Consulting · CEA-List · 20XX
+<span class="card-tag" data-en="Numerical Simulation · CEA-List · 2025–2026" data-fr="Simulation numérique · CEA-List · 2025–2026">
+          Numerical Simulation · CEA-List · 2025–2026
         </span>
-<h2 class="card-title">Renault</h2>
+<h2 class="card-title" data-en="Neural Network / XDE Coupling" data-fr="Couplage réseau de neurones / XDE">
+          Neural Network / XDE Coupling
+        </h2>
+<ul class="tech-pills">
+<li>C++</li>
+<li>libtorch</li>
+<li>PyTorch</li>
+</ul>
+<p class="card-desc" data-en="Development of a real-time coupling method between a neural network surrogate and the XDE physics engine, implemented in C++ with libtorch. The neural network handles computationally intensive components, allowing the full simulation to run in real time." data-fr="Développement d'une méthode de couplage en temps réel entre un réseau de neurones substitut et le moteur physique XDE, implémenté en C++ avec libtorch. Le réseau de neurones prend en charge les composants coûteux en calcul, permettant à la simulation complète de tourner en temps réel.">
+          Development of a real-time coupling method between a neural network surrogate and the XDE physics engine, implemented in C++ with libtorch. The neural network handles computationally intensive components, allowing the full simulation to run in real time.
+        </p>
+</div>
+<div class="card-logo-col">
+<img alt="CEA-List" src="./logos/cea-list.png"/>
+</div>
+</article><article class="card card-with-logo">
+<div><div class="card-image card-image-clickable" onclick='openLightbox("./img/project-wheere.png", "")' title="Cliquer pour agrandir">
+<!-- <img src="./img/project-wheere.png" alt="Wheere project" /> -->
+<div class="img-placeholder"></div>
+</div><p class="card-caption" data-en="Indoor geolocation heatmap computed from BLE signal fingerprints — sub-meter accuracy in tested scenarios." data-fr="Carte de géolocalisation intérieure calculée à partir d'empreintes de signaux BLE — précision sub-métrique dans les scénarios testés.">Indoor geolocation heatmap computed from BLE signal fingerprints — sub-meter accuracy in tested scenarios.</p></div>
+<div class="card-body">
+<span class="card-tag" data-en="Data Science · Freelance · 2025" data-fr="Data Science · Freelance · 2025">
+          Data Science · Freelance · 20XX
+        </span>
+<h2 class="card-title">Wheere</h2>
 <ul class="tech-pills">
 <li>[Tool]</li>
 <li>[Tool]</li>
 <li>[Tool]</li>
 </ul>
-<p class="card-desc" data-en="[Description of the industrial challenge, methods applied, and outcome.]" data-fr="[Description du problème industriel, des méthodes appliquées et des résultats.]">
-          [Description of the industrial challenge, methods applied, and outcome.]
+<p class="card-desc" data-en="[Description of the challenge, methods applied, and deliverable.]" data-fr="[Description du problème, des méthodes appliquées et du livrable.]">
+          [Description of the challenge, methods applied, and deliverable.]
         </p>
 </div>
 <div class="card-logo-col">
-<img alt="Renault" src="./logos/renault.png"/>
-<img alt="CEA-List" src="./logos/cea-list.png"/>
+<img alt="Wheere" src="./logos/wheere.png"/>
 </div>
-</article>
-<!-- ══════════════════════════════════════════
-         FORVIA — CEA-List
-    ══════════════════════════════════════════ -->
-<article class="card card-with-logo">
+</article><article class="card card-with-logo">
 <div><div class="card-image">
 <div class="img-placeholder"></div>
 </div><p class="card-caption" data-en="FE mesh and reduced-order displacement field predicted by the neural network for an automotive component." data-fr="Maillage EF et champ de déplacement réduit prédit par le réseau de neurones pour un composant automobile.">FE mesh and reduced-order displacement field predicted by the neural network for an automotive component.</p></div>
 <div class="card-body">
-<span class="card-tag" data-en="Industrial Consulting · CEA-List · 20XX" data-fr="Consulting Industriel · CEA-List · 20XX">
+<span class="card-tag" data-en="Industrial Consulting · CEA-List · 2025" data-fr="Consulting industriel · CEA-List · 2025">
           Industrial Consulting · CEA-List · 20XX
         </span>
 <h2 class="card-title">Forvia</h2>
@@ -110,46 +121,38 @@
 <img alt="Forvia" src="./logos/forvia.png"/>
 <img alt="CEA-List" src="./logos/cea-list.png"/>
 </div>
-</article>
-<!-- ══════════════════════════════════════════
-         WHEERE — Freelance
-    ══════════════════════════════════════════ -->
-<article class="card card-with-logo">
-<div><div class="card-image card-image-clickable" onclick='openLightbox("./img/project-wheere.png", "")' title="Cliquer pour agrandir">
-<!-- <img src="./img/project-wheere.png" alt="Wheere project" /> -->
+</article><article class="card card-with-logo">
+<div><div class="card-image card-image-clickable" onclick='openLightbox("./img/project-renault.png", "")' title="Cliquer pour agrandir">
+<!-- <img src="./img/project-renault.png" alt="Renault project" /> -->
 <div class="img-placeholder"></div>
-</div><p class="card-caption" data-en="Indoor geolocation heatmap computed from BLE signal fingerprints — sub-meter accuracy in tested scenarios." data-fr="Carte de géolocalisation intérieure calculée à partir d'empreintes de signaux BLE — précision sub-métrique dans les scénarios testés.">Indoor geolocation heatmap computed from BLE signal fingerprints — sub-meter accuracy in tested scenarios.</p></div>
+</div><p class="card-caption" data-en="Surrogate model replacing finite-element crash simulation — speed-up of several orders of magnitude." data-fr="Modèle de substitution remplaçant la simulation EF de crash — gain de vitesse de plusieurs ordres de grandeur.">Surrogate model replacing finite-element crash simulation — speed-up of several orders of magnitude.</p></div>
 <div class="card-body">
-<span class="card-tag" data-en="Data Science · Freelance · 20XX" data-fr="Data Science · Freelance · 20XX">
-          Data Science · Freelance · 20XX
+<span class="card-tag" data-en="Industrial Consulting · CEA-List · 2024" data-fr="Consulting industriel · CEA-List · 2024">
+          Industrial Consulting · CEA-List · 2025
         </span>
-<h2 class="card-title">Wheere</h2>
+<h2 class="card-title" data-en="Crash Test Simulation from Scarce Data — Renault" data-fr="Apprentissage de crash test avec données limitées — Renault">Crash Test Simulation from Scarce Data — Renault</h2>
 <ul class="tech-pills">
-<li>[Tool]</li>
-<li>[Tool]</li>
-<li>[Tool]</li>
+<li>GNN</li>
+<li>FEM</li>
 </ul>
-<p class="card-desc" data-en="[Description of the challenge, methods applied, and deliverable.]" data-fr="[Description du problème, des méthodes appliquées et du livrable.]">
-          [Description of the challenge, methods applied, and deliverable.]
+<p class="card-desc" data-en="Development of a neural network model for crash test simulation under severe data scarcity constraints. Designed a parsimonious architecture tailored to the low-data regime, replacing computationally expensive finite-element simulations." data-fr="Développement d'un modèle de réseau de neurones pour la simulation de crash test, sous contrainte de très faibles volumes de données. Conception d'une architecture parcimonieuse, en remplacement de simulations éléments finis coûteuses en calcul.">
+          Development of a neural network model for crash test simulation under severe data scarcity constraints. Designed a parsimonious architecture tailored to the low-data regime, replacing computationally expensive finite-element simulations.
         </p>
 </div>
 <div class="card-logo-col">
-<img alt="Wheere" src="./logos/wheere.png"/>
+<img alt="Renault" src="./logos/renault.png"/>
+<img alt="CEA-List" src="./logos/cea-list.png"/>
 </div>
-</article>
-<!-- ══════════════════════════════════════════
-         NLP POUR LA PI — Condorcet
-    ══════════════════════════════════════════ -->
-<article class="card card-with-logo">
+</article><article class="card card-with-logo">
 <div><div class="card-image card-image-clickable" onclick='openLightbox("./img/project-nlp-pi.png", "")' title="Cliquer pour agrandir">
 <!-- <img src="./img/project-nlp-pi.png" alt="NLP PI project" /> -->
 <div class="img-placeholder"></div>
 </div><p class="card-caption" data-en="Patent claim tree automatically generated from a technical specification — NLP extraction pipeline." data-fr="Arbre de revendications brevet généré automatiquement depuis une spécification technique — pipeline d'extraction TAL.">Patent claim tree automatically generated from a technical specification — NLP extraction pipeline.</p></div>
 <div class="card-body">
-<span class="card-tag" data-en="NLP · Freelance · 20XX" data-fr="TAL · Freelance · 20XX">
+<span class="card-tag" data-en="NLP · Freelance · 2023" data-fr="TAL · Freelance · 2023">
           NLP · Freelance · 20XX
         </span>
-<h2 class="card-title" data-en="NLP for Intellectual Property" data-fr="TAL pour la Propriété Intellectuelle">
+<h2 class="card-title" data-en="NLP for Intellectual Property" data-fr="TAL pour la propriété intellectuelle">
           NLP for Intellectual Property
         </h2>
 <ul class="tech-pills">
@@ -164,97 +167,12 @@
 <div class="card-logo-col">
 <img alt="Condorcet" src="./logos/condorcet.png"/>
 </div>
-</article>
-<!-- ══════════════════════════════════════════
-         PROJET COUPLAGE — CEA-List
-    ══════════════════════════════════════════ -->
-<article class="card card-with-logo">
-<div><div class="card-image card-image-clickable" onclick='openLightbox("./img/projets/contact.png", "")' title="Cliquer pour agrandir">
-<img src="./img/projets/contact.png" alt="Coupling project" />
-</div><p class="card-caption" data-en="Contact simulation between a soft gripper (simulated by a neural network) and a rigid object (simulated by XDE)." data-fr="Simulation du contact entre un gripper souple (simulé par réseau de neurones) et un objet rigide (simulé par XDE).">Contact simulation between a soft gripper (simulated by a neural network) and a rigid object (simulated by XDE).</p></div>
-<div class="card-body">
-<span class="card-tag" data-en="Numerical Simulation · CEA-List · 2025–2026" data-fr="Simulation Numérique · CEA-List · 2025–2026">
-          Numerical Simulation · CEA-List · 2025–2026
-        </span>
-<h2 class="card-title" data-en="Neural Network / XDE Coupling" data-fr="Couplage Réseau de Neurones / XDE">
-          Neural Network / XDE Coupling
-        </h2>
-<ul class="tech-pills">
-<li>C++</li>
-<li>libtorch</li>
-<li>PyTorch</li>
-</ul>
-<p class="card-desc" data-en="Development of a real-time coupling method between a neural network surrogate and the XDE physics engine, implemented in C++ with libtorch. The neural network handles computationally intensive components, allowing the full simulation to run in real time." data-fr="Développement d'une méthode de couplage en temps réel entre un réseau de neurones substitut et le moteur physique XDE, implémenté en C++ avec libtorch. Le réseau de neurones prend en charge les composants coûteux en calcul, permettant à la simulation complète de tourner en temps réel.">
-          Development of a real-time coupling method between a neural network surrogate and the XDE physics engine, implemented in C++ with libtorch. The neural network handles computationally intensive components, allowing the full simulation to run in real time.
-        </p>
-</div>
-<div class="card-logo-col">
-<img alt="CEA-List" src="./logos/cea-list.png"/>
-</div>
-</article>
-<!-- ══════════════════════════════════════════
-         PROJET EDF — EDF · lié à publication
-    ══════════════════════════════════════════ -->
-<article class="card card-with-logo">
-<div><div class="card-image card-video card-image-clickable" onclick='openLightboxVideo("./videos/vonkarman.mp4")' title="Cliquer pour agrandir">
-<video autoplay loop muted playsinline loading="lazy"><source src="./videos/vonkarman.mp4" type="video/mp4" /></video>
-</div><p class="card-caption" data-en="Time-series prediction of a fluid dynamics quantity — surrogate vs. reference solver over 500 time steps." data-fr="Prédiction de série temporelle d'une grandeur fluide — modèle de substitution vs. solveur de référence sur 500 pas de temps.">Time-series prediction of a fluid dynamics quantity — surrogate vs. reference solver over 500 time steps.</p></div>
-<div class="card-body">
-<span class="card-tag" data-en="Numerical Simulation · EDF · 20XX" data-fr="Simulation Numérique · EDF · 20XX">
-          Numerical Simulation · EDF · 20XX
-        </span>
-<h2 class="card-title">EDF — [Project name]</h2>
-<ul class="tech-pills">
-<li>[Tool]</li>
-<li>[Tool]</li>
-<li>[Tool]</li>
-</ul>
-<p class="card-desc" data-en="[Description of the project, your contribution, and results. Linked to the associated publication below.]" data-fr="[Description du projet, de votre contribution et des résultats. Lié à la publication associée ci-dessous.]">
-          [Description of the project, your contribution, and results. Linked to the associated publication below.]
-        </p>
-<div class="card-links">
-<a data-en="Related publication →" data-fr="Publication associée →" href="publications.html#deep-surrogate">Related publication →</a>
-</div>
-</div>
-<div class="card-logo-col">
-<img alt="EDF" src="./logos/edf.png"/>
-</div>
-</article>
-<!-- ══════════════════════════════════════════
-         CASTEM — CEA + Centre Borelli
-    ══════════════════════════════════════════ -->
-<article class="card card-with-logo">
-<div><div class="card-image card-image-clickable" onclick='openLightbox("./img/projets/castem.png", "")' title="Cliquer pour agrandir">
-<img src="./img/projets/castem.png" alt="Cast3M project" />
-</div><p class="card-caption" data-en="Example result from the coupled simulation. The joint learned by the neural network is present 256 times in each grid of the fuel assembly." data-fr="Exemple de résultat de la simulation couplée. La liaison apprise par le réseau de neurones est présente en 256 exemplaires dans chaque grille de l'assemblage combustible.">Example result from the coupled simulation. The joint learned by the neural network is present 256 times in each grid of the fuel assembly.</p></div>
-<div class="card-body">
-<span class="card-tag" data-en="Numerical Simulation · CEA · Centre Borelli · 2020" data-fr="Simulation Numérique · CEA · Centre Borelli · 2020">
-          Numerical Simulation · CEA · Centre Borelli · 2020
-        </span>
-<h2 class="card-title" data-en="Neural Network / Cast3M Coupling — Nuclear Assembly" data-fr="Couplage Réseau de Neurones / Cast3M — Assemblage Nucléaire">Neural Network / Cast3M Coupling — Nuclear Assembly</h2>
-<ul class="tech-pills">
-<li>LSTM</li>
-<li>Cast3M</li>
-<li>PyTorch</li>
-</ul>
-<p class="card-desc" data-en="Research project carried out as part of the ENS AI Research Year. A LSTM network was trained to learn the behaviour of a mechanical joint present in very large numbers in nuclear fuel assemblies. The model was integrated into a Cast3M finite-element simulation via a PyTorch coupling, achieving a 5× speed-up in simulation time." data-fr="Projet de recherche réalisé dans le cadre de l'Année de Recherche en IA du diplôme de l'ENS. Un réseau LSTM a été entraîné à apprendre le comportement d'une liaison mécanique présente en très grand nombre dans les assemblages combustibles de centrales nucléaires. Le modèle a été intégré dans une simulation Cast3M d'assemblage combustible via un couplage PyTorch, divisant le temps de simulation par 5.">
-          Research project carried out as part of the ENS AI Research Year. A LSTM network was trained to learn the behaviour of a mechanical joint present in very large numbers in nuclear fuel assemblies. The model was integrated into a Cast3M finite-element simulation via a PyTorch coupling, achieving a 5× speed-up in simulation time.
-        </p>
-</div>
-<div class="card-logo-col">
-<img alt="CEA" src="./logos/cea.png"/>
-<img alt="Centre Borelli" src="./logos/centreborelli.png"/>
-</div>
-</article>
-<!-- ══════════════════════════════════════════
-         DGL-LSTM — SENS + Crestic + Univ. Champagne · lié à publication
-    ══════════════════════════════════════════ -->
-<article class="card card-with-logo">
+</article><article class="card card-with-logo">
 <div><div class="card-image card-image-clickable" onclick='openLightbox("./img/publications/dglstm.png", "")' title="Cliquer pour agrandir">
-<img src="./img/publications/dglstm.png" alt="DGL-LSTM project" />
+<img alt="DGL-LSTM project" src="./img/publications/dglstm.png"/>
 </div><p class="card-caption" data-en="Example of causality graphs and the associated DGLSTM network employed to extract information from ST code." data-fr="Exemple de graphes de causalité et réseau DGLSTM associé utilisés pour extraire l'information du code ST.">Example of causality graphs and the associated DGLSTM network employed to extract information from ST code.</p></div>
 <div class="card-body">
-<span class="card-tag" data-en="Deep Learning · SENS · Crestic · Université Champagne-Ardenne · 2022" data-fr="Apprentissage Profond · SENS · Crestic · Université Champagne-Ardenne · 2022">
+<span class="card-tag" data-en="Deep Learning · SENS · Crestic · Université Champagne-Ardenne · 2022" data-fr="Apprentissage profond · SENS · Crestic · Université Champagne-Ardenne · 2022">
           Deep Learning · SENS · Crestic · Université Champagne-Ardenne · 2022
         </span>
 <h2 class="card-title" data-en="PLC Language Processing" data-fr="Traitement du Langage Automate">PLC Language Processing</h2>
@@ -275,19 +193,99 @@
 <img alt="Crestic" src="./logos/crestic.png"/>
 <img alt="Université Champagne-Ardenne" src="./logos/universitechampagneardenne.png"/>
 </div>
+</article><article class="card card-with-logo">
+<div><div class="card-image card-video card-image-clickable" onclick='openLightboxVideo("./videos/vonkarman.mp4")' title="Cliquer pour agrandir">
+<video autoplay="" loading="lazy" loop="" muted="" playsinline=""><source src="./videos/vonkarman.mp4" type="video/mp4"/></video>
+</div><p class="card-caption" data-en="Predicted and simulated fluid velocity fields, along with the error field, for the von Kármán test case using our GNN architecture." data-fr="Champ de vitesse du fluide prédit vs simulé et champ d'erreur pour le cas test de Von Kármán avec notre architecture GNN.">Predicted and simulated fluid velocity fields, along with the error field, for the von Kármán test case using our GNN architecture.</p></div>
+<div class="card-body">
+<span class="card-tag" data-en="Research Internship · EDF R&amp;D · 2021" data-fr="Stage de recherche · EDF R&amp;D · 2021">
+          Research Internship · EDF R&amp;D · 2021
+        </span>
+<h2 class="card-title" data-en="Graph Neural Network for Fluid Dynamics — EDF R&amp;D" data-fr="Graph Neural Network pour la dynamique des fluides — EDF R&amp;D">Graph Neural Network for Fluid Dynamics — EDF R&amp;D</h2>
+<ul class="tech-pills">
+<li>PyTorch</li>
+<li>GNN</li>
+<li>SplineConv</li>
+</ul>
+<p class="card-desc" data-en="M2 research internship at EDF R&amp;D, focused on model-order reduction applied to fluid dynamics. Designed a graph neural network architecture combining SplineConv layers and a hierarchical structure to predict fluid flow fields at a fraction of the cost of classical solvers. Led to a publication at the NeurIPS 2021 Workshop on Machine Learning and the Physical Sciences." data-fr="Stage de recherche de M2 chez EDF R&amp;D, axé sur la réduction de modèles appliquée à la dynamique des fluides. Conception d'une architecture de réseaux de neurones graphes combinant des couches SplineConv et une structure hiérarchique pour prédire des champs d'écoulement à une fraction du coût des solveurs classiques. A abouti à une publication au NeurIPS 2021 Workshop on Machine Learning and the Physical Sciences.">
+          M2 research internship at EDF R&amp;D, focused on model-order reduction applied to fluid dynamics. Designed a graph neural network architecture combining SplineConv layers and a hierarchical structure to predict fluid flow fields at a fraction of the cost of classical solvers. Led to a publication at the NeurIPS 2021 Workshop on Machine Learning and the Physical Sciences.
+        </p>
+<div class="card-links">
+<a data-en="Related publication →" data-fr="Publication associée →" href="publications.html#deep-surrogate">Related publication →</a>
+</div>
+</div>
+<div class="card-logo-col">
+<img alt="EDF" src="./logos/edf.png"/>
+</div>
+</article><article class="card card-with-logo">
+<div><div class="card-image card-image-clickable" onclick='openLightbox("./img/projets/castem.png", "")' title="Cliquer pour agrandir">
+<img alt="Cast3M project" src="./img/projets/castem.png"/>
+</div><p class="card-caption" data-en="Example result from the coupled simulation. The joint learned by the neural network is present 256 times in each grid of the fuel assembly." data-fr="Exemple de résultat de la simulation couplée. La liaison apprise par le réseau de neurones est présente en 256 exemplaires dans chaque grille de l'assemblage combustible.">Example result from the coupled simulation. The joint learned by the neural network is present 256 times in each grid of the fuel assembly.</p></div>
+<div class="card-body">
+<span class="card-tag" data-en="Numerical Simulation · CEA · Centre Borelli · 2020" data-fr="Simulation numérique · CEA · Centre Borelli · 2020">
+          Numerical Simulation · CEA · Centre Borelli · 2020
+        </span>
+<h2 class="card-title" data-en="Neural Network / Cast3M Coupling — Nuclear Assembly" data-fr="Couplage réseau de neurones / Cast3M — assemblage nucléaire">Neural Network / Cast3M Coupling — Nuclear Assembly</h2>
+<ul class="tech-pills">
+<li>LSTM</li>
+<li>Cast3M</li>
+<li>PyTorch</li>
+</ul>
+<p class="card-desc" data-en="Research project carried out as part of the ENS AI Research Year. A LSTM network was trained to learn the behaviour of a mechanical joint present in very large numbers in nuclear fuel assemblies. The model was integrated into a Cast3M finite-element simulation via a PyTorch coupling, reducing computation time by 95%." data-fr="Projet de recherche réalisé dans le cadre de l'Année de Recherche en IA du diplôme de l'ENS. Un réseau LSTM a été entraîné à apprendre le comportement d'une liaison mécanique présente en très grand nombre dans les assemblages combustibles de centrales nucléaires. Le modèle a été intégré dans une simulation Cast3M d'assemblage combustible via un couplage PyTorch, réduisant le temps de calcul de 95%.">
+          Research project carried out as part of the ENS AI Research Year. A LSTM network was trained to learn the behaviour of a mechanical joint present in very large numbers in nuclear fuel assemblies. The model was integrated into a Cast3M finite-element simulation via a PyTorch coupling, reducing computation time by 95%.
+        </p>
+</div>
+<div class="card-logo-col">
+<img alt="CEA" src="./logos/cea.png"/>
+<img alt="Centre Borelli" src="./logos/centreborelli.png"/>
+</div>
 </article>
+<!-- ══════════════════════════════════════════
+         ARISE — European Programme · CEA-List
+    ══════════════════════════════════════════ -->
+
+<!-- ══════════════════════════════════════════
+         RENAULT — CEA-List
+    ══════════════════════════════════════════ -->
+
+<!-- ══════════════════════════════════════════
+         FORVIA — CEA-List
+    ══════════════════════════════════════════ -->
+
+<!-- ══════════════════════════════════════════
+         WHEERE — Freelance
+    ══════════════════════════════════════════ -->
+
+<!-- ══════════════════════════════════════════
+         NLP POUR LA PI — Condorcet
+    ══════════════════════════════════════════ -->
+
+<!-- ══════════════════════════════════════════
+         PROJET COUPLAGE — CEA-List
+    ══════════════════════════════════════════ -->
+
+<!-- ══════════════════════════════════════════
+         PROJET EDF — EDF · lié à publication
+    ══════════════════════════════════════════ -->
+
+<!-- ══════════════════════════════════════════
+         CASTEM — CEA + Centre Borelli
+    ══════════════════════════════════════════ -->
+
+<!-- ══════════════════════════════════════════
+         DGL-LSTM — SENS + Crestic + Univ. Champagne · lié à publication
+    ══════════════════════════════════════════ -->
+
 </main>
 <footer><p>© 2026 Louen Pottier</p></footer>
-
-  <!-- ── LIGHTBOX ── -->
-  <div id="lightbox" class="lightbox" onclick="closeLightbox()">
-    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-    <img id="lightbox-img" src="" alt="" style="display:none" />
-    <video id="lightbox-video" autoplay loop muted playsinline
-           style="display:none; max-width:90vw; max-height:88vh; border-radius:3px; box-shadow:0 8px 48px rgba(0,0,0,0.5);">
-    </video>
-  </div>
-  <script>
+<!-- ── LIGHTBOX ── -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+<button class="lightbox-close" onclick="closeLightbox()">✕</button>
+<img alt="" id="lightbox-img" src="" style="display:none"/>
+<video autoplay="" id="lightbox-video" loop="" muted="" playsinline="" style="display:none; max-width:90vw; max-height:88vh; border-radius:3px; box-shadow:0 8px 48px rgba(0,0,0,0.5);">
+</video>
+</div>
+<script>
     function openLightbox(src, alt) {
       const lb = document.getElementById('lightbox');
       const img = document.getElementById('lightbox-img');
@@ -316,8 +314,7 @@
     }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
   </script>
-
-  <script>
+<script>
     // Sur mobile, déplace les logos dans la rangée tech-pills (à droite)
     function setupMobileLogos() {
       const isMobile = window.innerWidth <= 720;
@@ -343,6 +340,6 @@
     setupMobileLogos();
     window.addEventListener('resize', setupMobileLogos);
   </script>
-  <script src="lang.js"></script>
+<script src="lang.js"></script>
 </body>
 </html>
