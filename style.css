@@ -775,6 +775,8 @@ footer {
 
 /* ── RESPONSIVE ── */
 @media (max-width: 720px) {
+  .hide-mobile { display: none; }
+
   nav { padding: 0 1.25rem; height: auto; min-height: 52px; flex-wrap: wrap; align-items: center; }
   nav ul { gap: 0; }
   nav a { padding: 0 0.6rem; font-size: 0.78rem; }
