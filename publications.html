@@ -1,381 +1,275 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title data-en="Publications — Louen Pottier" data-fr="Publications — Louen Pottier">Publications — Louen Pottier</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Source+Sans+3:wght@300;400;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title data-en="Publications — Louen Pottier" data-fr="Publications — Louen Pottier">Publications — Louen Pottier</title>
+<link href="style.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&amp;family=Source+Sans+3:wght@300;400;600&amp;family=JetBrains+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
 </head>
 <body>
-
-  <div class="lang-bar">
-    <button class="lang-btn active" onclick="setLang('en')">EN</button>
-    <span class="lang-sep">·</span>
-    <button class="lang-btn" onclick="setLang('fr')">FR</button>
-  </div>
-
-  <nav>
-    <a class="nav-name" href="index.html">Louen Pottier</a>
-    <ul>
-      <li><a href="index.html" data-en="CV" data-fr="CV">CV</a></li>
-      <li><a href="publications.html" class="active" data-en="Publications" data-fr="Publications">Publications</a></li>
-      <li><a href="projects.html" data-en="Projects" data-fr="Projets">Projects</a></li>
-      <li><a href="teaching.html" data-en="Teaching" data-fr="Enseignement">Teaching</a></li>
-    </ul>
-  </nav>
-
-  <main>
-    <h1 class="page-title"
-        data-en="Research Activity"
-        data-fr="Activité de Recherche">Research Activity</h1>
-
-    <!-- ══ RESEARCH THREAD ══════════════════════════════════════ -->
-    <section class="research-thread">
-      <p class="thread-intro"
-         data-en="Over the past four years, my research has focused on a central question: how to embed physical priors into neural network architectures for interactive simulation and model-order reduction. Early explorations (Deep Surrogate, GACRNN) established the landscape of the problem. LEBNN emerged as a foundational answer — an interpretable architecture grounded in energy mechanics, later applied in the European ARISE project. This line of work then branched in two directions: LLNN extends LEBNN to nonlinear dynamical systems, while PL-Autoencoder provides the theoretical grounding for structured latent spaces. Both converge into our most ambitious work, Learning Physics from Video."
-         data-fr="Au cours des quatre dernières années, mes recherches ont porté sur une question centrale : comment intégrer des a priori physiques dans des architectures de réseaux de neurones pour la simulation interactive et la réduction de modèles. Des explorations préliminaires (Deep Surrogate, GACRNN) ont permis de délimiter le problème. LEBNN en est la réponse fondatrice — une architecture interprétable ancrée dans la mécanique énergétique, appliquée par la suite dans le projet européen ARISE. Ce travail s'est ensuite ramifié dans deux directions : LLNN étend LEBNN aux systèmes dynamiques non linéaires, tandis que PL-Autoencoder fournit le cadre théorique des espaces latents structurés. Les deux convergent vers notre travail le plus ambitieux, Learning Physics from Video.">
+<div class="lang-bar">
+<button class="lang-btn active" onclick="setLang('en')">EN</button>
+<span class="lang-sep">·</span>
+<button class="lang-btn" onclick="setLang('fr')">FR</button>
+</div>
+<nav>
+<a class="nav-name" href="index.html">Louen Pottier</a>
+<ul>
+<li><a data-en="CV" data-fr="CV" href="index.html">CV</a></li>
+<li><a class="active" data-en="Publications" data-fr="Publications" href="publications.html">Publications</a></li>
+<li><a data-en="Projects" data-fr="Projets" href="projects.html">Projects</a></li>
+<li><a data-en="Teaching" data-fr="Enseignement" href="teaching.html">Teaching</a></li>
+</ul>
+</nav>
+<main>
+<h1 class="page-title" data-en="Research Activity" data-fr="Activité de Recherche">Research Activity</h1>
+<!-- ══ RESEARCH THREAD ══════════════════════════════════════ -->
+<section class="research-thread">
+<p class="thread-intro" data-en="Over the past four years, my research has focused on a central question: how to embed physical priors into neural network architectures for interactive simulation and model-order reduction. Early explorations (Deep Surrogate, GACRNN) established the landscape of the problem. LEBNN emerged as a foundational answer — an interpretable architecture grounded in energy mechanics, later applied in the European ARISE project. This line of work then branched in two directions: LLNN extends LEBNN to nonlinear dynamical systems, while PL-Autoencoder provides the theoretical grounding for structured latent spaces. Both converge into our most ambitious work, Learning Physics from Video." data-fr="Au cours des quatre dernières années, mes recherches ont porté sur une question centrale : comment intégrer des a priori physiques dans des architectures de réseaux de neurones pour la simulation interactive et la réduction de modèles. Des explorations préliminaires (Deep Surrogate, GACRNN) ont permis de délimiter le problème. LEBNN en est la réponse fondatrice — une architecture interprétable ancrée dans la mécanique énergétique, appliquée par la suite dans le projet européen ARISE. Ce travail s'est ensuite ramifié dans deux directions : LLNN étend LEBNN aux systèmes dynamiques non linéaires, tandis que PL-Autoencoder fournit le cadre théorique des espaces latents structurés. Les deux convergent vers notre travail le plus ambitieux, Learning Physics from Video.">
         Over the past four years, my research has focused on a central question: how to embed physical priors into neural network architectures for interactive simulation and model-order reduction. Early explorations (Deep Surrogate, GACRNN) established the landscape of the problem. LEBNN emerged as a foundational answer — an interpretable architecture grounded in energy mechanics, later applied in the European ARISE project. This line of work then branched in two directions: LLNN extends LEBNN to nonlinear dynamical systems, while PL-Autoencoder provides the theoretical grounding for structured latent spaces. Both converge into our most ambitious work, Learning Physics from Video.
       </p>
-
-      <div class="thread-graph-wrap">
-        <svg class="thread-svg" viewBox="0 0 960 300" preserveAspectRatio="xMidYMid meet">
-          <defs>
-            <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
-              <path d="M0,0 L0,6 L8,3 z" fill="#1a2e4a" />
-            </marker>
-            <marker id="arr-prep" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
-              <path d="M0,0 L0,6 L8,3 z" fill="#4a7a5a" />
-            </marker>
-          </defs>
-
-          <!-- GACRNN -->
-          <g class="thread-node">
-            <rect class="thread-box" x="10" y="30" width="160" height="46" rx="3"/>
-            <text class="thread-title" x="90" y="52" text-anchor="middle">GACRNN</text>
-            <text class="thread-sub"  x="90" y="67" text-anchor="middle">IUTAM Poster · 2022</text>
-          </g>
-
-          <!-- MORTech 2023 -->
-          <g class="thread-node">
-            <rect class="thread-box" x="250" y="30" width="180" height="46" rx="3"/>
-            <text class="thread-title" x="340" y="52" text-anchor="middle">LEBNN</text>
-            <text class="thread-sub"  x="340" y="67" text-anchor="middle">MORTech Poster · 2023</text>
-          </g>
-
-          <!-- LEBNN -->
-          <g class="thread-node">
-            <rect class="thread-box" x="250" y="130" width="180" height="46" rx="3"/>
-            <text class="thread-title" x="340" y="152" text-anchor="middle">LEBNN</text>
-            <text class="thread-sub"  x="340" y="167" text-anchor="middle">JMPS · 2024</text>
-          </g>
-
-          <!-- LLNN -->
-          <g class="thread-node">
-            <rect class="thread-box" x="500" y="130" width="190" height="46" rx="3"/>
-            <text class="thread-title" x="595" y="152" text-anchor="middle">LLNN</text>
-            <text class="thread-sub"  x="595" y="167" text-anchor="middle">MORTech 2025</text>
-          </g>
-
-          <!-- PL-AE -->
-          <g class="thread-node">
-            <rect class="thread-box thread-box-prep" x="250" y="230" width="180" height="46" rx="3"/>
-            <text class="thread-title thread-title-prep" x="340" y="252" text-anchor="middle">PL-Autoencoder</text>
-            <text class="thread-sub" x="340" y="267" text-anchor="middle"
-                  data-en="JMLR · in preparation" data-fr="JMLR · en préparation">JMLR · in preparation</text>
-          </g>
-
-          <!-- Learning Physics from Video -->
-          <g class="thread-node">
-            <rect class="thread-box thread-box-prep" x="710" y="230" width="210" height="46" rx="3"/>
-            <text class="thread-title thread-title-prep" x="815" y="249" text-anchor="middle"
-                  data-en="Learning Physics from Video" data-fr="Learning Physics from Video">Learning Physics from Video</text>
-            <text class="thread-sub" x="815" y="264" text-anchor="middle"
-                  data-en="in preparation" data-fr="en préparation">in preparation</text>
-          </g>
-
-          <!-- GACRNN → MORTech 2023 -->
-          <line class="thread-edge" x1="170" y1="53" x2="248" y2="53" />
-          <text class="thread-edge-label" x="209" y="45" text-anchor="middle"
-                data-en="inspires" data-fr="inspire">inspires</text>
-
-          <!-- MORTech 2023 → LEBNN -->
-          <line class="thread-edge" x1="340" y1="76" x2="340" y2="128" />
-          <text class="thread-edge-label" x="356" y="107" text-anchor="start"
-                data-en="formalized by" data-fr="formalisé par">formalized by</text>
-
-          <!-- LEBNN → LLNN -->
-          <line class="thread-edge" x1="430" y1="153" x2="498" y2="153" />
-          <text class="thread-edge-label" x="464" y="145" text-anchor="middle"
-                data-en="extends" data-fr="étend">extends</text>
-
-          <!-- LEBNN → PL-AE -->
-          <line class="thread-edge-prep" x1="340" y1="176" x2="340" y2="228" />
-          <text class="thread-edge-label" x="356" y="207" text-anchor="start"
-                data-en="motivates" data-fr="motive">motivates</text>
-
-          <!-- LLNN descend verticalement -->
-          <line class="thread-edge-prep-noarrow" x1="595" y1="176" x2="595" y2="253"/>
-          <!-- PL-AE → point sous LLNN -->
-          <line class="thread-edge-prep-noarrow" x1="430" y1="253" x2="595" y2="253"/>
-          <!-- → point de fusion -->
-          <line class="thread-edge-prep-noarrow" x1="595" y1="253" x2="658" y2="253"/>
-          <!-- → Learning Physics -->
-          <line class="thread-edge-prep" x1="660" y1="253" x2="708" y2="253" />
-          <text class="thread-edge-label" x="660" y="245" text-anchor="end"
-                data-en="combines" data-fr="combine">combines</text>
-
-        </svg>
-      </div>
-    </section>
-
-    <h2 class="publications-subtitle"
-        data-en="Publications"
-        data-fr="Publications">Publications</h2>
-
-    <!-- Publication 0 — Learning Physics from Video (in preparation) -->
-    <article class="card">
-      <div class="card-image-col">
-        <div class="card-image card-video card-image-clickable"
-             onclick="openLightboxVideo('./videos/learning_physics.mp4')" title="Cliquer pour agrandir">
-          <video autoplay loop muted playsinline loading="lazy">
-            <source src="./videos/learning_physics.mp4" type="video/mp4" />
-          </video>
-        </div>
-        <p class="card-caption"
-           data-en="Video reconstructed from a latent space trajectory generated by a Lagrangian Neural Network, for a 2D (top) and 1D (bottom) latent space."
-           data-fr="Vidéo reconstruite à partir d'une trajectoire dans l'espace latent générée par un réseau de neurones lagrangien, pour un espace latent 2D (haut) et 1D (bas)."
-        >Video reconstructed from a latent space trajectory generated by a Lagrangian Neural Network, for a 2D (top) and 1D (bottom) latent space.</p>
-      </div>
-      <div class="card-body">
-        <span class="card-tag"
-              data-en="In preparation · Representation Learning · Solid Mechanics"
-              data-fr="En préparation · Apprentissage de représentations · Mécanique des solides">
+<div class="thread-graph-wrap">
+<svg class="thread-svg" preserveaspectratio="xMidYMid meet" viewbox="0 0 960 300">
+<defs>
+<marker id="arr" markerheight="8" markerwidth="8" orient="auto" refx="7" refy="3">
+<path d="M0,0 L0,6 L8,3 z" fill="#1a2e4a"></path>
+</marker>
+<marker id="arr-prep" markerheight="8" markerwidth="8" orient="auto" refx="7" refy="3">
+<path d="M0,0 L0,6 L8,3 z" fill="#4a7a5a"></path>
+</marker>
+</defs>
+<!-- GACRNN -->
+<g class="thread-node">
+<rect class="thread-box" height="46" rx="3" width="160" x="10" y="30"></rect>
+<text class="thread-title" text-anchor="middle" x="90" y="52">GACRNN</text>
+<text class="thread-sub" text-anchor="middle" x="90" y="67">IUTAM Poster · 2022</text>
+</g>
+<!-- MORTech 2023 -->
+<g class="thread-node">
+<rect class="thread-box" height="46" rx="3" width="180" x="250" y="30"></rect>
+<text class="thread-title" text-anchor="middle" x="340" y="52">LEBNN</text>
+<text class="thread-sub" text-anchor="middle" x="340" y="67">MORTech Poster · 2023</text>
+</g>
+<!-- LEBNN -->
+<g class="thread-node">
+<rect class="thread-box" height="46" rx="3" width="180" x="250" y="130"></rect>
+<text class="thread-title" text-anchor="middle" x="340" y="152">LEBNN</text>
+<text class="thread-sub" text-anchor="middle" x="340" y="167">JMPS · 2024</text>
+</g>
+<!-- LLNN -->
+<g class="thread-node">
+<rect class="thread-box" height="46" rx="3" width="190" x="500" y="130"></rect>
+<text class="thread-title" text-anchor="middle" x="595" y="152">LLNN</text>
+<text class="thread-sub" text-anchor="middle" x="595" y="167">MORTech 2025</text>
+</g>
+<!-- PL-AE -->
+<g class="thread-node">
+<rect class="thread-box thread-box-prep" height="46" rx="3" width="180" x="250" y="230"></rect>
+<text class="thread-title thread-title-prep" text-anchor="middle" x="340" y="252">PL-Autoencoder</text>
+<text class="thread-sub" data-en="JMLR · in preparation" data-fr="JMLR · en préparation" text-anchor="middle" x="340" y="267">JMLR · in preparation</text>
+</g>
+<!-- Learning Physics from Video -->
+<g class="thread-node">
+<rect class="thread-box thread-box-prep" height="46" rx="3" width="210" x="710" y="230"></rect>
+<text class="thread-title thread-title-prep" data-en="Learning Physics from Video" data-fr="Learning Physics from Video" text-anchor="middle" x="815" y="249">Learning Physics from Video</text>
+<text class="thread-sub" data-en="in preparation" data-fr="en préparation" text-anchor="middle" x="815" y="264">in preparation</text>
+</g>
+<!-- GACRNN → MORTech 2023 -->
+<line class="thread-edge" x1="170" x2="248" y1="53" y2="53"></line>
+<text class="thread-edge-label" data-en="inspires" data-fr="inspire" text-anchor="middle" x="209" y="45">inspires</text>
+<!-- MORTech 2023 → LEBNN -->
+<line class="thread-edge" x1="340" x2="340" y1="76" y2="128"></line>
+<text class="thread-edge-label" data-en="formalized by" data-fr="formalisé par" text-anchor="start" x="356" y="107">formalized by</text>
+<!-- LEBNN → LLNN -->
+<line class="thread-edge" x1="430" x2="498" y1="153" y2="153"></line>
+<text class="thread-edge-label" data-en="extends" data-fr="étend" text-anchor="middle" x="464" y="145">extends</text>
+<!-- LEBNN → PL-AE -->
+<line class="thread-edge-prep" x1="340" x2="340" y1="176" y2="228"></line>
+<text class="thread-edge-label" data-en="motivates" data-fr="motive" text-anchor="start" x="356" y="207">motivates</text>
+<!-- LLNN descend verticalement -->
+<line class="thread-edge-prep-noarrow" x1="595" x2="595" y1="176" y2="253"></line>
+<!-- PL-AE → point sous LLNN -->
+<line class="thread-edge-prep-noarrow" x1="430" x2="595" y1="253" y2="253"></line>
+<!-- → point de fusion -->
+<line class="thread-edge-prep-noarrow" x1="595" x2="658" y1="253" y2="253"></line>
+<!-- → Learning Physics -->
+<line class="thread-edge-prep" x1="660" x2="708" y1="253" y2="253"></line>
+<text class="thread-edge-label" data-en="combines" data-fr="combine" text-anchor="end" x="660" y="245">combines</text>
+</svg>
+</div>
+</section>
+<h2 class="publications-subtitle" data-en="Publications" data-fr="Publications">Publications</h2>
+<!-- Publication 0 — Learning Physics from Video (in preparation) -->
+<article class="card">
+<div class="card-image-col">
+<div class="card-image card-video card-image-clickable" onclick="openLightboxVideo('./videos/learning_physics.mp4')" title="Cliquer pour agrandir">
+<video autoplay="" loading="lazy" loop="" muted="" playsinline="">
+<source src="./videos/learning_physics.mp4" type="video/mp4"/>
+</video>
+</div>
+<p class="card-caption" data-en="Video reconstructed from a latent space trajectory generated by a Lagrangian Neural Network, for a 2D (top) and 1D (bottom) latent space." data-fr="Vidéo reconstruite à partir d'une trajectoire dans l'espace latent générée par un réseau de neurones lagrangien, pour un espace latent 2D (haut) et 1D (bas).">Video reconstructed from a latent space trajectory generated by a Lagrangian Neural Network, for a 2D (top) and 1D (bottom) latent space.</p>
+</div>
+<div class="card-body">
+<span class="card-tag" data-en="In preparation · Representation Learning · Solid Mechanics" data-fr="En préparation · Apprentissage de représentations · Mécanique des solides">
           In preparation · Representation Learning · Solid Mechanics
         </span>
-        <h2 class="card-title">Learning Physics from Video</h2>
-        <p class="card-authors"><strong>Pottier Louen</strong>, Anand Kumar Agrawal, Jérémie Le Garrec</p>
-        <p class="card-desc"
-           data-en="[Description à rédiger]"
-           data-fr="[Description à rédiger]">
+<h2 class="card-title">Learning Physics from Video</h2>
+<p class="card-authors"><strong>Pottier Louen</strong>, Anand Kumar Agrawal, Jérémie Le Garrec</p>
+<p class="card-desc" data-en="[Description à rédiger]" data-fr="[Description à rédiger]">
           [Description à rédiger]
         </p>
-      </div>
-    </article>
-
-    <!-- Publication 1 — Partially-Linear Autoencoder (in preparation) -->
-    <article class="card">
-      <div class="card-image-col">
-        <div class="card-image card-video card-image-clickable"
-             onclick="openLightboxVideo('./videos/lenc.mp4')" title="Cliquer pour agrandir">
-          <video autoplay loop muted playsinline loading="lazy">
-            <source src="./videos/lenc.mp4" type="video/mp4" />
-          </video>
-        </div>
-        <p class="card-caption"
-           data-en="Latent space trajectory obtained by sweeping a 360° view of an office. Our method (right) produces a smooth trajectory without discontinuities."
-           data-fr="Trajectoire dans l'espace latent en parcourant la prise de vue à 360° d'un bureau. Notre méthode (droite) produit une trajectoire lisse et sans discontinuité."
-        >Latent space trajectory obtained by sweeping a 360° view of an office. Our method (right) produces a smooth trajectory without discontinuities.</p>
-      </div>
-      <div class="card-body">
-        <span class="card-tag"
-              data-en="In preparation · Submitted soon to JMLR · Representation Learning"
-              data-fr="En préparation · Soumission prochaine à JMLR · Apprentissage de représentations">
+</div>
+</article>
+<!-- Publication 1 — Partially-Linear Autoencoder (in preparation) -->
+<article class="card">
+<div class="card-image-col">
+<div class="card-image card-video card-image-clickable" onclick="openLightboxVideo('./videos/lenc.mp4')" title="Cliquer pour agrandir">
+<video autoplay="" loading="lazy" loop="" muted="" playsinline="">
+<source src="./videos/lenc.mp4" type="video/mp4"/>
+</video>
+</div>
+<p class="card-caption" data-en="Latent space trajectory obtained by sweeping a 360° view of an office. Our method (right) produces a smooth trajectory without discontinuities." data-fr="Trajectoire dans l'espace latent en parcourant la prise de vue à 360° d'un bureau. Notre méthode (droite) produit une trajectoire lisse et sans discontinuité.">Latent space trajectory obtained by sweeping a 360° view of an office. Our method (right) produces a smooth trajectory without discontinuities.</p>
+</div>
+<div class="card-body">
+<span class="card-tag" data-en="In preparation · Submitted soon to JMLR · Representation Learning" data-fr="En préparation · Soumission prochaine à JMLR · Apprentissage de représentations">
           In preparation · Submitted soon to JMLR · Representation Learning
         </span>
-        <h2 class="card-title">Capability of Partially-Linear Autoencoder</h2>
-        <p class="card-authors"><strong>Pottier Louen</strong>, Louis Lesueur, Anders Thorin</p>
-        <p class="card-desc"
-           data-en="[Description à rédiger]"
-           data-fr="[Description à rédiger]">
+<h2 class="card-title">Capability of Partially-Linear Autoencoder</h2>
+<p class="card-authors"><strong>Pottier Louen</strong>, Louis Lesueur, Anders Thorin</p>
+<p class="card-desc" data-en="[Description à rédiger]" data-fr="[Description à rédiger]">
           [Description à rédiger]
         </p>
-        <div class="card-links">
-          <a href="#" class="card-link-disabled" data-en="Preprint (coming soon)" data-fr="Preprint (bientôt)">Preprint (coming soon)</a>
-        </div>
-      </div>
-    </article>
-
-    <!-- Publication 2 — Latent-Lagrangian NNs — MORTech 2025 -->
-    <article class="card">
-      <div class="card-image-col">
-        <div class="card-image card-image-clickable"
-             onclick="openLightboxImg('./img/publications/mortech2025.png', 'Learned latent kinetic and strain energy landscapes')" title="Cliquer pour agrandir">
-          <img src="./img/publications/mortech2025.png" alt="Learned latent energy landscapes — MORTech 2025" />
-        </div>
-        <p class="card-caption"
-           data-en="Learned latent kinetic and potential energy landscapes for a 2-DOF nonlinear dynamical system."
-           data-fr="Paysages d'énergie cinétique et potentielle latents appris pour un système dynamique non linéaire à 2 ddl."
-        >Learned latent kinetic and potential energy landscapes for a 2-DOF nonlinear dynamical system.</p>
-      </div>
-      <div class="card-body">
-        <span class="card-tag"
-              data-en="Workshop · MORTech 2025 · Model Order Reduction · Dynamical Systems"
-              data-fr="Workshop · MORTech 2025 · Réduction de modèles · Systèmes dynamiques">
+<div class="card-links">
+<a class="card-link-disabled" data-en="Preprint (coming soon)" data-fr="Preprint (bientôt)" href="#">Preprint (coming soon)</a>
+</div></div>
+</article>
+<!-- Publication 2 — Latent-Lagrangian NNs — MORTech 2025 -->
+<article class="card">
+<div class="card-image-col">
+<div class="card-image card-image-clickable" onclick="openLightboxImg('./img/publications/mortech2025.png', 'Learned latent kinetic and strain energy landscapes')" title="Cliquer pour agrandir">
+<img alt="Learned latent energy landscapes — MORTech 2025" src="./img/publications/mortech2025.png"/>
+</div>
+<p class="card-caption" data-en="Learned latent kinetic and potential energy landscapes for a 2-DOF nonlinear dynamical system." data-fr="Paysages d'énergie cinétique et potentielle latents appris pour un système dynamique non linéaire à 2 ddl.">Learned latent kinetic and potential energy landscapes for a 2-DOF nonlinear dynamical system.</p>
+</div>
+<div class="card-body">
+<span class="card-tag" data-en="Workshop · MORTech 2025 · Model Order Reduction · Dynamical Systems" data-fr="Workshop · MORTech 2025 · Réduction de modèles · Systèmes dynamiques">
           Workshop · MORTech 2025 · Model Order Reduction · Dynamical Systems
         </span>
-        <h2 class="card-title">Latent-Lagrangian Neural Networks for Model-Order Reduction of Nonlinear Dynamical Systems</h2>
-        <p class="card-authors">Anand Kumar Agrawal, <strong>Pottier Louen</strong>, Anders Thorin</p>
-        <p class="card-desc"
-           data-en="7th International Workshop on Model Order Reduction Techniques (MORTech 2025)."
-           data-fr="7th International Workshop on Model Order Reduction Techniques (MORTech 2025).">
+<h2 class="card-title">Latent-Lagrangian Neural Networks for Model-Order Reduction of Nonlinear Dynamical Systems</h2>
+<p class="card-authors">Anand Kumar Agrawal, <strong>Pottier Louen</strong>, Anders Thorin</p>
+<p class="card-desc" data-en="7th International Workshop on Model Order Reduction Techniques (MORTech 2025)." data-fr="7th International Workshop on Model Order Reduction Techniques (MORTech 2025).">
           7th International Workshop on Model Order Reduction Techniques (MORTech 2025).
         </p>
-        <div class="card-links">
-          <a href="https://mortech2025.i3a.es/" target="_blank" data-en="Conference" data-fr="Conférence">Conference</a>
-          <a href="./pdf/MORtech2025_LLNN.pdf" target="_blank" class="card-link-pdf" data-en="↓ PDF" data-fr="↓ PDF">↓ PDF</a>
-        </div>
-      </div>
-    </article>
-
-    <!-- Publication 3 — Latent-Energy-Based NNs — JMPS 2025 -->
-    <article class="card" id="lebnn">
-      <div class="card-image-col">
-        <div class="card-image card-image-clickable"
-             onclick="openLightboxImg('./img/publications/lebnn_poster_fig.png', 'Latent space visualization — backward prediction and energy landscape')" title="Cliquer pour agrandir">
-          <img src="./img/publications/lebnn_poster_fig.png" alt="Latent space visualization — LEBNN" />
-        </div>
-        <p class="card-caption"
-           data-en="Predicted deformed configuration (left) and latent strain energy (right) for a 20-DOF hyperelastic beam."
-           data-fr="Configuration déformée prédite (gauche) et énergie de déformation latente (droite) pour une poutre hyperélastique à 20 ddl."
-        >Predicted deformed configuration (left) and latent strain energy (right) for a 20-DOF hyperelastic beam.</p>
-      </div>
-      <div class="card-body">
-        <span class="card-tag"
-              data-en="Journal · JMPS · January 2025 · Solid Mechanics"
-              data-fr="Revue · JMPS · Janvier 2025 · Mécanique des solides">
+<div class="card-links">
+<a data-en="Conference" data-fr="Conférence" href="https://mortech2025.i3a.es/" target="_blank">Conference</a>
+<a class="card-link-pdf" data-en="↓ PDF" data-fr="↓ PDF" href="./pdf/MORtech2025_LLNN.pdf" target="_blank">↓ PDF</a>
+</div></div>
+</article>
+<!-- Publication 3 — Latent-Energy-Based NNs — JMPS 2025 -->
+<article class="card" id="lebnn">
+<div class="card-image-col">
+<div class="card-image card-image-clickable" onclick="openLightboxImg('./img/publications/lebnn_poster_fig.png', 'Latent space visualization — backward prediction and energy landscape')" title="Cliquer pour agrandir">
+<img alt="Latent space visualization — LEBNN" src="./img/publications/lebnn_poster_fig.png"/>
+</div>
+<p class="card-caption" data-en="Predicted deformed configuration (left) and latent strain energy (right) for a 20-DOF hyperelastic beam." data-fr="Configuration déformée prédite (gauche) et énergie de déformation latente (droite) pour une poutre hyperélastique à 20 ddl.">Predicted deformed configuration (left) and latent strain energy (right) for a 20-DOF hyperelastic beam.</p>
+</div>
+<div class="card-body">
+<span class="card-tag" data-en="Journal · JMPS · January 2025 · Solid Mechanics" data-fr="Revue · JMPS · Janvier 2025 · Mécanique des solides">
           Journal · JMPS · January 2025 · Solid Mechanics
         </span>
-        <h2 class="card-title">Latent-Energy-Based NNs: An interpretable Neural Network architecture for model-order reduction of nonlinear statics in solid mechanics</h2>
-        <p class="card-authors"><strong>Pottier Louen</strong>, Anders Thorin, Francisco Chinesta</p>
-        <p class="card-desc"
-           data-en="Journal of the Mechanics and Physics of Solids, Vol. 194, January 2025, 105953."
-           data-fr="Journal of the Mechanics and Physics of Solids, Vol. 194, Janvier 2025, 105953.">
+<h2 class="card-title">Latent-Energy-Based NNs: An interpretable Neural Network architecture for model-order reduction of nonlinear statics in solid mechanics</h2>
+<p class="card-authors"><strong>Pottier Louen</strong>, Anders Thorin, Francisco Chinesta</p>
+<p class="card-desc" data-en="Journal of the Mechanics and Physics of Solids, Vol. 194, January 2025, 105953." data-fr="Journal of the Mechanics and Physics of Solids, Vol. 194, Janvier 2025, 105953.">
           Journal of the Mechanics and Physics of Solids, Vol. 194, January 2025, 105953.
         </p>
-        <div class="card-links">
-          <a href="https://doi.org/10.1016/j.jmps.2024.105953" target="_blank" data-en="Article" data-fr="Article">Article</a>
-          <a href="./pdf/hal_LEBNN.pdf" target="_blank" class="card-link-pdf" data-en="↓ PDF" data-fr="↓ PDF">↓ PDF</a>
-          <a href="./pdf/Poster_Pottier_Louen_mortech2023.pdf" target="_blank" class="card-link-pdf" data-en="↓ Poster (MORTech 2023)" data-fr="↓ Poster (MORTech 2023)">↓ Poster (MORTech 2023)</a>
-          <a href="https://lebnnbeam-1qhu98q9jlfi.streamlit.app/" target="_blank" class="hide-mobile"
-             data-en="Interactive demo (may take ~1 min to wake up)"
-             data-fr="Démo interactive (chargement ~1 min si inactif)">Interactive demo (may take ~1 min to wake up)</a>
-        </div>
-      </div>
-    </article>
-
-    <!-- Publication 4 — PLC Verification -->
-    <article class="card" id="plc-verification">
-      <div class="card-image-col">
-        <div class="card-image card-image-clickable"
-             onclick="openLightboxImg('./img/publications/dglstm.png', 'PLC verification figure')" title="Cliquer pour agrandir">
-          <img src="./img/publications/dglstm.png" alt="PLC verification figure" />
-        </div>
-        <p class="card-caption"
-           data-en="Example of causality graphs and the associated DGLSTM network employed to extract information from ST code."
-           data-fr="Exemple de graphes de causalité et réseau DGLSTM associé utilisés pour extraire l'information du code ST."
-        >Example of causality graphs and the associated DGLSTM network employed to extract information from ST code.</p>
-      </div>
-      <div class="card-body">
-        <span class="card-tag"
-              data-en="Journal · MDPI Processes · 2023 · Formal Verification"
-              data-fr="Revue · MDPI Processes · 2023 · Vérification formelle">
+<div class="card-links">
+<a data-en="Article" data-fr="Article" href="https://doi.org/10.1016/j.jmps.2024.105953" target="_blank">Article</a>
+<a class="card-link-pdf" data-en="↓ PDF" data-fr="↓ PDF" href="./pdf/hal_LEBNN.pdf" target="_blank">↓ PDF</a>
+<a class="card-link-pdf" data-en="↓ Poster (MORTech 2023)" data-fr="↓ Poster (MORTech 2023)" href="./pdf/Poster_Pottier_Louen_mortech2023.pdf" target="_blank">↓ Poster (MORTech 2023)</a>
+<a class="hide-mobile" data-en="Interactive demo (may take ~1 min to wake up)" data-fr="Démo interactive (chargement ~1 min si inactif)" href="https://lebnnbeam-1qhu98q9jlfi.streamlit.app/" target="_blank">Interactive demo (may take ~1 min to wake up)</a>
+</div></div>
+</article>
+<!-- Publication 4 — PLC Verification -->
+<article class="card" id="plc-verification">
+<div class="card-image-col">
+<div class="card-image card-image-clickable" onclick="openLightboxImg('./img/publications/dglstm.png', 'PLC verification figure')" title="Cliquer pour agrandir">
+<img alt="PLC verification figure" src="./img/publications/dglstm.png"/>
+</div>
+<p class="card-caption" data-en="Example of causality graphs and the associated DGLSTM network employed to extract information from ST code." data-fr="Exemple de graphes de causalité et réseau DGLSTM associé utilisés pour extraire l'information du code ST.">Example of causality graphs and the associated DGLSTM network employed to extract information from ST code.</p>
+</div>
+<div class="card-body">
+<span class="card-tag" data-en="Journal · MDPI Processes · 2023 · Formal Verification" data-fr="Revue · MDPI Processes · 2023 · Vérification formelle">
           Journal · MDPI Processes · 2023 · Formal Verification
         </span>
-        <h2 class="card-title">Fresh Approaches for Structured Text Programmable Logic Controllers Programs Verification</h2>
-        <p class="card-authors">Siboulet Emile, <strong>Pottier Louen</strong>, Ranger Tom, Riera Bernard</p>
-        <p class="card-desc"
-           data-en="MDPI Processes, Vol. 11(3), p. 687. Basel, Switzerland."
-           data-fr="MDPI Processes, Vol. 11(3), p. 687. Bâle, Suisse.">
+<h2 class="card-title">Fresh Approaches for Structured Text Programmable Logic Controllers Programs Verification</h2>
+<p class="card-authors">Siboulet Emile, <strong>Pottier Louen</strong>, Ranger Tom, Riera Bernard</p>
+<p class="card-desc" data-en="MDPI Processes, Vol. 11(3), p. 687. Basel, Switzerland." data-fr="MDPI Processes, Vol. 11(3), p. 687. Bâle, Suisse.">
           MDPI Processes, Vol. 11(3), p. 687. Basel, Switzerland.
         </p>
-        <div class="card-links">
-          <a href="https://doi.org/10.3390/pr11030687" target="_blank" data-en="Article" data-fr="Article">Article</a>
-          <a href="./pdf/Fresh_Approaches_for_Structured_Text_Pro.pdf" target="_blank" class="card-link-pdf" data-en="↓ PDF" data-fr="↓ PDF">↓ PDF</a>
-        </div>
-      </div>
-    </article>
-
-    <!-- Publication 5 — Deep Surrogate -->
-    <article class="card" id="deep-surrogate">
-      <div class="card-image-col">
-        <div class="card-image card-video card-image-clickable"
-             onclick="openLightboxVideo('./videos/vonkarman.mp4')" title="Cliquer pour agrandir">
-          <video autoplay loop muted playsinline loading="lazy">
-            <source src="./videos/vonkarman.mp4" type="video/mp4" />
-          </video>
-        </div>
-        <p class="card-caption"
-           data-en="Predicted and simulated fluid velocity fields, along with the error field, for the von Kármán test case using our GNN architecture."
-           data-fr="Champ de vitesse du fluide prédit vs simulé et champ d'erreur pour le cas test de Von Kármán avec notre architecture GNN."
-        >Predicted and simulated fluid velocity fields, along with the error field, for the von Kármán test case using our GNN architecture.</p>
-      </div>
-      <div class="card-body">
-        <span class="card-tag"
-              data-en="Workshop · NeurIPS 2021 · Scientific ML"
-              data-fr="Workshop · NeurIPS 2021 · ML scientifique">
+<div class="card-links">
+<a data-en="Article" data-fr="Article" href="https://doi.org/10.3390/pr11030687" target="_blank">Article</a>
+<a class="card-link-pdf" data-en="↓ PDF" data-fr="↓ PDF" href="./pdf/Fresh_Approaches_for_Structured_Text_Pro.pdf" target="_blank">↓ PDF</a>
+</div></div>
+</article>
+<!-- Publication 5 — Deep Surrogate -->
+<article class="card" id="deep-surrogate">
+<div class="card-image-col">
+<div class="card-image card-video card-image-clickable" onclick="openLightboxVideo('./videos/vonkarman.mp4')" title="Cliquer pour agrandir">
+<video autoplay="" loading="lazy" loop="" muted="" playsinline="">
+<source src="./videos/vonkarman.mp4" type="video/mp4"/>
+</video>
+</div>
+<p class="card-caption" data-en="Predicted and simulated fluid velocity fields, along with the error field, for the von Kármán test case using our GNN architecture." data-fr="Champ de vitesse du fluide prédit vs simulé et champ d'erreur pour le cas test de Von Kármán avec notre architecture GNN.">Predicted and simulated fluid velocity fields, along with the error field, for the von Kármán test case using our GNN architecture.</p>
+</div>
+<div class="card-body">
+<span class="card-tag" data-en="Workshop · NeurIPS 2021 · Scientific ML" data-fr="Workshop · NeurIPS 2021 · ML scientifique">
           Workshop · NeurIPS 2021 · Scientific ML
         </span>
-        <h2 class="card-title">Deep Surrogate for Direct Time Fluid Dynamics</h2>
-        <p class="card-authors">Meyer Lucas, <strong>Pottier Louen</strong>, Ribes Alejandro, Raffin Bruno</p>
-        <p class="card-desc"
-           data-en="NeurIPS 2021 — Thirty-fifth Workshop on Machine Learning and the Physical Sciences. Vancouver, Canada, pp. 1–7."
-           data-fr="NeurIPS 2021 — Thirty-fifth Workshop on Machine Learning and the Physical Sciences. Vancouver, Canada, pp. 1–7.">
+<h2 class="card-title">Deep Surrogate for Direct Time Fluid Dynamics</h2>
+<p class="card-authors">Meyer Lucas, <strong>Pottier Louen</strong>, Ribes Alejandro, Raffin Bruno</p>
+<p class="card-desc" data-en="NeurIPS 2021 — Thirty-fifth Workshop on Machine Learning and the Physical Sciences. Vancouver, Canada, pp. 1–7." data-fr="NeurIPS 2021 — Thirty-fifth Workshop on Machine Learning and the Physical Sciences. Vancouver, Canada, pp. 1–7.">
           NeurIPS 2021 — Thirty-fifth Workshop on Machine Learning and the Physical Sciences. Vancouver, Canada, pp. 1–7.
         </p>
-        <div class="card-links">
-          <a href="https://arxiv.org/pdf/2112.10296" target="_blank" data-en="arXiv" data-fr="arXiv">arXiv</a>
-          <a href="./pdf/deeporder.pdf" target="_blank" class="card-link-pdf" data-en="↓ PDF" data-fr="↓ PDF">↓ PDF</a>
-        </div>
-      </div>
-    </article>
-
-    <!-- Publication 6 — GACRNN poster -->
-    <article class="card">
-      <div class="card-image-col">
-        <div class="card-image card-image-clickable"
-             onclick="openLightboxImg('./img/publications/gacrnn.png', 'IUTAM poster — stability of recurrent cells')" title="Cliquer pour agrandir">
-          <img src="./img/publications/gacrnn.png" alt="IUTAM poster figure — stability of recurrent cells" />
-        </div>
-        <p class="card-caption"
-           data-en="Key result: our architecture structurally prevents the emergence of stable orbits."
-           data-fr="Résultat clé : notre architecture empêche structurellement l'apparition d'orbites stables."
-        >Key result: our architecture structurally prevents the emergence of stable orbits.</p>
-      </div>
-      <div class="card-body">
-        <span class="card-tag"
-              data-en="Poster · IUTAM Symposium · October 2022 · Dynamical Systems"
-              data-fr="Poster · Symposium IUTAM · Octobre 2022 · Systèmes dynamiques">
+<div class="card-links">
+<a data-en="arXiv" data-fr="arXiv" href="https://arxiv.org/pdf/2112.10296" target="_blank">arXiv</a>
+<a class="card-link-pdf" data-en="↓ PDF" data-fr="↓ PDF" href="./pdf/deeporder.pdf" target="_blank">↓ PDF</a>
+</div></div>
+</article>
+<!-- Publication 6 — GACRNN poster -->
+<article class="card">
+<div class="card-image-col">
+<div class="card-image card-image-clickable" onclick="openLightboxImg('./img/publications/gacrnn.png', 'IUTAM poster — stability of recurrent cells')" title="Cliquer pour agrandir">
+<img alt="IUTAM poster figure — stability of recurrent cells" src="./img/publications/gacrnn.png"/>
+</div>
+<p class="card-caption" data-en="Key result: our architecture structurally prevents the emergence of stable orbits." data-fr="Résultat clé : notre architecture empêche structurellement l'apparition d'orbites stables.">Key result: our architecture structurally prevents the emergence of stable orbits.</p>
+</div>
+<div class="card-body">
+<span class="card-tag" data-en="Poster · IUTAM Symposium · October 2022 · Dynamical Systems" data-fr="Poster · Symposium IUTAM · Octobre 2022 · Systèmes dynamiques">
           Poster · IUTAM Symposium · October 2022 · Dynamical Systems
         </span>
-        <h2 class="card-title">Designing recurrent cells to enforce stability in real-time dynamical simulations</h2>
-        <p class="card-authors"><strong>Pottier Louen</strong>, Anders Thorin</p>
-        <p class="card-desc"
-           data-en="Poster presented at the IUTAM Symposium on Data-driven mechanics, October 2022."
-           data-fr="Poster présenté au symposium IUTAM on Data-driven mechanics, octobre 2022.">
+<h2 class="card-title">Designing recurrent cells to enforce stability in real-time dynamical simulations</h2>
+<p class="card-authors"><strong>Pottier Louen</strong>, Anders Thorin</p>
+<p class="card-desc" data-en="Poster presented at the IUTAM Symposium on Data-driven mechanics, October 2022." data-fr="Poster présenté au symposium IUTAM on Data-driven mechanics, octobre 2022.">
           Poster presented at the IUTAM Symposium on Data-driven mechanics, October 2022.
         </p>
-        <div class="card-links">
-          <a href="https://hal.science/hal-04048373" target="_blank" data-en="HAL" data-fr="HAL">HAL</a>
-          <a href="./pdf/2022_IUTAM_poster.pdf" target="_blank" class="card-link-pdf" data-en="↓ PDF" data-fr="↓ PDF">↓ PDF</a>
-        </div>
-      </div>
-    </article>
-
-  </main>
-
-  <footer><p>© 2026 Louen Pottier</p></footer>
-
-  <!-- ── LIGHTBOX (image + video) ── -->
-  <div id="lightbox" class="lightbox" onclick="closeLightbox()">
-    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-    <img id="lightbox-img" src="" alt="" style="display:none" />
-    <video id="lightbox-video" autoplay loop muted playsinline
-           style="display:none; max-width:90vw; max-height:88vh; border-radius:3px; box-shadow:0 8px 48px rgba(0,0,0,0.5);">
-    </video>
-  </div>
-  <script>
+<div class="card-links">
+<a data-en="HAL" data-fr="HAL" href="https://hal.science/hal-04048373" target="_blank">HAL</a>
+<a class="card-link-pdf" data-en="↓ PDF" data-fr="↓ PDF" href="./pdf/2022_IUTAM_poster.pdf" target="_blank">↓ PDF</a>
+</div></div>
+</article>
+</main>
+<footer><p>© 2026 Louen Pottier</p></footer>
+<!-- ── LIGHTBOX (image + video) ── -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+<button class="lightbox-close" onclick="closeLightbox()">✕</button>
+<img alt="" id="lightbox-img" src="" style="display:none"/>
+<video autoplay="" id="lightbox-video" loop="" muted="" playsinline="" style="display:none; max-width:90vw; max-height:88vh; border-radius:3px; box-shadow:0 8px 48px rgba(0,0,0,0.5);">
+</video>
+</div>
+<script>
     function openLightboxImg(src, alt) {
       const lb = document.getElementById('lightbox');
       const img = document.getElementById('lightbox-img');
@@ -408,7 +302,29 @@
     }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
   </script>
-
-  <script src="lang.js"></script>
+<script>
+    function setupMobileLinks() {
+      const isMobile = window.innerWidth <= 720;
+      document.querySelectorAll('.card').forEach(card => {
+        const body = card.querySelector('.card-body');
+        const links = card.querySelector('.card-links');
+        if (!body || !links) return;
+        if (isMobile) {
+          if (!card.querySelector(':scope > .card-links')) {
+            links.remove();
+            card.appendChild(links);
+          }
+        } else {
+          if (card.querySelector(':scope > .card-links')) {
+            links.remove();
+            body.appendChild(links);
+          }
+        }
+      });
+    }
+    setupMobileLinks();
+    window.addEventListener('resize', setupMobileLinks);
+  </script>
+<script src="lang.js"></script>
 </body>
 </html>

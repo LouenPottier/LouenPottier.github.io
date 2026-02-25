@@ -818,6 +818,7 @@ footer {
   .card-image-col { order: 2; width: 100%; }
   .card-body { order: 1; }
   .card-logo-col { order: 3; }
+  .card > .card-links { order: 4; }
   .card-caption { max-width: 100%; }
 
   .card-logo-col { display: none; }
