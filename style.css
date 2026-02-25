@@ -481,6 +481,10 @@ main {
   font-style: italic;
 }
 
+/* Centre verticalement la colonne image sur desktop */
+.card > div:first-child,
+.card-image-col { align-self: center; }
+
 /* ── CARD IMAGE COLUMN (image + caption wrapper) ── */
 .card-image-col {
   display: flex;
