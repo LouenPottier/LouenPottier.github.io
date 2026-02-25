@@ -813,6 +813,13 @@ footer {
   .card.card-with-logo { grid-template-columns: 1fr; }
   .card-image { width: 100%; height: 180px; }
 
+  /* Image après le texte sur mobile */
+  .card > div:first-child,
+  .card-image-col { order: 2; width: 100%; }
+  .card-body { order: 1; }
+  .card-logo-col { order: 3; }
+  .card-caption { max-width: 100%; }
+
   .card-logo-col { display: none; }
 
   /* Logos déplacés dans les pills via JS sur mobile */
