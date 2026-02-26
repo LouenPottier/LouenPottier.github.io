@@ -400,7 +400,6 @@ main {
   color: var(--text-muted);
   max-width: 580px;
   margin-bottom: 2.5rem;
-  font-style: italic;
 }
 
 .section-subtitle {
