@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>3D Viewer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a0a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 2rem 1rem;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #eee;
+  }
+
+  h1 {
+    font-size: 1rem;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 1.5rem;
+  }
+
+  #container {
+    position: relative;
+    width: 360px;
+    height: 360px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(255,255,255,0.05), 0 0 0 1px #222;
+    cursor: grab;
+  }
+  #container:active { cursor: grabbing; }
+
+  canvas { display: block; width: 100%; height: 100%; }
+
+  #controls {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    width: 360px;
+  }
+
+  .ctrl-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .ctrl-row label {
+    width: 130px;
+    text-align: right;
+    font-size: 0.72rem;
+    color: #555;
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    flex: 1;
+    height: 2px;
+    background: #2a2a2a;
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+  }
+
+  #loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #444;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<h1>3D Portrait</h1>
+
+<div id="container">
+  <canvas id="canvas"></canvas>
+  <div id="loading">chargement…</div>
+</div>
+
+<div id="controls">
+  <div class="ctrl-row">
+    <label>GAUCHE / DROITE</label>
+    <input type="range" id="sliderY" min="-60" max="60" value="0" step="0.5">
+  </div>
+  <div class="ctrl-row">
+    <label>HAUT / BAS</label>
+    <input type="range" id="sliderX" min="-45" max="45" value="0" step="0.5">
+  </div>
+  <div class="ctrl-row">
+    <label>DISTANCE</label>
+    <input type="range" id="sliderZ" min="0.3" max="3.0" value="1.0" step="0.05">
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ─── Config ───────────────────────────────────────────────────────────────────
+// Modifier ce chemin si le .splat est ailleurs
+const SPLAT_URL = "./nation.splat";
+
+// ─── Renderer ────────────────────────────────────────────────────────────────
+
+const canvas    = document.getElementById("canvas");
+const container = document.getElementById("container");
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setSize(360, 360);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setClearColor(0x0a0a0a, 1);
+
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 100);
+
+// ─── État ────────────────────────────────────────────────────────────────────
+
+let rotY = 0, rotX = 0;
+let autoRot = true;
+let pivot   = null;
+
+const MAX_Y = Math.PI / 3;
+const MAX_X = Math.PI / 4;
+
+let camDistBase = 3.0;
+let camDistMult = 1.0;
+
+// ─── Sliders ─────────────────────────────────────────────────────────────────
+
+const sliderY = document.getElementById("sliderY");
+const sliderX = document.getElementById("sliderX");
+const sliderZ = document.getElementById("sliderZ");
+
+sliderY.addEventListener("input", () => {
+  autoRot = false;
+  rotY = parseFloat(sliderY.value) * Math.PI / 180;
+});
+sliderX.addEventListener("input", () => {
+  autoRot = false;
+  rotX = parseFloat(sliderX.value) * Math.PI / 180;
+});
+sliderZ.addEventListener("input", () => {
+  camDistMult = parseFloat(sliderZ.value);
+  camera.position.z = camDistBase * camDistMult;
+  camera.updateProjectionMatrix();
+});
+
+// ─── Drag souris ─────────────────────────────────────────────────────────────
+
+let dragging = false, lastMX = 0, lastMY = 0;
+
+container.addEventListener("mousedown", e => {
+  dragging = true; lastMX = e.clientX; lastMY = e.clientY; autoRot = false;
+});
+window.addEventListener("mouseup", () => { dragging = false; });
+window.addEventListener("mousemove", e => {
+  if (!dragging || !pivot) return;
+  const dx = e.clientX - lastMX;
+  const dy = e.clientY - lastMY;
+  rotY = Math.max(-MAX_Y, Math.min(MAX_Y, rotY + dx * 0.008));
+  rotX = Math.max(-MAX_X, Math.min(MAX_X, rotX + dy * 0.008));
+  sliderY.value = (rotY * 180 / Math.PI).toFixed(1);
+  sliderX.value = (rotX * 180 / Math.PI).toFixed(1);
+  lastMX = e.clientX; lastMY = e.clientY;
+});
+
+// Touch support (mobile)
+let lastTX = 0, lastTY = 0;
+container.addEventListener("touchstart", e => {
+  lastTX = e.touches[0].clientX; lastTY = e.touches[0].clientY; autoRot = false;
+}, { passive: true });
+container.addEventListener("touchmove", e => {
+  if (!pivot) return;
+  const dx = e.touches[0].clientX - lastTX;
+  const dy = e.touches[0].clientY - lastTY;
+  rotY = Math.max(-MAX_Y, Math.min(MAX_Y, rotY + dx * 0.008));
+  rotX = Math.max(-MAX_X, Math.min(MAX_X, rotX + dy * 0.008));
+  sliderY.value = (rotY * 180 / Math.PI).toFixed(1);
+  sliderX.value = (rotX * 180 / Math.PI).toFixed(1);
+  lastTX = e.touches[0].clientX; lastTY = e.touches[0].clientY;
+}, { passive: true });
+
+// ─── Parsing .splat ───────────────────────────────────────────────────────────
+
+function parseSplat(buffer) {
+  const BYTES = 32;
+  const n    = Math.floor(buffer.byteLength / BYTES);
+  const view = new DataView(buffer);
+  const positions = new Float32Array(n * 3);
+  const colors    = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const b = i * BYTES;
+    positions[i*3+0] = view.getFloat32(b +  0, true);
+    positions[i*3+1] = view.getFloat32(b +  4, true);
+    positions[i*3+2] = view.getFloat32(b +  8, true);
+    colors[i*3+0]    = view.getUint8(b + 24) / 255;
+    colors[i*3+1]    = view.getUint8(b + 25) / 255;
+    colors[i*3+2]    = view.getUint8(b + 26) / 255;
+  }
+  return { positions, colors, n };
+}
+
+// ─── Construction de la scène ─────────────────────────────────────────────────
+
+function buildScene(data) {
+  while (scene.children.length) scene.remove(scene.children[0]);
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(data.positions, 3));
+  geo.setAttribute("color",    new THREE.BufferAttribute(data.colors,    3));
+
+  const pos = data.positions;
+  const N   = data.n;
+
+  // Centre de rotation : barycentre XY + percentile 40% en Z (surface du visage)
+  let sumX = 0, sumY = 0;
+  for (let i = 0; i < N; i++) { sumX += pos[i*3]; sumY += pos[i*3+1]; }
+  const cx = sumX / N, cy = sumY / N;
+
+  const zArr = new Float32Array(N);
+  for (let i = 0; i < N; i++) zArr[i] = pos[i*3+2];
+  zArr.sort();
+  const cz = zArr[Math.floor(N * 0.4)];
+
+  for (let i = 0; i < N; i++) {
+    pos[i*3+0] -= cx;
+    pos[i*3+1] -= cy;
+    pos[i*3+2] -= cz;
+  }
+  geo.attributes.position.needsUpdate = true;
+  geo.computeBoundingBox();
+
+  const size = new THREE.Vector3();
+  geo.boundingBox.getSize(size);
+  const maxDim = Math.max(size.x, size.y, size.z);
+
+  const ptSize = Math.max(2.5, Math.min(5.0, 600 / Math.sqrt(N)));
+
+  const mat = new THREE.PointsMaterial({
+    size: ptSize, vertexColors: true, sizeAttenuation: false,
+  });
+
+  pivot = new THREE.Object3D();
+  pivot.add(new THREE.Points(geo, mat));
+  scene.add(pivot);
+
+  camDistBase = maxDim * 1.8;
+  camera.position.set(0, 0, camDistBase);
+  camera.near = maxDim * 0.001;
+  camera.far  = maxDim * 20;
+  camera.lookAt(0, 0, 0);
+  camera.updateProjectionMatrix();
+
+  // Cacher le message de chargement
+  document.getElementById("loading").style.display = "none";
+
+  autoRot = true; rotY = 0; rotX = 0;
+  sliderY.value = sliderX.value = 0; sliderZ.value = 1.0; camDistMult = 1.0;
+}
+
+// ─── Chargement automatique ───────────────────────────────────────────────────
+
+fetch(SPLAT_URL)
+  .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.arrayBuffer(); })
+  .then(buf => buildScene(parseSplat(buf)))
+  .catch(err => {
+    document.getElementById("loading").textContent = "erreur : " + err.message;
+    console.error(err);
+  });
+
+// ─── Boucle de rendu ──────────────────────────────────────────────────────────
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (pivot) {
+    if (autoRot) {
+      rotY = Math.sin(Date.now() * 0.0004) * (Math.PI / 6);
+      sliderY.value = (rotY * 180 / Math.PI).toFixed(1);
+    }
+    pivot.rotation.order = "YXZ";
+    pivot.rotation.y = rotY;
+    pivot.rotation.x = rotX;
+  }
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
