@@ -157,10 +157,12 @@ container.addEventListener("touchmove", e => {
 // (v, vt, f v/vt v/vt v/vt)
 
 async function loadOBJ(url) {
+  console.log('[OBJ] fetch', url);
   const text = await fetch(url).then(r => {
     if (!r.ok) throw new Error(`HTTP ${r.status} — ${url}`);
     return r.text();
   });
+  console.log('[OBJ] loaded, length=', text.length);
 
   const lines = text.split('\n');
   const verts = [], uvs = [], faces = [];
@@ -183,8 +185,10 @@ async function loadOBJ(url) {
   }
 
   // Lire la texture depuis le .mtl
+  console.log('[OBJ] verts=', verts.length, 'uvs=', uvs.length, 'faces=', faces.length, 'mtlFile=', mtlFile);
   if (mtlFile) {
     const mtlBase = url.substring(0, url.lastIndexOf('/') + 1);
+    console.log('[MTL] fetching', mtlBase + mtlFile);
     const mtlText = await fetch(mtlBase + mtlFile).then(r => r.text()).catch(() => '');
     for (const line of mtlText.split('\n')) {
       const p = line.trim().split(/\s+/);
@@ -209,10 +213,13 @@ async function loadOBJ(url) {
 
   // Texture — on utilise load() avec une Promise pour attendre le chargement complet
   let mat;
+  console.log('[TEX] texFile=', texFile);
   if (texFile) {
+    console.log('[TEX] loading texture...');
     const tex = await new Promise((resolve, reject) => {
       new THREE.TextureLoader().load(texFile, resolve, undefined, reject);
     });
+    console.log('[TEX] texture loaded');
     tex.flipY = true;
     mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.FrontSide });
   } else {
@@ -272,10 +279,11 @@ function buildScene(mesh) {
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 loadOBJ(OBJ_URL)
-  .then(mesh => buildScene(mesh))
+  .then(mesh => { console.log('[SCENE] building...'); buildScene(mesh); })
   .catch(err => {
+    console.error('[ERROR]', err);
     document.getElementById("loading").textContent = "erreur : " + err.message;
-    console.error(err);
+    document.getElementById("loading").style.display = "flex";
   });
 
 // ─── Rendu ────────────────────────────────────────────────────────────────────
