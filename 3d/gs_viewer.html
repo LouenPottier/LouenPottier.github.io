@@ -7,30 +7,22 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     background: #0a0a0a;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 2rem 1rem;
-    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 2rem 1rem; min-height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     color: #eee;
   }
   h1 {
-    font-size: 1rem;
-    font-weight: 300;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: #888;
-    margin-bottom: 1.5rem;
+    font-size: 1rem; font-weight: 300;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: #888; margin-bottom: 1.5rem;
   }
   #container {
-    width: 360px; height: 360px;
-    border-radius: 50%;
+    width: 360px; height: 360px; border-radius: 50%;
     overflow: hidden;
     box-shadow: 0 0 60px rgba(255,255,255,0.05), 0 0 0 1px #222;
-    cursor: grab;
-    position: relative;
+    cursor: grab; position: relative;
   }
   #container:active { cursor: grabbing; }
   canvas { display: block; width: 100%; height: 100%; }
@@ -41,9 +33,8 @@
     pointer-events: none;
   }
   #controls {
-    margin-top: 1.5rem;
-    display: flex; flex-direction: column; gap: 0.7rem;
-    width: 360px;
+    margin-top: 1.5rem; display: flex; flex-direction: column;
+    gap: 0.7rem; width: 360px;
   }
   .ctrl-row { display: flex; align-items: center; gap: 1rem; }
   .ctrl-row label {
@@ -84,117 +75,60 @@
   </div>
   <div class="ctrl-row">
     <label>TAILLE SPLAT</label>
-    <input type="range" id="sliderSize" min="1" max="200" value="40" step="0.1">
+    <input type="range" id="sliderSize" min="1" max="20" value="4" step="0.5">
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-// ─── Config ───────────────────────────────────────────────────────────────────
 const SPLAT_URL = "./nation.splat";
 
-// ─── Shaders gaussiens ────────────────────────────────────────────────────────
-//
-// Vertex shader : calcule la taille du splat en pixels selon la profondeur
-// et transmet la couleur.
-//
-// Fragment shader : dessine une gaussienne 2D — intensité = exp(-r²/σ²).
-// Les splats adjacents se chevauchent et s'additionnent → comble les trous.
-
-const vertexShader = `
-  attribute vec3 color;
-  varying vec3  vColor;
-  varying float vDepth;
-
-  uniform float uSplatScale;   // multiplicateur de taille global (slider)
-  uniform float uFocalLength;  // focale approximative en pixels normalisés
-
-  void main() {
-    vColor = color;
-
-    vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
-    gl_Position = projectionMatrix * mvPos;
-
-    // Taille en pixels : on veut que les splats se touchent à la profondeur
-    // médiane. Taille ∝ 1/profondeur pour la perspective.
-    float depth = -mvPos.z;   // profondeur positive
-    float splatSize = uSplatScale * uFocalLength / max(depth, 0.1);
-    gl_PointSize = clamp(splatSize, 1.0, 128.0);
-
-    vDepth = depth;
-  }
-`;
-
-const fragmentShader = `
-  varying vec3  vColor;
-  varying float vDepth;
-
-  void main() {
-    // gl_PointCoord ∈ [0,1]² centré sur chaque point
-    vec2 coord = gl_PointCoord - vec2(0.5);
-    float r2 = dot(coord, coord);   // distance² au centre (max 0.25 au bord)
-
-    // Gaussienne 2D : alpha = exp(-r² / σ²)
-    // σ² = 0.06 → décroissance douce, chevauchement confortable
-    float sigma2 = 0.06;
-    float alpha = exp(-r2 / sigma2);
-
-    // Couper au-delà de r=0.5 (bord du point carré WebGL)
-    if (r2 > 0.25) discard;
-
-    gl_FragColor = vec4(vColor, alpha);
-  }
-`;
-
 // ─── Renderer ────────────────────────────────────────────────────────────────
-
 const canvas    = document.getElementById("canvas");
 const container = document.getElementById("container");
 
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(360, 360);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));  // cap à 2x sur mobile
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setClearColor(0x0a0a0a, 1);
 
 const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, 1, 0.001, 100);
 
 // ─── État ────────────────────────────────────────────────────────────────────
-
-let rotY = 0, rotX = 0;
-let autoRot = true;
-let pivot   = null;
+let rotY = 0, rotX = 0, autoRot = true, pivot = null;
 let camDistBase = 3.0, camDistMult = 1.0;
-let splatMaterial = null;
+let currentPoints = null;   // THREE.Points courant
 
 const MAX_Y = Math.PI / 3;
 const MAX_X = Math.PI / 4;
 
 // ─── Sliders ─────────────────────────────────────────────────────────────────
-
 const sliderY    = document.getElementById("sliderY");
 const sliderX    = document.getElementById("sliderX");
 const sliderZ    = document.getElementById("sliderZ");
 const sliderSize = document.getElementById("sliderSize");
 
-sliderY.addEventListener("input", () => { autoRot = false; rotY = parseFloat(sliderY.value) * Math.PI / 180; });
-sliderX.addEventListener("input", () => { autoRot = false; rotX = parseFloat(sliderX.value) * Math.PI / 180; });
+sliderY.addEventListener("input", () => { autoRot = false; rotY = +sliderY.value * Math.PI / 180; });
+sliderX.addEventListener("input", () => { autoRot = false; rotX = +sliderX.value * Math.PI / 180; });
 sliderZ.addEventListener("input", () => {
-  camDistMult = parseFloat(sliderZ.value);
+  camDistMult = +sliderZ.value;
   camera.position.z = camDistBase * camDistMult;
   camera.updateProjectionMatrix();
 });
+
+// ── Taille splat : recrée le PointsMaterial avec la nouvelle taille ──────────
+// C'est la méthode fiable — PointsMaterial.size est effectivement appliqué
+// par Three.js sur tous les drivers, contrairement à gl_PointSize custom.
 sliderSize.addEventListener("input", () => {
-  if (splatMaterial) splatMaterial.uniforms.uSplatScale.value = parseFloat(sliderSize.value);
+  if (!currentPoints) return;
+  currentPoints.material.size = +sliderSize.value;
+  currentPoints.material.needsUpdate = true;
 });
 
 // ─── Drag souris + touch ──────────────────────────────────────────────────────
-
 let dragging = false, lastMX = 0, lastMY = 0;
-
-container.addEventListener("mousedown", e => {
-  dragging = true; lastMX = e.clientX; lastMY = e.clientY; autoRot = false;
-});
+container.addEventListener("mousedown", e => { dragging = true; lastMX = e.clientX; lastMY = e.clientY; autoRot = false; });
 window.addEventListener("mouseup", () => { dragging = false; });
 window.addEventListener("mousemove", e => {
   if (!dragging || !pivot) return;
@@ -204,7 +138,6 @@ window.addEventListener("mousemove", e => {
   sliderX.value = (rotX * 180 / Math.PI).toFixed(1);
   lastMX = e.clientX; lastMY = e.clientY;
 });
-
 let lastTX = 0, lastTY = 0;
 container.addEventListener("touchstart", e => {
   lastTX = e.touches[0].clientX; lastTY = e.touches[0].clientY; autoRot = false;
@@ -219,10 +152,8 @@ container.addEventListener("touchmove", e => {
 }, { passive: true });
 
 // ─── Parsing .splat ───────────────────────────────────────────────────────────
-
 function parseSplat(buffer) {
-  const BYTES = 32;
-  const n    = Math.floor(buffer.byteLength / BYTES);
+  const BYTES = 32, n = Math.floor(buffer.byteLength / BYTES);
   const view = new DataView(buffer);
   const positions = new Float32Array(n * 3);
   const colors    = new Float32Array(n * 3);
@@ -238,8 +169,34 @@ function parseSplat(buffer) {
   return { positions, colors, n };
 }
 
-// ─── Construction de la scène ─────────────────────────────────────────────────
+// ─── Texture de gaussienne ────────────────────────────────────────────────────
+// On crée une texture 64×64 avec un disque gaussien blanc,
+// utilisée comme sprite par PointsMaterial.map.
+// C'est la méthode la plus portable — fonctionne sur tous les drivers
+// mobile/desktop sans dépendre de gl_PointSize custom.
 
+function makeGaussianTexture(size = 64) {
+  const canvas2d = document.createElement("canvas");
+  canvas2d.width = canvas2d.height = size;
+  const ctx = canvas2d.getContext("2d");
+  const half = size / 2;
+
+  // Gradient radial : blanc au centre, transparent au bord
+  const grad = ctx.createRadialGradient(half, half, 0, half, half, half);
+  grad.addColorStop(0.0, "rgba(255,255,255,1.0)");
+  grad.addColorStop(0.4, "rgba(255,255,255,0.8)");
+  grad.addColorStop(1.0, "rgba(255,255,255,0.0)");
+
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, size, size);
+
+  const tex = new THREE.CanvasTexture(canvas2d);
+  return tex;
+}
+
+const gaussianTex = makeGaussianTexture(64);
+
+// ─── Construction de la scène ─────────────────────────────────────────────────
 function buildScene(data) {
   while (scene.children.length) scene.remove(scene.children[0]);
 
@@ -250,49 +207,38 @@ function buildScene(data) {
   let sumX = 0, sumY = 0;
   for (let i = 0; i < N; i++) { sumX += pos[i*3]; sumY += pos[i*3+1]; }
   const cx = sumX / N, cy = sumY / N;
-
   const zArr = new Float32Array(N);
   for (let i = 0; i < N; i++) zArr[i] = pos[i*3+2];
   zArr.sort();
   const cz = zArr[Math.floor(N * 0.4)];
-
-  for (let i = 0; i < N; i++) {
-    pos[i*3+0] -= cx;
-    pos[i*3+1] -= cy;
-    pos[i*3+2] -= cz;
-  }
+  for (let i = 0; i < N; i++) { pos[i*3] -= cx; pos[i*3+1] -= cy; pos[i*3+2] -= cz; }
 
   const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.BufferAttribute(pos,          3));
-  geo.setAttribute("color",    new THREE.BufferAttribute(data.colors,  3));
-
+  geo.setAttribute("position", new THREE.BufferAttribute(pos,         3));
+  geo.setAttribute("color",    new THREE.BufferAttribute(data.colors, 3));
   geo.computeBoundingBox();
+
   const size = new THREE.Vector3();
   geo.boundingBox.getSize(size);
   const maxDim = Math.max(size.x, size.y, size.z);
 
-  // Focale approximative pour le shader : pixels normalisés / unités 3D
-  // On veut que les splats se touchent à la profondeur médiane (cz avant recentrage)
-  // pixelSize ≈ unitSize / depth  →  focalLength = pixelSize * depth / unitSize
-  // On cible ~2px de rayon par splat à profondeur médiane
-  const focalLength = 2.0;   // ajusté empiriquement, modifiable via slider
-
-  splatMaterial = new THREE.ShaderMaterial({
-    vertexShader,
-    fragmentShader,
-    uniforms: {
-      uSplatScale:  { value: parseFloat(sliderSize.value) },
-      uFocalLength: { value: focalLength },
-    },
-    transparent: true,
-    depthWrite:  false,   // nécessaire pour l'alpha-blending correct entre splats
-    blending:    THREE.AdditiveBlending,  // les splats qui se chevauchent s'additionnent
+  // PointsMaterial avec texture gaussienne + couleurs vertex
+  // vertexColors * map = couleur du point × forme gaussienne
+  const mat = new THREE.PointsMaterial({
+    size:            +sliderSize.value,
+    sizeAttenuation: true,    // taille perspective-correcte
+    map:             gaussianTex,
+    vertexColors:    true,
+    transparent:     true,
+    depthWrite:      false,
+    blending:        THREE.NormalBlending,
+    alphaTest:       0.001,
   });
 
-  const points = new THREE.Points(geo, splatMaterial);
+  currentPoints = new THREE.Points(geo, mat);
 
   pivot = new THREE.Object3D();
-  pivot.add(points);
+  pivot.add(currentPoints);
   scene.add(pivot);
 
   camDistBase = maxDim * 1.8;
@@ -309,7 +255,6 @@ function buildScene(data) {
 }
 
 // ─── Chargement ───────────────────────────────────────────────────────────────
-
 fetch(SPLAT_URL)
   .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.arrayBuffer(); })
   .then(buf => buildScene(parseSplat(buf)))
@@ -319,7 +264,6 @@ fetch(SPLAT_URL)
   });
 
 // ─── Rendu ────────────────────────────────────────────────────────────────────
-
 function animate() {
   requestAnimationFrame(animate);
   if (pivot) {
