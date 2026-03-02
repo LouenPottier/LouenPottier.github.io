@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>3D viewer — Gaussian Splat</title>
+<title>3D Viewer — Gaussian Splat</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -84,7 +84,7 @@
   </div>
   <div class="ctrl-row">
     <label>TAILLE SPLAT</label>
-    <input type="range" id="sliderSize" min="0.5" max="5.0" value="1.5" step="0.1">
+    <input type="range" id="sliderSize" min="1" max="200" value="40" step="0.1">
   </div>
 </div>
 
@@ -119,7 +119,7 @@ const vertexShader = `
     // médiane. Taille ∝ 1/profondeur pour la perspective.
     float depth = -mvPos.z;   // profondeur positive
     float splatSize = uSplatScale * uFocalLength / max(depth, 0.1);
-    gl_PointSize = clamp(splatSize, 1.0, 64.0);
+    gl_PointSize = clamp(splatSize, 1.0, 128.0);
 
     vDepth = depth;
   }
@@ -275,7 +275,7 @@ function buildScene(data) {
   // On veut que les splats se touchent à la profondeur médiane (cz avant recentrage)
   // pixelSize ≈ unitSize / depth  →  focalLength = pixelSize * depth / unitSize
   // On cible ~2px de rayon par splat à profondeur médiane
-  const focalLength = 0.04;   // ajusté empiriquement, modifiable via slider
+  const focalLength = 2.0;   // ajusté empiriquement, modifiable via slider
 
   splatMaterial = new THREE.ShaderMaterial({
     vertexShader,
