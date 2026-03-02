@@ -131,6 +131,9 @@ renderer.setClearColor(0x0a0a0a, 1);
 
 const ASPECT = 1.334;  // H/W — adapter si image change
 
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, 1 / ASPECT, 0.001, 100);
+
 function resizeRenderer() {
   const w = getSize();
   const h = Math.round(w * ASPECT);
@@ -140,9 +143,6 @@ function resizeRenderer() {
 }
 resizeRenderer();
 window.addEventListener("resize", resizeRenderer);
-
-const scene  = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(45, 1 / 1.334, 0.001, 100);
 
 // ─── État ─────────────────────────────────────────────────────────────────────
 let rotY = 0, rotX = 0, autoRot = true, pivot = null;
