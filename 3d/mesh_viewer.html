@@ -233,7 +233,7 @@ async function loadOBJ(url) {
 
 function buildScene(mesh) {
   while (scene.children.length) scene.remove(scene.children[0]);
-  }
+  
 
   // Centre de rotation : barycentre XY + percentile 40% Z
   const pos = mesh.geometry.attributes.position;
