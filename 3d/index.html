@@ -412,5 +412,15 @@ function animate() {
 }
 animate();
 </script>
+
+<p id="caption">
+  Reconstruction 3D générée depuis une seule photo par estimation de profondeur
+  monoculaire et déprojection. En mode <em>points</em> on visualise directement le nuage de points 3D. En mode <em>mesh</em>,
+  les points définissent une surface triangulée et texturée avec la photo originale. On peut faire plus propre avec du Gaussian Splatting.
+  J'ai pris une image au pif de l'appli Arkose+ à Nation (image compressée, les résultats seraient meilleurs avec la qualité originale).
+  Avec plusieurs images par bloc (2 c'est déjà très bien) l'estimation de la perspective serait bien meilleure.
+
+  Une dizaine de secondes de calcul nécessaire par image pour calculer chaque mesh, on peut envisager de le faire sur tous les blocs de l'appli sans problème (calcul offline fait une fois pour toutes).
+</p>
 </body>
 </html>
