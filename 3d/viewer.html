@@ -35,7 +35,7 @@
   #container {
     position: relative;
     width: min(85vw, 300px);
-    height: calc(min(85vw, 300px) * 1.334);
+    height: calc(min(85vw, 300px) * 1.);
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 0 60px rgba(255,255,255,0.05), 0 0 0 1px #222;
@@ -116,7 +116,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 // ─── Config ───────────────────────────────────────────────────────────────────
-const OBJ_URL   = "./nation.obj";
+const OBJ_URL   = "./nation_sq.obj";
 
 // ─── Renderer ─────────────────────────────────────────────────────────────────
 const canvas    = document.getElementById("canvas");
@@ -129,7 +129,7 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setClearColor(0x0a0a0a, 1);
 
-const ASPECT = 1.334;  // H/W — adapter si image change
+const ASPECT = 1.;  // H/W — adapter si image change
 
 const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, 1 / ASPECT, 0.001, 100);
@@ -192,7 +192,7 @@ container.addEventListener("touchmove", e => {
   lastTX = e.touches[0].clientX; lastTY = e.touches[0].clientY;
 }, { passive: true });
 
-// ─── Utilitaire : centrer une géométrie sur la surface du visage ──────────────
+// ─── Utilitaire : centrer une géométrie sur la surface du bloc ──────────────
 function centerGeometry(positions, n, isFlat) {
   // positions : Float32Array ou BufferAttribute selon le mode
   const getX = isFlat ? i => positions[i*3]   : i => positions.getX(i);
