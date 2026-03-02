@@ -104,11 +104,6 @@ const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, 1, 0.001, 100);
 
 // Lumière douce pour le mesh
-const ambient = new THREE.AmbientLight(0xffffff, 0.6);
-scene.add(ambient);
-const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-dirLight.position.set(0, 1, 2);
-scene.add(dirLight);
 
 // ─── État ────────────────────────────────────────────────────────────────────
 let rotY = 0, rotX = 0;
@@ -216,10 +211,10 @@ async function loadOBJ(url) {
   let mat;
   if (texFile) {
     const tex = new THREE.TextureLoader().load(texFile);
-    tex.flipY = false;   // OBJ/MTL : V origin = bas; Three.js : V origin = haut → pas de flip
-    mat = new THREE.MeshLambertMaterial({ map: tex, side: THREE.FrontSide });
+    tex.flipY = true;   // OBJ/MTL : V origin = bas; Three.js : V origin = haut → pas de flip
+    mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.FrontSide });
   } else {
-    mat = new THREE.MeshLambertMaterial({ color: 0xcccccc });
+    mat = new THREE.MeshBasicMaterial({ color: 0xcccccc });
   }
 
   return new THREE.Mesh(geo, mat);
@@ -228,9 +223,7 @@ async function loadOBJ(url) {
 // ─── Construction de la scène ─────────────────────────────────────────────────
 
 function buildScene(mesh) {
-  while (scene.children.filter(c => c.type !== 'AmbientLight' && c.type !== 'DirectionalLight').length > 0) {
-    const old = scene.children.find(c => c.type !== 'AmbientLight' && c.type !== 'DirectionalLight');
-    scene.remove(old);
+  while (scene.children.length) scene.remove(scene.children[0]);
   }
 
   // Centre de rotation : barycentre XY + percentile 40% Z
