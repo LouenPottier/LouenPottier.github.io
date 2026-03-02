@@ -207,14 +207,16 @@ async function loadOBJ(url) {
   geo.setAttribute('uv',       new THREE.Float32BufferAttribute(uvArr,  2));
   geo.computeVertexNormals();
 
-  // Texture
+  // Texture — on utilise load() avec une Promise pour attendre le chargement complet
   let mat;
   if (texFile) {
-    const tex = new THREE.TextureLoader().load(texFile);
-    tex.flipY = true;   // OBJ/MTL : V origin = bas; Three.js : V origin = haut → pas de flip
+    const tex = await new Promise((resolve, reject) => {
+      new THREE.TextureLoader().load(texFile, resolve, undefined, reject);
+    });
+    tex.flipY = true;
     mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.FrontSide });
   } else {
-    mat = new THREE.MeshBasicMaterial({ color: 0xcccccc });
+    mat = new THREE.MeshBasicMaterial({ color: 0xaaaaaa });
   }
 
   return new THREE.Mesh(geo, mat);
