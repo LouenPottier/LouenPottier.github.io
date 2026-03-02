@@ -51,23 +51,6 @@
     pointer-events: none;
   }
 
-  /* Bouton de bascule */
-  #toggle-btn {
-    margin-top: 1.2rem;
-    background: none;
-    border: 1px solid #333;
-    border-radius: 20px;
-    color: #888;
-    font-size: 0.72rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    padding: 0.45rem 1.2rem;
-    cursor: pointer;
-    transition: border-color 0.2s, color 0.2s;
-    min-width: 160px;
-  }
-  #toggle-btn:hover { border-color: #666; color: #ccc; }
-  #toggle-btn:active { border-color: #aaa; color: #fff; }
 
   /* Sliders — largeur = même que le container */
   #controls {
@@ -114,7 +97,6 @@
   <div id="loading">chargement…</div>
 </div>
 
-<button id="toggle-btn">⬡ Points</button>
 
 <div id="controls">
   <div class="ctrl-row">
@@ -134,7 +116,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 // ─── Config ───────────────────────────────────────────────────────────────────
-const SPLAT_URL = "./nation.splat";
 const OBJ_URL   = "./nation.obj";
 
 // ─── Renderer ─────────────────────────────────────────────────────────────────
@@ -166,9 +147,7 @@ const camera = new THREE.PerspectiveCamera(45, 1 / 1.334, 0.001, 100);
 // ─── État ─────────────────────────────────────────────────────────────────────
 let rotY = 0, rotX = 0, autoRot = true, pivot = null;
 let camDistBase = 3.0, camDistMult = 1.0;
-let mode = "mesh";   // "mesh" | "splat"
-let meshObj  = null;   // THREE.Mesh mis en cache après premier chargement
-let splatData = null;  // données parsées .splat mises en cache
+let meshObj = null;
 
 const MAX_Y = Math.PI / 3;
 const MAX_X = Math.PI / 4;
@@ -267,37 +246,6 @@ function mountObject(obj3d, geo) {
   sliderY.value = sliderX.value = 0;
 }
 
-// ─── Mode SPLAT ───────────────────────────────────────────────────────────────
-function parseSplat(buffer) {
-  const BYTES = 32, n = Math.floor(buffer.byteLength / BYTES);
-  const view = new DataView(buffer);
-  const positions = new Float32Array(n * 3);
-  const colors    = new Float32Array(n * 3);
-  for (let i = 0; i < n; i++) {
-    const b = i * BYTES;
-    positions[i*3+0] = view.getFloat32(b +  0, true);
-    positions[i*3+1] = view.getFloat32(b +  4, true);
-    positions[i*3+2] = view.getFloat32(b +  8, true);
-    colors[i*3+0]    = view.getUint8(b + 24) / 255;
-    colors[i*3+1]    = view.getUint8(b + 25) / 255;
-    colors[i*3+2]    = view.getUint8(b + 26) / 255;
-  }
-  return { positions, colors, n };
-}
-
-function buildSplat(data) {
-  centerGeometry(data.positions, data.n, true);
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.BufferAttribute(data.positions, 3));
-  geo.setAttribute("color",    new THREE.BufferAttribute(data.colors,    3));
-
-  const ptSize = Math.max(2.5, Math.min(5.0, 600 / Math.sqrt(data.n)));
-  const mat = new THREE.PointsMaterial({ size: ptSize, vertexColors: true, sizeAttenuation: false });
-
-  mountObject(new THREE.Points(geo, mat), geo);
-}
-
 // ─── Mode MESH ────────────────────────────────────────────────────────────────
 async function loadOBJ(url) {
   const text = await fetch(url).then(r => {
@@ -374,47 +322,12 @@ async function init() {
   try {
     meshObj = await loadOBJ(OBJ_URL);
     buildMesh(meshObj);
-    updateToggleBtn();
   } catch(err) {
     document.getElementById("loading").textContent = "erreur : " + err.message;
     console.error(err);
   }
 }
 init();
-
-// ─── Bouton de bascule ────────────────────────────────────────────────────────
-function updateToggleBtn() {
-  const btn = document.getElementById("toggle-btn");
-  btn.textContent = mode === "mesh" ? "⬡ Points" : "▦ Mesh";
-}
-
-document.getElementById("toggle-btn").addEventListener("click", async () => {
-  mode = mode === "mesh" ? "splat" : "mesh";
-  updateToggleBtn();
-  showLoading();
-
-  try {
-    if (mode === "splat") {
-      if (!splatData) {
-        const buf = await fetch(SPLAT_URL).then(r => {
-          if (!r.ok) throw new Error(`HTTP ${r.status}`);
-          return r.arrayBuffer();
-        });
-        splatData = parseSplat(buf);
-      }
-      // Recréer les positions car buildSplat les modifie in-place
-      const buf = await fetch(SPLAT_URL).then(r => r.arrayBuffer());
-      buildSplat(parseSplat(buf));
-    } else {
-      // Recharger le mesh (les positions ont été modifiées in-place aussi)
-      meshObj = await loadOBJ(OBJ_URL);
-      buildMesh(meshObj);
-    }
-  } catch(err) {
-    document.getElementById("loading").textContent = "erreur : " + err.message;
-    console.error(err);
-  }
-});
 
 // ─── Rendu ────────────────────────────────────────────────────────────────────
 function animate() {
@@ -434,8 +347,7 @@ animate();
 </script>
 <p id="caption">
   Reconstruction 3D générée depuis une seule photo par estimation de profondeur
-  monoculaire et déprojection. En mode <em>points</em> on visualise directement le nuage de points 3D. En mode <em>mesh</em>,
-  les points définissent une surface triangulée et texturée avec la photo originale. On peut faire plus propre avec du Gaussian Splatting.
+  monoculaire et déprojection. La surface est triangulée et texturée avec la photo originale (<em>mesh</em>). On peut faire plus propre avec du Gaussian Splatting.
   J'ai pris une image au pif de l'appli Arkose+ à Nation (image compressée, les résultats seraient meilleurs avec la qualité originale).
   Avec plusieurs images par bloc (2 c'est déjà très bien) l'estimation de la perspective serait bien meilleure.
 
