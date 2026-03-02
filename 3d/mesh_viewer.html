@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>3D Viewer — Mesh</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 2rem 1rem;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #eee;
+  }
+  h1 {
+    font-size: 1rem;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 1.5rem;
+  }
+  #container {
+    width: 360px; height: 360px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(255,255,255,0.05), 0 0 0 1px #222;
+    cursor: grab;
+    position: relative;
+  }
+  #container:active { cursor: grabbing; }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  #loading {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #444; font-size: 0.8rem; letter-spacing: 0.1em;
+    pointer-events: none;
+  }
+
+  #controls {
+    margin-top: 1.5rem;
+    display: flex; flex-direction: column; gap: 0.7rem;
+    width: 360px;
+  }
+  .ctrl-row { display: flex; align-items: center; gap: 1rem; }
+  .ctrl-row label {
+    width: 130px; text-align: right;
+    font-size: 0.72rem; color: #555; letter-spacing: 0.08em; flex-shrink: 0;
+  }
+  input[type=range] {
+    -webkit-appearance: none; flex: 1; height: 2px;
+    background: #2a2a2a; border-radius: 2px; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px;
+    border-radius: 50%; background: #fff; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<h1>3D Viewer</h1>
+
+<div id="container">
+  <canvas id="canvas"></canvas>
+  <div id="loading">chargement…</div>
+</div>
+
+<div id="controls">
+  <div class="ctrl-row">
+    <label>GAUCHE / DROITE</label>
+    <input type="range" id="sliderY" min="-60" max="60" value="0" step="0.5">
+  </div>
+  <div class="ctrl-row">
+    <label>HAUT / BAS</label>
+    <input type="range" id="sliderX" min="-45" max="45" value="0" step="0.5">
+  </div>
+  <div class="ctrl-row">
+    <label>DISTANCE</label>
+    <input type="range" id="sliderZ" min="0.3" max="3.0" value="1.0" step="0.05">
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ─── Config ───────────────────────────────────────────────────────────────────
+const OBJ_URL = "./nation.obj";   // chemin vers le .obj (mtl + texture dans le même dossier)
+
+// ─── Renderer ────────────────────────────────────────────────────────────────
+const canvas    = document.getElementById("canvas");
+const container = document.getElementById("container");
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setSize(360, 360);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setClearColor(0x0a0a0a, 1);
+
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, 1, 0.001, 100);
+
+// Lumière douce pour le mesh
+const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambient);
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(0, 1, 2);
+scene.add(dirLight);
+
+// ─── État ────────────────────────────────────────────────────────────────────
+let rotY = 0, rotX = 0;
+let autoRot = true;
+let pivot   = null;
+let camDistBase = 3.0, camDistMult = 1.0;
+
+const MAX_Y = Math.PI / 3;
+const MAX_X = Math.PI / 4;
+
+// ─── Sliders ─────────────────────────────────────────────────────────────────
+const sliderY = document.getElementById("sliderY");
+const sliderX = document.getElementById("sliderX");
+const sliderZ = document.getElementById("sliderZ");
+
+sliderY.addEventListener("input", () => { autoRot = false; rotY = parseFloat(sliderY.value) * Math.PI / 180; });
+sliderX.addEventListener("input", () => { autoRot = false; rotX = parseFloat(sliderX.value) * Math.PI / 180; });
+sliderZ.addEventListener("input", () => {
+  camDistMult = parseFloat(sliderZ.value);
+  camera.position.z = camDistBase * camDistMult;
+  camera.updateProjectionMatrix();
+});
+
+// ─── Drag souris + touch ──────────────────────────────────────────────────────
+let dragging = false, lastMX = 0, lastMY = 0;
+
+container.addEventListener("mousedown", e => { dragging = true; lastMX = e.clientX; lastMY = e.clientY; autoRot = false; });
+window.addEventListener("mouseup", () => { dragging = false; });
+window.addEventListener("mousemove", e => {
+  if (!dragging || !pivot) return;
+  rotY = Math.max(-MAX_Y, Math.min(MAX_Y, rotY + (e.clientX - lastMX) * 0.008));
+  rotX = Math.max(-MAX_X, Math.min(MAX_X, rotX + (e.clientY - lastMY) * 0.008));
+  sliderY.value = (rotY * 180 / Math.PI).toFixed(1);
+  sliderX.value = (rotX * 180 / Math.PI).toFixed(1);
+  lastMX = e.clientX; lastMY = e.clientY;
+});
+
+let lastTX = 0, lastTY = 0;
+container.addEventListener("touchstart", e => { lastTX = e.touches[0].clientX; lastTY = e.touches[0].clientY; autoRot = false; }, { passive: true });
+container.addEventListener("touchmove", e => {
+  if (!pivot) return;
+  rotY = Math.max(-MAX_Y, Math.min(MAX_Y, rotY + (e.touches[0].clientX - lastTX) * 0.008));
+  rotX = Math.max(-MAX_X, Math.min(MAX_X, rotX + (e.touches[0].clientY - lastTY) * 0.008));
+  sliderY.value = (rotY * 180 / Math.PI).toFixed(1);
+  sliderX.value = (rotX * 180 / Math.PI).toFixed(1);
+  lastTX = e.touches[0].clientX; lastTY = e.touches[0].clientY;
+}, { passive: true });
+
+// ─── Chargement OBJ manuel (pas de OBJLoader dans r128 CDN) ──────────────────
+// On parse le .obj à la main — suffisant pour notre format simple
+// (v, vt, f v/vt v/vt v/vt)
+
+async function loadOBJ(url) {
+  const text = await fetch(url).then(r => {
+    if (!r.ok) throw new Error(`HTTP ${r.status} — ${url}`);
+    return r.text();
+  });
+
+  const lines = text.split('\n');
+  const verts = [], uvs = [], faces = [];
+  let mtlFile = null, texFile = null;
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) continue;
+    const parts = line.split(/\s+/);
+    if (parts[0] === 'mtllib') mtlFile = parts[1];
+    else if (parts[0] === 'v')  verts.push([+parts[1], +parts[2], +parts[3]]);
+    else if (parts[0] === 'vt') uvs.push([+parts[1], +parts[2]]);
+    else if (parts[0] === 'f') {
+      // f v/vt v/vt v/vt
+      faces.push(parts.slice(1).map(tok => {
+        const [vi, ti] = tok.split('/').map(Number);
+        return { vi: vi - 1, ti: ti - 1 };
+      }));
+    }
+  }
+
+  // Lire la texture depuis le .mtl
+  if (mtlFile) {
+    const mtlBase = url.substring(0, url.lastIndexOf('/') + 1);
+    const mtlText = await fetch(mtlBase + mtlFile).then(r => r.text()).catch(() => '');
+    for (const line of mtlText.split('\n')) {
+      const p = line.trim().split(/\s+/);
+      if (p[0] === 'map_Kd') texFile = mtlBase + p[1];
+    }
+  }
+
+  // Construire les buffers Three.js
+  // On doit dé-indexer car v et vt ont des index séparés
+  const posArr = [], uvArr = [];
+  for (const face of faces) {
+    for (const { vi, ti } of face) {
+      posArr.push(...verts[vi]);
+      uvArr.push(...uvs[ti]);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(posArr, 3));
+  geo.setAttribute('uv',       new THREE.Float32BufferAttribute(uvArr,  2));
+  geo.computeVertexNormals();
+
+  // Texture
+  let mat;
+  if (texFile) {
+    const tex = new THREE.TextureLoader().load(texFile);
+    tex.flipY = false;   // OBJ/MTL : V origin = bas; Three.js : V origin = haut → pas de flip
+    mat = new THREE.MeshLambertMaterial({ map: tex, side: THREE.FrontSide });
+  } else {
+    mat = new THREE.MeshLambertMaterial({ color: 0xcccccc });
+  }
+
+  return new THREE.Mesh(geo, mat);
+}
+
+// ─── Construction de la scène ─────────────────────────────────────────────────
+
+function buildScene(mesh) {
+  while (scene.children.filter(c => c.type !== 'AmbientLight' && c.type !== 'DirectionalLight').length > 0) {
+    const old = scene.children.find(c => c.type !== 'AmbientLight' && c.type !== 'DirectionalLight');
+    scene.remove(old);
+  }
+
+  // Centre de rotation : barycentre XY + percentile 40% Z
+  const pos = mesh.geometry.attributes.position;
+  const N = pos.count;
+  let sumX = 0, sumY = 0;
+  const zVals = [];
+  for (let i = 0; i < N; i++) {
+    sumX += pos.getX(i); sumY += pos.getY(i);
+    zVals.push(pos.getZ(i));
+  }
+  const cx = sumX / N, cy = sumY / N;
+  zVals.sort((a, b) => a - b);
+  const cz = zVals[Math.floor(N * 0.4)];
+
+  // Recentrer
+  for (let i = 0; i < N; i++) {
+    pos.setXYZ(i, pos.getX(i) - cx, pos.getY(i) - cy, pos.getZ(i) - cz);
+  }
+  pos.needsUpdate = true;
+  mesh.geometry.computeBoundingBox();
+  mesh.geometry.computeVertexNormals();
+
+  const size = new THREE.Vector3();
+  mesh.geometry.boundingBox.getSize(size);
+  const maxDim = Math.max(size.x, size.y, size.z);
+
+  pivot = new THREE.Object3D();
+  pivot.add(mesh);
+  scene.add(pivot);
+
+  camDistBase = maxDim * 1.8;
+  camera.position.set(0, 0, camDistBase);
+  camera.near = maxDim * 0.001;
+  camera.far  = maxDim * 20;
+  camera.lookAt(0, 0, 0);
+  camera.updateProjectionMatrix();
+
+  document.getElementById("loading").style.display = "none";
+  autoRot = true; rotY = 0; rotX = 0;
+  sliderY.value = sliderX.value = 0; sliderZ.value = camDistMult = 1.0;
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+
+loadOBJ(OBJ_URL)
+  .then(mesh => buildScene(mesh))
+  .catch(err => {
+    document.getElementById("loading").textContent = "erreur : " + err.message;
+    console.error(err);
+  });
+
+// ─── Rendu ────────────────────────────────────────────────────────────────────
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (pivot) {
+    if (autoRot) {
+      rotY = Math.sin(Date.now() * 0.0004) * (Math.PI / 6);
+      sliderY.value = (rotY * 180 / Math.PI).toFixed(1);
+    }
+    pivot.rotation.order = "YXZ";
+    pivot.rotation.y = rotY;
+    pivot.rotation.x = rotX;
+  }
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
