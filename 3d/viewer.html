@@ -35,7 +35,7 @@
   #container {
     position: relative;
     width: min(85vw, 300px);
-    height: calc(min(85vw, 300px) * 1.);
+    height: calc(min(85vw, 300px) * 1.33375);
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 0 60px rgba(255,255,255,0.05), 0 0 0 1px #222;
@@ -129,7 +129,7 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setClearColor(0x0a0a0a, 1);
 
-const ASPECT = 1.;  // H/W — adapter si image change
+const ASPECT = 1.33375;  // H/W — adapter si image change
 
 const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, 1 / ASPECT, 0.001, 100);
