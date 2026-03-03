@@ -34,8 +34,8 @@
   /* RATIO : hauteur = largeur × (H_image / W_image) — adapter si image change */
   #container {
     position: relative;
-    width: min(85vw, 300px);
-    height: calc(min(85vw, 300px) * 1.33375);
+    width: min(85vw, 480px);
+    height: calc(min(85vw, 480px) * 1.33375);
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 0 60px rgba(255,255,255,0.05), 0 0 0 1px #222;
@@ -56,7 +56,7 @@
   #controls {
     margin-top: 1rem;
     display: flex; flex-direction: column; gap: 0.6rem;
-    width: min(85vw, 360px);
+    width: min(85vw, 480px);
   }
   .ctrl-row { display: flex; align-items: center; gap: 0.8rem; }
   .ctrl-row label {
@@ -74,7 +74,7 @@
   }
  #caption {
   margin-top: 1.5rem;
-  width: min(85vw, 360px);
+  width: min(85vw, 480px);
   font-size: 0.72rem;
   color: #444;
   line-height: 1.7;
@@ -86,6 +86,27 @@
   font-style: normal;
   font-weight: 500;
 }
+
+#selector {
+  margin-top: 1.2rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sel-btn {
+  background: none;
+  border: 1px solid #333;
+  border-radius: 20px;
+  color: #666;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.sel-btn:hover { border-color: #666; color: #ccc; }
+.sel-btn.active { border-color: #aaa; color: #fff; }
 </style>
 </head>
 <body>
@@ -97,6 +118,11 @@
   <div id="loading">chargement…</div>
 </div>
 
+<div id="selector">
+  <button class="sel-btn active" data-obj="./nation_sq.obj">Nation 1</button>
+  <button class="sel-btn" data-obj="./nation2.obj">Nation 2</button>
+  <button class="sel-btn" data-obj="./nation3.obj">Nation 3</button>
+</div>
 
 <div id="controls">
   <div class="ctrl-row">
@@ -116,7 +142,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 // ─── Config ───────────────────────────────────────────────────────────────────
-const OBJ_URL   = "./nation_sq.obj";
+let OBJ_URL = "./nation_sq.obj";
 
 // ─── Renderer ─────────────────────────────────────────────────────────────────
 const canvas    = document.getElementById("canvas");
@@ -328,6 +354,24 @@ async function init() {
   }
 }
 init();
+
+// ─── Sélecteur de fichier ────────────────────────────────────────────────────
+document.querySelectorAll(".sel-btn").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    if (btn.classList.contains("active")) return;
+    document.querySelectorAll(".sel-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    OBJ_URL = btn.dataset.obj;
+    showLoading();
+    try {
+      meshObj = await loadOBJ(OBJ_URL);
+      buildMesh(meshObj);
+    } catch(err) {
+      document.getElementById("loading").textContent = "erreur : " + err.message;
+      console.error(err);
+    }
+  });
+});
 
 // ─── Rendu ────────────────────────────────────────────────────────────────────
 function animate() {
