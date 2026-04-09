@@ -18,10 +18,10 @@
 <nav>
 <a class="nav-name" href="index.html">Louen Pottier</a>
 <ul>
-<li"><a data-en="CV" data-fr="CV" href="index.html">CV</a></li>
-<li"><a data-en="Publications" data-fr="Publications" href="publications.html">Publications</a></li>
-<li class="active" data-en="Projects" data-fr="Projets" href="projects.html">Projects</a></li>
-<li"><a data-en="Teaching" data-fr="Enseignement" href="teaching.html">Teaching</a></li>
+<li><a data-en="CV" data-fr="CV" href="index.html">CV</a></li>
+<li><a data-en="Publications" data-fr="Publications" href="publications.html">Publications</a></li>
+<li><a class="active" data-en="Projects" data-fr="Projets" href="projects.html">Projects</a></li>
+<li><a data-en="Teaching" data-fr="Enseignement" href="teaching.html">Teaching</a></li>
 </ul>
 </nav>
 <main>
@@ -31,11 +31,11 @@
    data-fr="Cette page présente une sélection de projets industriels et de recherche auxquels j’ai contribué. La plupart ont été réalisés pour le CEA-List et ses partenaires industriels, d’autres ont été menés de manière indépendante. Ils portent principalement sur l’IA appliquée à la simulation numérique et au calcul scientifique, mais explorent également des domaines variés tels que la géolocalisation ou le traitement automatique du langage.">
   This page presents a selection of industrial and research projects I have worked on. Most were carried out at CEA-List and with its industrial partners, while others were conducted independently. They primarily focus on AI for numerical simulation and scientific computing, and also extend to other areas such as geolocation and natural language processing.
 </p><article class="card card-with-logo">
-<div><div class="card-image card-video card-image-clickable" onclick='openLightboxVideo("./videos/arise.mp4")' title="Cliquer pour agrandagrandir">
+<div><div class="card-image card-video card-image-clickable" onclick='openLightboxVideo("./videos/arise.mp4")' title="Cliquer pour agrandir">
 <video autoplay="" loading="lazy" loop="" muted="" playsinline=""><source src="./videos/arise.mp4" type="video/mp4"/></video>
 </div><p class="card-caption" data-en="Grasping operation by a soft gripper used in the ARISE project — contact simulation performed in real time by a LEBNN." data-fr="Opération de grasping par un préhenseur flexible utilisé par le projet ARISE — la simulation du contact est réalisée en temps réel par un LEBNN.">Grasping operation by a soft gripper used in the ARISE project — contact simulation performed in real time by a LEBNN.</p></div>
 <div class="card-body">
-<span class="card-tag" data-en="European Research Programme · CEA-List · 2024–2027" data-fr="Programme de européen · CEA-List · 2024–2027">
+<span class="card-tag" data-en="European Research Programme · CEA-List · 2024–2027" data-fr="Programme de recherche européen · CEA-List · 2024–2027">
           European Research Programme · CEA-List · 2024–2027
         </span>
 <h2 class="card-title">ARISE</h2>
@@ -45,7 +45,7 @@
 <li>PyTorch</li>
 </ul>
 <p class="card-desc" data-en="ARISE is a European research programme aimed at designing soft industrial robots operating in close contact with human operators. Robots are trained via reinforcement learning in a physically realistic virtual reality simulation developed by CEA. My LEBNN neural network architecture (published in JMPS, 2024) is used to simulate hyperelastic components in real time, making the full simulation tractable." data-fr="ARISE est un programme de recherche européen visant à concevoir des robots industriels souples opérant au contact d'opérateurs humains. Les robots sont entraînés par apprentissage par renforcement dans une simulation de réalité virtuelle physiquement réaliste, développée par le CEA. Mon architecture de réseaux de neurones LEBNN (publiée dans JMPS, 2024) est utilisée pour simuler les composants hyperélastiques en temps réel, rendant la simulation complète possible.">
-          ARISE is a European research programme aimed at designing soft industrial robots operating in enough contact with human operators. Robots are trained via reinforcement learning in a physically realistic virtual reality simulation developed by CEA. My LEBNN neural network architecture (published in JMPS, 2024) is used to simulate hyperelastic components in real time, making the full simulation tractable.
+          ARISE is a European research programme aimed at designing soft industrial robots operating in close contact with human operators. Robots are trained via reinforcement learning in a physically realistic virtual reality simulation developed by CEA. My LEBNN neural network architecture (published in JMPS, 2024) is used to simulate hyperelastic components in real time, making the full simulation tractable.
         </p>
 <div class="card-links">
 <a data-en="Project website →" data-fr="Site du projet →" href="https://arise-robotics.eu/" target="_blank">Project website →</a>
@@ -60,7 +60,7 @@
 <img alt="Coupling project" src="./img/projets/contact.png"/>
 </div><p class="card-caption" data-en="Contact simulation between a soft gripper (simulated by a neural network) and a rigid object (simulated by XDE)." data-fr="Simulation du contact entre un gripper souple (simulé par réseau de neurones) et un objet rigide (simulé par XDE).">Contact simulation between a soft gripper (simulated by a neural network) and a rigid object (simulated by XDE).</p></div>
 <div class="card-body">
-<span class="card-tag" data-en="Numerical Simulation · CEA-List · 2025–2026" data-fr="Simulation numérique · CEA-List · 20 25–2026">
+<span class="card-tag" data-en="Numerical Simulation · CEA-List · 2025–2026" data-fr="Simulation numérique · CEA-List · 2025–2026">
           Numerical Simulation · CEA-List · 2025–2026
         </span>
 <h2 class="card-title" data-en="Neural Network / XDE Coupling" data-fr="Couplage réseau de neurones / XDE">
@@ -92,10 +92,10 @@
 <li>ONNX</li>
 <li>Signal Processing</li>
 </ul>
-<p class="card-desc" data-en="Freelance data science mission dedicated to indoor geolocation under severe noise and interference. Designed and implemented a full pipeline from scratch to adress this ambitious problem, including data generation, signal preprocessing, neural network architecture and post-processing. Developed an highly specialized neural network architectures operating jointly in the time and frequency domains, combining signal processing, spectral analysis, and tailored mathematical modeling. The resulting approach reduced localization error by 70% in the most degraded scenarios." data-fr="Mission freelance de data science sur le sujet de la géolocalisation indoor dans des environnements particulièrement dégradés. J'ai conçu et développé l'ensemble de la chaîne de traitement, de la génération des données jusqu'à l'exploitation des sorties du réseau de neurones, en passant par un important travail de traitement mathématique du signal en amont et en aval des modèles. L'architecture du réseau de neurones a été pensée pour exploiter conjointement l'information temporelle et fréquentielle, en s'appuyant sur des outils de traitement du signal, d'analyse spectrale et de modélisation mathématique adaptés au problème. Cette approche a permis deduire l'erreur de géolocalisation de 70 % dans les cas les plus défavorables.">
+<p class="card-desc" data-en="Freelance data science mission dedicated to indoor geolocation under severe noise and interference. Designed and implemented a full pipeline from scratch to adress this ambitious problem, including data generation, signal preprocessing, neural network architecture and post-processing. Developed an highly specialized neural network architectures operating jointly in the time and frequency domains, combining signal processing, spectral analysis, and tailored mathematical modeling. The resulting approach reduced localization error by 70% in the most degraded scenarios." data-fr="Mission freelance de data science sur le sujet de la géolocalisation indoor dans des environnements particulièrement dégradés. J'ai conçu et développé l'ensemble de la chaîne de traitement, de la génération des données jusqu'à l'exploitation des sorties du réseau de neurones, en passant par un important travail de traitement mathématique du signal en amont et en aval des modèles. L'architecture du réseau de neurones a été pensée pour exploiter conjointement l'information temporelle et fréquentielle, en s'appuyant sur des outils de traitement du signal, d'analyse spectrale et de modélisation mathématique adaptés au problème. Cette approche a permis de réduire l'erreur de géolocalisation de 70 % dans les cas les plus défavorables.">
 Freelance data science mission dedicated to indoor geolocation under severe noise and interference. Designed and implemented a full pipeline from scratch to adress this ambitious problem, including data generation, signal preprocessing, neural network architecture and post-processing. Developed an highly specialized neural network architectures operating jointly in the time and frequency domains, combining signal processing, spectral analysis, and tailored mathematical modeling. The resulting approach reduced localization error by 70% in the most degraded scenarios.</p>
 <div class="card-links">
-<a data-en="Wheere website →" data-fr="Site de Wheint →" href="https://www.wheere.com/" target="_blank">Wheere website →</a>
+<a data-en="Wheere website →" data-fr="Site de Wheere →" href="https://www.wheere.com/" target="_blank">Wheere website →</a>
 </div></div>
 <div class="card-logo-col">
 <img alt="Wheere" src="./logos/wheere.png"/>
@@ -108,6 +108,7 @@ Freelance data science mission dedicated to indoor geolocation under severe nois
 <span class="card-tag" data-en="Industrial Consulting · CEA-List · 2025" data-fr="Consulting industriel · CEA-List · 2025">
           Industrial Consulting · CEA-List · 2025
         </span>
+<h2 class="card-title"></h2>
 <h2 class="card-title" data-en="AI surrogate model for design optimisation — Forvia" data-fr="Réduction de modèle par IA pour l'optimisation de design — Forvia">AI surrogate model for design optimisation — Forvia</h2>
 
 <ul class="tech-pills">
@@ -122,12 +123,12 @@ Freelance data science mission dedicated to indoor geolocation under severe nois
 <img alt="CEA-List" src="./logos/cea-list.png"/>
 </div>
 </article><article class="card card-with-logo">
-<div><div class="card-image card-image-clickable" onclick='openLightbox("./img/projets/IMG_4208.jpeg", "")' title="Cliquer pour agrandir">
+<div><div class="card-image card-image-clickable" onclick='openLightbox("./img/projets/IMG_4208.jpeg", "")' title="Cliquer pour agrandir">
 <img alt="Renault project" src="./img/projets/IMG_4208.jpeg"/>
 </div><p class="card-caption" data-en="Generic illustration generated by Mistral AI — NDA compliance." data-fr="Illustration générique générée par Mistral AI pour des raisons de NdA.">Generic illustration generated by Mistral AI — NDA compliance.</p></div>
 <div class="card-body">
 <span class="card-tag" data-en="Industrial Consulting · CEA-List · 2024" data-fr="Consulting industriel · CEA-List · 2024">
-          Industrial Consulting · CEA-List · 2024
+          Industrial Consulting · CEA-List · 2025
         </span>
 <h2 class="card-title" data-en="Crash Test Simulation from Scarce Data — Renault" data-fr="Apprentissage de crash test avec données limitées — Renault">Crash Test Simulation from Scarce Data — Renault</h2>
 <ul class="tech-pills">
@@ -139,7 +140,7 @@ Freelance data science mission dedicated to indoor geolocation under severe nois
         </p>
 </div>
 <div class="card-logo-col">
-<img alt="Renault" src="./logos/renaut.png"/>
+<img alt="Renault" src="./logos/renault.png"/>
 <img alt="CEA-List" src="./logos/cea-list.png"/>
 </div>
 </article><article class="card card-with-logo">
@@ -148,7 +149,7 @@ Freelance data science mission dedicated to indoor geolocation under severe nois
 </div><p class="card-caption" data-en="Generic illustration generated by Mistral AI — NDA compliance." data-fr="Illustration générique générée par Mistral AI pour des raisons de NdA.">Generic illustration generated by Mistral AI — NDA compliance.</p></div>
 <div class="card-body">
 <span class="card-tag" data-en="NLP · Freelance · 2023" data-fr="TAL · Freelance · 2023">
-          NLP · Freelance · 2023
+          NLP · Freelance · 20XX
         </span>
 <h2 class="card-title" data-en="NLP for Intellectual Property" data-fr="TAL pour la propriété intellectuelle">
           NLP for Intellectual Property
@@ -179,8 +180,8 @@ Freelance data science mission dedicated to indoor geolocation under severe nois
 <li>PyTorch</li>
 <li>NLP</li>
 </ul>
-<p class="card-desc" data-en="Research mission carried out through the ENS junior enterprise. Design of a neural network architecture tailored to PLC language processing, combining graph-based and recurrent components. Led to a peer-reviewed publication (MDPI Processes, 2023)." data-fr="Mission de recherche réalisée dans le cadre de la junior-entreprise de l'ENS. Conception d'une architecture de réseaux de neurones adaptée au traitement du langage automate, combinant des composants à base de graphes et récurrents. A aboutit à une publication (MDPI Processes, 2023).">
-          Research mission carried out through the ENS junior enterprise. Design of a neural network architecture tailored to PLC language processing, combining graph-based and recurrent components. Led to a peer-reviewed publication (MDPI Processes, 2023).
+<p class="card-desc" data-en="Research mission carried out through the ENS junior enterprise. Design of a neural network architecture tailored to PLC language processing, combining graph-based and recurrent components. Led to a peer-reviewed publication (MDPI Processes, 2023)." data-fr="Mission de recherche réalisée dans le cadre de la junior-entreprise de l'ENS. Conception d'une architecture de réseaux de neurones adaptée au traitement du langage automate, combinant des composants à base de graphes et récurrents. A abouti à une publication (MDPI Processes, 2023).">
+          Research mission carried out through the ENS junior enterprise. Design of a neural network architecture tailored to PLC ladder logic language processing, combining graph-based and recurrent components. Led to a peer-reviewed publication (MDPI Processes, 2023).
         </p>
 <div class="card-links">
 <a data-en="Related publication →" data-fr="Publication associée →" href="publications.html#plc-verification">Related publication →</a>
@@ -195,7 +196,7 @@ Freelance data science mission dedicated to indoor geolocation under severe nois
 <video autoplay="" loading="lazy" loop="" muted="" playsinline=""><source src="./videos/vonkarman.mp4" type="video/mp4"/></video>
 </div><p class="card-caption" data-en="Predicted and simulated fluid velocity fields, along with the error field, for the von Kármán test case using our GNN architecture." data-fr="Champ de vitesse du fluide prédit vs simulé et champ d'erreur pour le cas test de Von Kármán avec notre architecture GNN.">Predicted and simulated fluid velocity fields, along with the error field, for the von Kármán test case using our GNN architecture.</p></div>
 <div class="card-body">
-<span class="card-tag" data-en="Research Internship · EDF R&amp;D · 2021" data-fr="Stage de recherche · EDF R&amp;D · 2021">
+<span class="card-tag" data-en="Research Internship · EDF R&amp;D · 2021" data-fr="Stage de recherche · EDF R&amp;D · 2021">
           Research Internship · EDF R&amp;D · 2021
         </span>
 <h2 class="card-title" data-en="Graph Neural Network for Fluid Dynamics — EDF R&amp;D" data-fr="Graph Neural Network pour la dynamique des fluides — EDF R&amp;D">Graph Neural Network for Fluid Dynamics — EDF R&amp;D</h2>
@@ -204,8 +205,8 @@ Freelance data science mission dedicated to indoor geolocation under severe nois
 <li>GNN</li>
 <li>SplineConv</li>
 </ul>
-<p class="card-desc" data-en="M2 research internship at EDF R&amp;D, focused on model-order reduction applied to fluid dynamics. Designed a graph neural network architecture combining SplintConv layers and a hierarchical structure to predict fluid flow fields at a fraction of the cost of classical solvers. Led to a publication at the NeurIPS 2021 Workshop on Machine Learning and the Physical Sciences." data-fr="Stage de recherche de M2 chez EDF R&amp;D, axé sur la réduction de modèles appliquée à la dynamique des fluides. Conception d'une architecture de réseaux de neurones graphes combinant des couches SplineConv et une structure hiérarchique pour prédire des champs d'écoulement à une fraction du coût des solveurs classiques. A aboutit à une publication au NeurIPS 2021 Workshop on Machine Learning and the Physical Sciences.">
-          M2 research internship at EDF R&amp;D, focused on model-order reduction applied to fluid dynamics. Designed a graph neural network architecture combining SplintConv layers and a hierarchical structure to predict fluid flow fields at a fraction of the cost of classical solvers. Led to a publication at the NeurIPS 2021 Workshop on Machine Learning and the Physical Sciences.
+<p class="card-desc" data-en="M2 research internship at EDF R&amp;D, focused on model-order reduction applied to fluid dynamics. Designed a graph neural network architecture combining SplineConv layers and a hierarchical structure to predict fluid flow fields at a fraction of the cost of classical solvers. Led to a publication at the NeurIPS 2021 Workshop on Machine Learning and the Physical Sciences." data-fr="Stage de recherche de M2 chez EDF R&amp;D, axé sur la réduction de modèles appliquée à la dynamique des fluides. Conception d'une architecture de réseaux de neurones graphes combinant des couches SplineConv et une structure hiérarchique pour prédire des champs d'écoulement à une fraction du coût des solveurs classiques. A abouti à une publication au NeurIPS 2021 Workshop on Machine Learning and the Physical Sciences.">
+          M2 research internship at EDF R&amp;D, focused on model-order reduction applied to fluid dynamics. Designed a graph neural network architecture combining SplineConv layers and a hierarchical structure to predict fluid flow fields at a fraction of the cost of classical solvers. Led to a publication at the NeurIPS 2021 Workshop on Machine Learning and the Physical Sciences.
         </p>
 <div class="card-links">
 <a data-en="Related publication →" data-fr="Publication associée →" href="publications.html#deep-surrogate">Related publication →</a>
@@ -218,7 +219,7 @@ Freelance data science mission dedicated to indoor geolocation under severe nois
 <img alt="Cast3M project" src="./img/projets/castem.png"/>
 </div><p class="card-caption" data-en="Example result from the coupled simulation. The joint learned by the neural network is present 256 times in each grid of the fuel assembly." data-fr="Exemple de résultat de la simulation couplée. La liaison apprise par le réseau de neurones est présente en 256 exemplaires dans chaque grille de l'assemblage combustible.">Example result from the coupled simulation. The joint learned by the neural network is present 256 times in each grid of the fuel assembly.</p></div>
 <div class="card-body">
-<span class="card-tag" data-en="Numerical Simulation · CEA · Centre Borelli · 2020" data-fr="Simulation numérique · CEA · Centre Centre Borelli · 2020">
+<span class="card-tag" data-en="Numerical Simulation · CEA · Centre Borelli · 2020" data-fr="Simulation numérique · CEA · Centre Borelli · 2020">
           Numerical Simulation · CEA · Centre Borelli · 2020
         </span>
 <h2 class="card-title" data-en="Neural Network / Cast3M Coupling — Nuclear Assembly" data-fr="Couplage réseau de neurones / Cast3M — assemblage nucléaire">Neural Network / Cast3M Coupling — Nuclear Assembly</h2>
@@ -241,25 +242,25 @@ Freelance data science mission dedicated to indoor geolocation under severe nois
     ══════════════════════════════════════════ -->
 <!-- ══════════════════════════════════════════
          RENAULT — CEA-List
-    ═════════════════════════════════════════ -->
-<!-- ════════════════════════════════════════
+    ══════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════
          FORVIA — CEA-List
-    ═════════════════════════════════════════════ -->
+    ══════════════════════════════════════════ -->
 <!-- ══════════════════════════════════════════
          WHEERE — Freelance
     ══════════════════════════════════════════ -->
 <!-- ══════════════════════════════════════════
          NLP POUR LA PI — Condorcet
-    ═══════════════════════════════════════════ -->
+    ══════════════════════════════════════════ -->
 <!-- ══════════════════════════════════════════
          PROJET COUPLAGE — CEA-List
-    ══════════════════════════════════════════════════ -->
+    ══════════════════════════════════════════ -->
 <!-- ══════════════════════════════════════════
          PROJET EDF — EDF · lié à publication
-    ═════════════════════════════════════════════ -->
-<!-- ════════════════════════════════════════════
+    ══════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════
          CASTEM — CEA + Centre Borelli
-    ═══════════════════════════════════════════════ -->
+    ══════════════════════════════════════════ -->
 <!-- ══════════════════════════════════════════
          DGL-LSTM — SENS + Crestic + Univ. Champagne · lié à publication
     ══════════════════════════════════════════ -->
@@ -267,20 +268,19 @@ Freelance data science mission dedicated to indoor geolocation under severe nois
 <footer><p data-en="Lovingly vibe-coded in html/css/js · Last updated February 2026" data-fr="Vibe-codé avec amour en html/css/js · Dernière màj février 2026">Vibe-codé avec amour en html/css/js · Dernière màj février 2026</p></footer>
 <!-- ── LIGHTBOX ── -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
-<button class="lightbox-</strong>close" onclick="closeLightbox()">✕</button>
+<button class="lightbox-close" onclick="closeLightbox()">✕</button>
 <img alt="" id="lightbox-img" src="" style="display:none"/>
 <video autoplay="" id="lightbox-video" loop="" muted="" playsinline="" style="display:none; max-width:90vw; max-height:88vh; border-radius:3px; box-shadow:0 8px 48px rgba(0,0,0,0.5);">
 </video>
 </div>
 <script>
-    function openLightboxImg(src, alt) {
+    function openLightbox(src, alt) {
       const lb = document.getElementById('lightbox');
       const img = document.getElementById('lightbox-img');
       const vid = document.getElementById('lightbox-video');
       img.src = src; img.alt = alt;
       img.style.display = 'block';
-      vid.style.display = 'none';
-      vid.pause();
+      vid.style.display = 'none'; vid.pause();
       lb.classList.add('active');
       document.body.style.overflow = 'hidden';
     }
@@ -289,24 +289,47 @@ Freelance data science mission dedicated to indoor geolocation under severe nois
       const img = document.getElementById('lightbox-img');
       const vid = document.getElementById('lightbox-video');
       img.style.display = 'none';
-      vid.src = src;
-      vid.style.display = 'block';
-      vid.play();
+      vid.src = src; vid.style.display = 'block'; vid.play();
       lb.classList.add('active');
       document.body.style.overflow = 'hidden';
     }
     function closeLightbox() {
       const lb = document.getElementById('lightbox');
-      const vid =
-      document.getElementById('lightbox-video');
+      const vid = document.getElementById('lightbox-video');
       lb.classList.remove('active');
-      vid.pause();
-      vid.src = '';
+      vid.pause(); vid.src = '';
       document.body.style.overflow = '';
     }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
   </script>
 <script>
+    // Sur mobile, déplace les logos dans la rangée tech-pills (à droite)
+    function setupMobileLogos() {
+      const isMobile = window.innerWidth <= 720;
+      document.querySelectorAll('.card-with-logo').forEach(card => {
+        const pills = card.querySelector('.tech-pills');
+        const logoCol = card.querySelector('.card-logo-col');
+        if (!pills || !logoCol) return;
+
+        // Nettoie les logos mobiles déjà injectés
+        pills.querySelectorAll('.mobile-logo').forEach(el => el.remove());
+
+        if (isMobile) {
+          const wrapper = document.createElement('li');
+          wrapper.className = 'mobile-logo';
+          logoCol.querySelectorAll('img').forEach(img => {
+            wrapper.appendChild(img.cloneNode());
+          });
+          pills.appendChild(wrapper);
+        }
+      });
+    }
+
+    setupMobileLogos();
+    window.addEventListener('resize', setupMobileLogos);
+  </script>
+<script>
+    // Sur mobile, déplace les liens après la colonne image
     function setupMobileLinks() {
       const isMobile = window.innerWidth <= 720;
       document.querySelectorAll('.card').forEach(card => {
