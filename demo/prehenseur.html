@@ -195,10 +195,23 @@
   <div id="sidebar">
     <h1>Gripper simulated by LEBNN</h1>
  
-    <div class="about-box">
-      <p>LEBNN (Latent Energy-Based Neural Network) architecture trained on a pneumatic gripper from the <strong>ARISE project</strong>.</p>
-      <p>The network is trained in direct mode (<em>u&nbsp;→&nbsp;f</em>). Thanks to its energy structure and well-structured latent space, it can be reliably inverted at inference time (<em>f&nbsp;→&nbsp;u</em>), enabling coupling of the LEBNN-simulated structure to a mechanical simulation — here a simple unilateral contact simulation with a rigid plane.</p>
-    </div>
+<div class="about-box">
+  <p>
+<strong>
+  <a href="https://www.sciencedirect.com/science/article/pii/S0022509624004198?via%3Dihub" 
+     target="_blank" rel="noopener noreferrer" style="color: inherit;">LEBNN</a>
+</strong>    (Latent Energy-Based Neural Network) trained on a pneumatic gripper from the 
+<strong><a href="https://arise-robotics.eu/" target="_blank" rel="noopener noreferrer" style="color: inherit;">ARISE project</a></strong>.  </p>
+  <p>
+    The LEBNN is trained on a dataset of Finite Element simulations of the gripper. For a given input pressure <em>p</em> and applied force <em>f</em>, computing the displacement field <em>u</em> takes ~30 seconds with a full FE solve.
+  </p>
+  <p>
+    The network is trained in direct mode (<em>u&nbsp;→&nbsp;f</em>). Thanks to its energy-based structure and well-conditioned latent space, it can be reliably inverted at inference time (<em>f&nbsp;→&nbsp;u</em>), enabling coupling of the surrogate structure to a mechanical simulation — here a simple unilateral contact model with a rigid plane.
+  </p>
+  <p>
+    The input pressure (and optionally the force applied at the gripper tip) can be adjusted via sliders. The gripper tip cannot penetrate the rigid object (unilateral contact constraint). Clicking "<em>SIMULATE</em>" computes <em>u</em> by inverting the network with a Newton method, which requires dozens of network evaluations along with gradient computations. Unlike the original FE simulation, this should run in under a second in your browser.
+  </p>
+</div>
  
     <div class="section-label">Parameters</div>
  
@@ -618,7 +631,7 @@ function renderPlot(){
   const ucTrace = {
     type:'scatter', x:uc_x, y:uc_z, mode:'markers',
     marker:{color:'rgba(135,206,250,0.4)', size:3},
-    name:'Training points', showlegend:false
+    name:'Training points', showlegend:true
   };
   const sphereTrace = {
     type:'scatter', x:sph_x, y:sph_z, mode:'lines',
