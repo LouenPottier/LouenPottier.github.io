@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Préhenseur — Potentiel Invexe</title>
+<title>LEBNN demo</title>
 <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
@@ -233,7 +233,6 @@
     </div>
  
  
-    <button class="btn" id="btn_sim">▶ Simulate</button>
     <button class="btn danger" id="btn_raz">↺ Reset</button>
  
  
@@ -356,7 +355,7 @@ function V_grad_sim(u_sim, p){
 }
  
 // ─── CONTACT PLAN (Adam optimizer in JS) ─────────────────────────────────────
-function contact_plan(p, f, u0_start, c=0.8, z0=2.0, lr=0.1, nmax=100, tol=1e-6){
+function contact_plan(p, f, u0_start, c=0.8, z0=2.0, lr=0.05, nmax=400, tol=1e-6){
   let u = [...u0_start];
   const b1=0.9, b2=0.999, eps=1e-8;
   let m=[0,0,0], v2=[0,0,0], t=0;
@@ -374,15 +373,14 @@ function contact_plan(p, f, u0_start, c=0.8, z0=2.0, lr=0.1, nmax=100, tol=1e-6)
     u = vsub(u, mh.map((mi,i) => lr*mi/(Math.sqrt(vh[i])+eps)));
  
     // contact constraint
+    // contact constraint
     if(u[2] >= z0){
       u[2] = z0;
       const gn = iV_grad(u, p);
       const fn_comp = (gn[2]-f[2]);
-      const fn_vec = [0,0,fn_comp];
       const ft_vec = [gn[0]-f[0], gn[1]-f[1], 0];
-      if(vnorm(ft_vec) < c*Math.abs(fn_comp)){
-        break;
-      }
+      if(vnorm(ft_vec) < c*Math.abs(fn_comp)) break;
+      if(dot(ft_vec,ft_vec) < tol) break;
     }
   }
   return u;
@@ -544,7 +542,7 @@ function getParams(){
     fx: parseFloat(document.getElementById('s_fx').value),
     fz: parseFloat(document.getElementById('s_fz').value),
     x0p: parseFloat(document.getElementById('s_x0').value),
-    c: 0,
+    c: 0.,
   };
 }
  
@@ -558,7 +556,7 @@ function updateUI(){
 }
  
 ['s_P','s_fx','s_fz','s_x0'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', ()=>{updateUI(); renderPlot();});
+  document.getElementById(id).addEventListener('input', ()=>{ updateUI(); runSim(); });
 });
  
 function setStatus(msg, cls=''){}
@@ -595,19 +593,45 @@ function renderPlot(){
   // 2. Equilibrium force = grad_nn at current u — what's needed to stay here — orange
   const u_nn_arrow = matmul3(P, vsub(u_state, x0));
   const g_nn = iV_grad(u_nn_arrow, pval);
-  // Arrow origin = tip of gripper = last sphere point
-  const tip = sph[sph.length - 1];  // last Bezier point, sim coords
+// Arrow origin = tip of gripper = last sphere point
+  const tip = sph[sph.length - 1];
   const ox = tip[0], oy = tip[2];
   const scale = 10;
-  // Applied force arrow (sliders fx, fz)
-  const app_ax = ox, app_ay = oy;
-  const app_x  = ox + fx * scale;
-  const app_y  = oy + fz * scale;
-  // Equilibrium force arrow: -grad_nn (force exercée = opposé du gradient)
-  const eq_ax = ox, eq_ay = oy;
-  const eq_x  = ox - g_nn[2] * scale;
-  const eq_y  = oy - g_nn[0] * scale;
- 
+
+  // 1. User applied force (sliders) — in plot coords
+  const app_x = ox + fx * scale;
+  const app_y = oy + fz * scale;
+
+  // 2. Contact reaction = ∇V − f_user
+  // ∇V in NN coords: g_nn[2]=-fx, g_nn[0]=-fz at equilibrium without contact
+  // → negate to get plot coords: res_plot = (-g_nn[2], -g_nn[0])
+  const res_px = -g_nn[2];
+  const res_pz = -g_nn[0];
+  const fc_x = res_px - fx;
+  const fc_z = res_pz - fz;
+  const hasContact = Math.sqrt(fc_x*fc_x + fc_z*fc_z) > 0.005;
+  const hasUser = Math.sqrt(fx*fx + fz*fz) > 0.005;
+  const hasResultant = hasUser && hasContact;
+
+  const ct_x = ox + fc_x * scale;
+  const ct_y = oy + fc_z * scale;
+
+  // 3. Resultant = f_user + f_contact = -∇V in plot coords
+  const res_x = ox + res_px * scale;
+  const res_y = oy + res_pz * scale;
+  
+  // Pointillés parallélogramme
+const dashTrace1 = hasResultant ? {
+  type:'scatter', x:[app_x, res_x], y:[app_y, res_y], mode:'lines',
+  line:{color:'rgba(255,255,255,0.35)', width:1, dash:'dot'},
+  showlegend:false, hoverinfo:'skip', name:''
+} : null;
+const dashTrace2 = hasResultant ? {
+  type:'scatter', x:[ct_x, res_x], y:[ct_y, res_y], mode:'lines',
+  line:{color:'rgba(255,255,255,0.35)', width:1, dash:'dot'},
+  showlegend:false, hoverinfo:'skip', name:''
+} : null;
+  
   // plan line
   const plan_x = [x0p, x0p];
   const plan_y = [-2, 7];
@@ -672,14 +696,18 @@ function renderPlot(){
   const legendApp = {
     type:'scatter', x:[null], y:[null], mode:'lines',
     line:{color:'#ff4d6d', width:2},
-    name:'➜ User applied force', showlegend:true
+    name:'➜ User applied force', showlegend:hasUser
   };
-  const legendEq = {
+  const legendContact = {
     type:'scatter', x:[null], y:[null], mode:'lines',
     line:{color:'#00d4ff', width:2},
-    name:'➜ Equilibrium force', showlegend:true
+    name:'➜ Contact reaction', showlegend:hasContact
   };
- 
+  const legendRes = {
+    type:'scatter', x:[null], y:[null], mode:'lines',
+    line:{color:'#ffaa00', width:2},
+    name:'➜ Resultant force', showlegend:hasResultant
+  };
   // Fixed axis bounds (from grid: x_plot=2-ys in [-3,6], y_plot=-xs in [-2,7])
   const X_MIN = -3, X_MAX = 6, Y_MIN = -2, Y_MAX = 7;
  
@@ -708,57 +736,51 @@ function renderPlot(){
             font:{size:9, family:'Space Mono', color:'#c8cfe0'},
             x:0.99, y:0.01, xanchor:'right', yanchor:'bottom'},
     annotations:[
-      {
-        // Applied force (sliders) — red
-        x:app_x, y:app_y, ax:app_ax, ay:app_ay,
+      ...(hasUser ? [{
+        x:app_x, y:app_y, ax:ox, ay:oy,
         xref:'x', yref:'y', axref:'x', ayref:'y',
-        showarrow:true, arrowcolor:'#ff4d6d', arrowhead:3, arrowsize:1.5,
-        text:'', showarrow:true
-      },
-      {
-        // Equilibrium force (internal gradient) — cyan
-        x:eq_x, y:eq_y, ax:eq_ax, ay:eq_ay,
+        showarrow:true, arrowcolor:'#ff4d6d', arrowhead:3, arrowsize:1.5, text:''
+      }] : []),
+      ...(hasContact ? [{
+        x:ct_x, y:ct_y, ax:ox, ay:oy,
         xref:'x', yref:'y', axref:'x', ayref:'y',
-        showarrow:true, arrowcolor:'#00d4ff', arrowhead:3, arrowsize:1.5,
-        text:'', showarrow:true
-      }
+        showarrow:true, arrowcolor:'#00d4ff', arrowhead:3, arrowsize:1.5, text:''
+      }] : []),
+      ...(hasResultant ? [{
+        x:res_x, y:res_y, ax:ox, ay:oy,
+        xref:'x', yref:'y', axref:'x', ayref:'y',
+        showarrow:true, arrowcolor:'#ffaa00', arrowhead:3, arrowsize:1.5, text:''
+      }] : [])
     ]
   };
  
   const config = {responsive:true, displayModeBar:false};
  
   if(!plotInitialized){
-    Plotly.newPlot(plotDiv, [contourTrace, ucTrace, fillTrace, planTrace, sphereTrace, greyTrace, skeletonTrace, tipTrace, legendApp, legendEq], layout, config);
+    Plotly.newPlot(plotDiv, [contourTrace, ucTrace, fillTrace, planTrace, sphereTrace, greyTrace, skeletonTrace, tipTrace, legendApp, legendContact, legendRes, ...(dashTrace1?[dashTrace1,dashTrace2]:[]) ], layout, config);
     plotInitialized=true;
   } else {
-    Plotly.react(plotDiv, [contourTrace, ucTrace, fillTrace, planTrace, sphereTrace, greyTrace, skeletonTrace, tipTrace, legendApp, legendEq], layout, config);
+    Plotly.react(plotDiv, [contourTrace, ucTrace, fillTrace, planTrace, sphereTrace, greyTrace, skeletonTrace, tipTrace, legendApp, legendContact, legendRes, ...(dashTrace1?[dashTrace1,dashTrace2]:[]) ], layout, config);
   }
 }
  
 // ─── BUTTONS ─────────────────────────────────────────────────────────────────
-document.getElementById('btn_sim').addEventListener('click', ()=>{
+function runSim(){
   const {P: pval, fx, fz, x0p, c} = getParams();
-  setStatus('Computing...', 'running');
-  setTimeout(()=>{
-    // u0 for contact_plan: in NN coords
-    const u_nn = matmul3(P, vsub(u_state, x0));
-    // convert to contact_plan input format used in Python:
-    // u0 = [[-u[2], u[1], 2-u[0]]] where u=u_state
-    const u_cp = [-u_state[2], u_state[1], 2-u_state[0]];
-    const f_cp = [-fz, 0, -fx];  // fy=0 (hors plan supprimé)
-    const z0 = 2 - x0p;
-    const u_sol = contact_plan(pval, f_cp, u_cp, c, z0);
-    // back to sim: u_state = [2-u_sol[2], u_sol[1], -u_sol[0]]
-    u_state = [2-u_sol[2], u_sol[1], -u_sol[0]];
-    setStatus('OK', 'done');
-    updateUI();
-    renderPlot();
-    setTimeout(()=>setStatus('Ready'),'800');
-  }, 10);
-});
+  const u_cp = [-u_state[2], u_state[1], 2-u_state[0]];
+  const f_cp = [-fz, 0, -fx];
+  const z0 = 2 - x0p;
+  const u_sol = contact_plan(pval, f_cp, u_cp, c, z0);
+  u_state = [2-u_sol[2], u_sol[1], -u_sol[0]];
+  updateUI();
+  renderPlot();
+}
  
 document.getElementById('btn_raz').addEventListener('click', ()=>{
   u_state = [2.0007, -0.0003, -0.0001];
+  ['s_P','s_fx','s_fz','s_x0'].forEach(id=>{
+  document.getElementById(id).value = 0;  });
+
   setStatus('Reset', 'done');
   updateUI();
   renderPlot();
