@@ -21,8 +21,12 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow: hidden; }
  
-  #app { display: flex; height: 100vh; }
- 
+#app {
+    display: flex;
+    height: 100vh;
+    flex-direction: row;
+  }
+
   /* SIDEBAR */
   #sidebar {
     width: 320px; min-width: 320px;
@@ -32,6 +36,25 @@
     padding: 20px 16px;
     gap: 0;
     overflow-y: auto;
+  }
+
+  @media (max-width: 700px) {
+    #app { flex-direction: column; height: 100vh; }
+    #sidebar {
+      width: 100%; min-width: 0;
+      border-right: none;
+      border-top: 1px solid var(--border);
+      order: 2;
+      flex: 0 0 auto;
+      max-height: 45vh;
+      overflow-y: auto;
+      padding: 12px 14px;
+    }
+    #main { order: 1; flex: 1 1 0; min-height: 0; }
+    #sidebar h1 { font-size: 9px; margin-bottom: 12px; }
+    .about-box { display: none; }
+    .section-label { margin: 10px 0 6px; }
+    .param-row { margin-bottom: 8px; }
   }
   #sidebar h1 {
     font-family: 'Space Mono', monospace;
@@ -160,7 +183,37 @@
     font-size: 10px; color: var(--text);
   }
  
- 
+ .legend-toggle {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--label);
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .legend-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .legend-toggle.active { border-color: var(--accent); color: var(--accent); }
+
+.site-link {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--label);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    transition: color 0.15s;
+    margin-left: auto;
+    margin-right: 12px;
+  }
+  .site-link:hover { color: var(--accent); }
+  .site-link svg { flex-shrink: 0; }
+
+
+
   /* MAIN */
   #main {
     flex: 1;
@@ -242,9 +295,20 @@
  
   <div id="main">
     <div id="topbar">
-      <span>INVEX POTENTIAL</span>
-      <span class="badge">V(u,p) − u·f</span>
- 
+      <a href="https://louenpottier.github.io" target="_blank" class="site-link">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+          0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+          -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
+          .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
+          -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27
+          .68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
+          .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
+          0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+        louenpottier.github.io
+      </a>
+      <button class="legend-toggle active" id="btn_legend">☰ Legend</button>
     </div>
     <div id="plot"></div>
   </div>
@@ -356,7 +420,7 @@ function V_grad_sim(u_sim, p){
 }
  
 // ─── CONTACT PLAN (Adam optimizer in JS) ─────────────────────────────────────
-function contact_plan(p, f, u0_start, c=0.8, z0=2.0, lr=0.05, nmax=400, tol=1e-6){
+function contact_plan(p, f, u0_start, c=0.8, z0=2.0, lr=0.05, nmax=50, tol=1e-6){
   let u = [...u0_start];
   const b1=0.9, b2=0.999, eps=1e-8;
   let m=[0,0,0], v2=[0,0,0], t=0;
@@ -556,8 +620,21 @@ function updateUI(){
  
 }
  
+let simTimer1= null;
+let simTimer2= null;
+let simTimer3= null;
+
 ['s_P','s_fx','s_fz','s_x0'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', ()=>{ updateUI(); runSim(); });
+  document.getElementById(id).addEventListener('input', ()=>{
+  updateUI();
+    runSim(20);
+    clearTimeout(simTimer1);
+    simTimer = setTimeout(()=>runSim(100), 10);
+    clearTimeout(simTimer2);
+    simTimer = setTimeout(()=>runSim(100), 10);
+    clearTimeout(simTimer3);
+    simTimer = setTimeout(()=>runSim(100), 10);
+  });
 });
  
 function setStatus(msg, cls=''){}
@@ -766,17 +843,17 @@ const dashTrace2 = hasResultant ? {
 }
  
 // ─── BUTTONS ─────────────────────────────────────────────────────────────────
-function runSim(){
+function runSim(nmax=10){
   const {P: pval, fx, fz, x0p, c} = getParams();
   const u_cp = [-u_state[2], u_state[1], 2-u_state[0]];
   const f_cp = [-fz, 0, -fx];
   const z0 = 2 - x0p;
-  const u_sol = contact_plan(pval, f_cp, u_cp, c, z0);
+  const u_sol = contact_plan(pval, f_cp, u_cp, c, z0, 0.05,nmax);
   u_state = [2-u_sol[2], u_sol[1], -u_sol[0]];
   updateUI();
   renderPlot();
 }
- 
+
 document.getElementById('btn_raz').addEventListener('click', ()=>{
   u_state = [2.0007, -0.0003, -0.0001];
   ['s_P','s_fx','s_fz','s_x0'].forEach(id=>{
@@ -788,7 +865,13 @@ document.getElementById('btn_raz').addEventListener('click', ()=>{
   setTimeout(()=>setStatus('Ready'),800);
 });
  
- 
+// ─── LEGEND TOGGLE ───────────────────────────────────────────────────────────
+let legendVisible = true;
+document.getElementById('btn_legend').addEventListener('click', ()=>{
+  legendVisible = !legendVisible;
+  document.getElementById('btn_legend').classList.toggle('active', legendVisible);
+  Plotly.relayout('plot', {'showlegend': legendVisible});
+});
  
 // ─── INIT ────────────────────────────────────────────────────────────────────
 updateUI();
