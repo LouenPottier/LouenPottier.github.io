@@ -209,7 +209,8 @@
     The network is trained in direct mode (<em>u&nbsp;→&nbsp;f</em>). Thanks to its energy-based structure and well-conditioned latent space, it can be reliably inverted at inference time (<em>f&nbsp;→&nbsp;u</em>), enabling coupling of the surrogate structure to a mechanical simulation — here a simple unilateral contact model with a rigid plane.
   </p>
   <p>
-    The input pressure (and optionally the force applied at the gripper tip) can be adjusted via sliders. The gripper tip cannot penetrate the rigid object (unilateral contact constraint). Clicking "<em>SIMULATE</em>" computes <em>u</em> by inverting the network with a Newton method, which requires dozens of network evaluations along with gradient computations. Unlike the original FE simulation, this should run in under a second in your browser.
+    The input pressure (and optionally the force applied at the gripper tip) can be adjusted via sliders. The gripper tip cannot penetrate the rigid object (unilateral contact constraint). Every time you move a slider, <em>u</em> is computed by inverting the neural network with a Newton method, which requires dozens of network evaluations along with gradient computations. Unlike the original FE simulation, this should run in under a second in your browser.
+
   </p>
 </div>
  
