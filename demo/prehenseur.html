@@ -48,6 +48,8 @@
       flex: 0 0 auto;
       max-height: 45vh;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
       padding: 12px 14px;
     }
     #main { order: 1; flex: 1 1 0; min-height: 0; }
@@ -809,7 +811,7 @@ const dashTrace2 = hasResultant ? {
     yaxis:{title:'z', color:'#5a6070', gridcolor:'#1f2230', zerolinecolor:'#1f2230',
            range:[Y_MIN, Y_MAX], fixedrange:false},
     margin:{l:50,r:10,t:30,b:40},
-    showlegend:true,
+showlegend:(typeof legendVisible !== 'undefined' ? legendVisible : true),
     legend:{bgcolor:'rgba(11,12,16,0.85)', bordercolor:'#1f2230', borderwidth:1,
             font:{size:9, family:'Space Mono', color:'#c8cfe0'},
             x:0.99, y:0.01, xanchor:'right', yanchor:'bottom'},
