@@ -297,7 +297,7 @@
  
   <div id="main">
     <div id="topbar">
-      <a href="https://louenpottier.github.io" target="_blank" class="site-link">
+      <a href="./../index.html" target="_blank" class="site-link">
         <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
           <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
           0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
@@ -629,13 +629,13 @@ let simTimer3= null;
 ['s_P','s_fx','s_fz','s_x0'].forEach(id=>{
   document.getElementById(id).addEventListener('input', ()=>{
   updateUI();
-    runSim(20);
+    runSim(25);
     clearTimeout(simTimer1);
-    simTimer = setTimeout(()=>runSim(100), 10);
+    simTimer = setTimeout(()=>runSim(100), 25);
     clearTimeout(simTimer2);
-    simTimer = setTimeout(()=>runSim(100), 10);
-    clearTimeout(simTimer3);
-    simTimer = setTimeout(()=>runSim(100), 10);
+    //simTimer = setTimeout(()=>runSim(100), 5);
+    //clearTimeout(simTimer3);
+    //simTimer = setTimeout(()=>runSim(100), 5);
   });
 });
  
@@ -834,7 +834,7 @@ showlegend:(typeof legendVisible !== 'undefined' ? legendVisible : true),
     ]
   };
  
-  const config = {responsive:true, displayModeBar:false};
+  const config = {responsive:true, displayModeBar:false, staticPlot:true};
  
   if(!plotInitialized){
     Plotly.newPlot(plotDiv, [contourTrace, ucTrace, fillTrace, planTrace, sphereTrace, greyTrace, skeletonTrace, tipTrace, legendApp, legendContact, legendRes, ...(dashTrace1?[dashTrace1,dashTrace2]:[]) ], layout, config);
@@ -850,7 +850,7 @@ function runSim(nmax=10){
   const u_cp = [-u_state[2], u_state[1], 2-u_state[0]];
   const f_cp = [-fz, 0, -fx];
   const z0 = 2 - x0p;
-  const u_sol = contact_plan(pval, f_cp, u_cp, c, z0, 0.05,nmax);
+  const u_sol = contact_plan(pval, f_cp, u_cp, c, z0, 0.1,nmax);
   u_state = [2-u_sol[2], u_sol[1], -u_sol[0]];
   updateUI();
   renderPlot();
