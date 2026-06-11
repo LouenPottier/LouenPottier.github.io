@@ -419,7 +419,7 @@ function V_grad_sim(u_sim, p){
 }
  
 // ─── CONTACT PLAN (Adam optimizer in JS) ─────────────────────────────────────
-function contact_plan(p, f, u0_start, c=0.8, z0=2.0, lr=0.05, nmax=50, tol=1e-6){
+function contact_plan(p, f, u0_start, c=0.8, z0=2.0, lr=0.05, nmax=50, tol=2e-5){
   let u = [...u0_start];
   const b1=0.9, b2=0.999, eps=1e-8;
   let m=[0,0,0], v2=[0,0,0], t=0;
@@ -624,18 +624,11 @@ let simTimer2= null;
 let simTimer3= null;
 
 ['s_P','s_fx','s_fz','s_x0'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', ()=>{
-  updateUI();
-    runSim(25);
-    clearTimeout(simTimer1);
-    simTimer = setTimeout(()=>runSim(100), 25);
-    clearTimeout(simTimer2);
-    //simTimer = setTimeout(()=>runSim(100), 5);
-    //clearTimeout(simTimer3);
-    //simTimer = setTimeout(()=>runSim(100), 5);
-  });
+  document.getElementById(id).addEventListener('input', updateUI);
+  document.getElementById(id).addEventListener('change', ()=>runSim(400));
 });
- 
+
+
 function setStatus(msg, cls=''){}
  
 function renderPlot(){
@@ -673,7 +666,7 @@ function renderPlot(){
 // Arrow origin = tip of gripper = last sphere point
   const tip = sph[sph.length - 1];
   const ox = tip[0], oy = tip[2];
-  const scale = 5;
+  const scale = 7;
 
   // 1. User applied force (sliders) — in plot coords
   const app_x = ox + fx * scale;
