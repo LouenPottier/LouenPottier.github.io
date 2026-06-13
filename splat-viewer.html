@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Splat Viewer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: transparent;
+    overflow: hidden;
+  }
+
+  #container {
+    width: 100%; height: 100%;
+    position: relative;
+  }
+
+  canvas { display: block; width: 100%; height: 100%; }
+
+  #loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: #555;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="container">
+  <canvas id="canvas"></canvas>
+  <div id="loading">Loading…</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ─── Params URL ──────────────────────────────────────────────────────────────
+// Usage : splat-viewer.html?src=./splats/arkose.splat&fov=5&dist=10&bg=0x111111
+
+const params  = new URLSearchParams(location.search);
+const SRC     = params.get("src")  || null;
+const FOV     = parseFloat(params.get("fov")  || "5");
+const DIST    = parseFloat(params.get("dist") || "10");   // multiplicateur camDistBase
+const BG      = parseInt(params.get("bg")     || "0x111111");
+
+// Amplitude de la rotation auto (en radians)
+const AUTO_AMP_Y = 5 * Math.PI / 180;  // ±5°
+const AUTO_AMP_X =  5 * Math.PI / 180;  // ±5°
+const AUTO_SPEED = 0.0038;             
+
+// ─── Renderer ────────────────────────────────────────────────────────────────
+
+const canvas    = document.getElementById("canvas");
+const container = document.getElementById("container");
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setClearColor(BG, 1);
+
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(FOV, 1, 0.01, 1000);
+
+// Resize responsif
+function onResize() {
+  const W = container.clientWidth;
+  const H = container.clientHeight;
+  renderer.setSize(W, H);
+  camera.aspect = W / H;
+  camera.updateProjectionMatrix();
+}
+new ResizeObserver(onResize).observe(container);
+onResize();
+
+// ─── État rotation ───────────────────────────────────────────────────────────
+
+let rotY  = 0, rotX = 0;
+let autoRot = true;
+let pivot = null;
+let camDistBase = 3.0;
+
+
+
+// ─── Parsing .splat ───────────────────────────────────────────────────────────
+
+function parseSplat(buffer) {
+  const BYTES = 32;
+  const n    = Math.floor(buffer.byteLength / BYTES);
+  const view = new DataView(buffer);
+
+  const positions = new Float32Array(n * 3);
+  const colors    = new Float32Array(n * 3);
+
+  for (let i = 0; i < n; i++) {
+    const b = i * BYTES;
+    positions[i*3+0] = view.getFloat32(b +  0, true);
+    positions[i*3+1] = view.getFloat32(b +  4, true);
+    positions[i*3+2] = view.getFloat32(b +  8, true);
+    colors[i*3+0]    = view.getUint8(b + 24) / 255;
+    colors[i*3+1]    = view.getUint8(b + 25) / 255;
+    colors[i*3+2]    = view.getUint8(b + 26) / 255;
+  }
+  return { positions, colors, n };
+}
+
+// ─── Construction de la scène ─────────────────────────────────────────────────
+
+function buildScene(data) {
+  while (scene.children.length) scene.remove(scene.children[0]);
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(data.positions, 3));
+  geo.setAttribute("color",    new THREE.BufferAttribute(data.colors,    3));
+
+  const pos = data.positions;
+  const N   = data.n;
+
+  // Centre XY = barycentre, Z = percentile 40%
+  let sumX = 0, sumY = 0;
+  for (let i = 0; i < N; i++) { sumX += pos[i*3]; sumY += pos[i*3+1]; }
+  const cx = sumX / N;
+  const cy = sumY / N;
+
+  const zArr = new Float32Array(N);
+  for (let i = 0; i < N; i++) zArr[i] = pos[i*3+2];
+  zArr.sort();
+  const cz = zArr[Math.floor(N * 0.4)];
+
+  for (let i = 0; i < N; i++) {
+    pos[i*3+0] -= cx;
+    pos[i*3+1] -= cy;
+    pos[i*3+2] -= cz;
+  }
+  geo.attributes.position.needsUpdate = true;
+  geo.computeBoundingBox();
+
+  const size   = new THREE.Vector3();
+  geo.boundingBox.getSize(size);
+  const maxDim = Math.max(size.x, size.y, size.z);
+
+  // ── Taille par point selon densité locale (grille 3D) ───────────────────────
+  //
+  // Pour chaque point, on compte ses voisins dans une cellule de grille 3D.
+  // Densité élevée → petit point. Densité faible (bords, contours) → grand point.
+  // Précalcul O(N)
+
+  const GRID_RES = 32;
+  const bb = geo.boundingBox;
+  const gx = (bb.max.x - bb.min.x) / GRID_RES;
+  const gy = (bb.max.y - bb.min.y) / GRID_RES;
+  const gz = (bb.max.z - bb.min.z) / GRID_RES;
+
+  const grid = new Int32Array(GRID_RES * GRID_RES * GRID_RES);
+  for (let i = 0; i < N; i++) {
+    const ix = Math.min(GRID_RES-1, Math.floor((pos[i*3+0] - bb.min.x) / gx));
+    const iy = Math.min(GRID_RES-1, Math.floor((pos[i*3+1] - bb.min.y) / gy));
+    const iz = Math.min(GRID_RES-1, Math.floor((pos[i*3+2] - bb.min.z) / gz));
+    grid[ix + iy*GRID_RES + iz*GRID_RES*GRID_RES]++;
+  }
+
+  const PT_MIN = 1.0, PT_MAX = 5.0;
+  const rawDensity = new Float32Array(N);
+  let dMin = Infinity, dMax = 0;
+
+  for (let i = 0; i < N; i++) {
+    const ix = Math.min(GRID_RES-1, Math.floor((pos[i*3+0] - bb.min.x) / gx));
+    const iy = Math.min(GRID_RES-1, Math.floor((pos[i*3+1] - bb.min.y) / gy));
+    const iz = Math.min(GRID_RES-1, Math.floor((pos[i*3+2] - bb.min.z) / gz));
+    let count = 0;
+    for (let ddx = -1; ddx <= 1; ddx++)
+    for (let ddy = -1; ddy <= 1; ddy++)
+    for (let ddz = -1; ddz <= 1; ddz++) {
+      const nx = ix+ddx, ny = iy+ddy, nz = iz+ddz;
+      if (nx>=0 && nx<GRID_RES && ny>=0 && ny<GRID_RES && nz>=0 && nz<GRID_RES)
+        count += grid[nx + ny*GRID_RES + nz*GRID_RES*GRID_RES];
+    }
+    rawDensity[i] = count;
+    if (count < dMin) dMin = count;
+    if (count > dMax) dMax = count;
+  }
+
+  const sizes = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    const t = (rawDensity[i] - dMin) / (dMax - dMin + 1e-6);
+    sizes[i] = PT_MIN + (1 - t) * (PT_MAX - PT_MIN);
+  }
+  geo.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
+
+  // ── ShaderMaterial avec taille par vertex + additive blending ───────────────
+  // Alpha inversement proportionnel à la densité :
+  // zones denses → points transparents qui s'accumulent (lumineux)
+  // zones isolées → points opaques bien visibles
+
+  // ── Tri back-to-front par Z (painter's algorithm) ────────────────────────
+  // Le pivot tourne autour de Y/X, donc Z world ≈ Z local pour de petits angles.
+  // Un tri unique au chargement suffit pour la rotation douce ±15°.
+
+  const idx = new Uint32Array(N);
+  for (let i = 0; i < N; i++) idx[i] = i;
+  idx.sort((a, b) => pos[a*3+2] - pos[b*3+2]); // back-to-front : Z croissant
+
+  const sortedPos    = new Float32Array(N * 3);
+  const sortedColors = new Float32Array(N * 3);
+  const sortedSizes  = new Float32Array(N);
+
+  for (let i = 0; i < N; i++) {
+    const s = idx[i];
+    sortedPos[i*3+0] = pos[s*3+0];
+    sortedPos[i*3+1] = pos[s*3+1];
+    sortedPos[i*3+2] = pos[s*3+2];
+    sortedColors[i*3+0] = data.colors[s*3+0];
+    sortedColors[i*3+1] = data.colors[s*3+1];
+    sortedColors[i*3+2] = data.colors[s*3+2];
+    sortedSizes[i] = sizes[idx[i]];
+  }
+
+  const sortedGeo = new THREE.BufferGeometry();
+  sortedGeo.setAttribute("position", new THREE.BufferAttribute(sortedPos,    3));
+  sortedGeo.setAttribute("aColor",   new THREE.BufferAttribute(sortedColors, 3));
+  sortedGeo.setAttribute("aSize",    new THREE.BufferAttribute(sortedSizes,  1));
+
+  const mat = new THREE.ShaderMaterial({
+    depthWrite: false,
+    depthTest:  false,
+    uniforms: {},
+    vertexShader: `
+      attribute vec3  aColor;
+      attribute float aSize;
+      varying vec3 vColor;
+      void main() {
+        vColor = aColor;
+        gl_PointSize = aSize;
+        gl_Position  = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vColor;
+      void main() {
+        vec2 uv = gl_PointCoord - 0.5;
+        if (dot(uv, uv) > 0.25) discard;
+        gl_FragColor = vec4(vColor, 1.0);
+      }
+    `,
+  });
+
+  pivot = new THREE.Object3D();
+  pivot.add(new THREE.Points(sortedGeo, mat));
+  scene.add(pivot);
+
+  camDistBase = maxDim * 1.8;
+  camera.position.set(0, 0, camDistBase * DIST);
+  camera.near = maxDim * 0.001;
+  camera.far  = maxDim * 50;
+  camera.fov  = FOV;
+  camera.lookAt(0, 0, 0);
+  camera.updateProjectionMatrix();
+
+  document.getElementById("loading").style.display = "none";
+
+  autoRot = true;
+  rotY = 0; rotX = 0;
+}
+
+// ─── Chargement depuis URL ────────────────────────────────────────────────────
+
+if (SRC) {
+  fetch(SRC)
+    .then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.arrayBuffer();
+    })
+    .then(buf => buildScene(parseSplat(buf)))
+    .catch(err => {
+      document.getElementById("loading").textContent = "Error: " + err.message;
+    });
+} else {
+  document.getElementById("loading").textContent = "No src parameter.";
+}
+
+// ─── Boucle de rendu ──────────────────────────────────────────────────────────
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (pivot) {
+    if (autoRot) {
+      const t = Date.now() * AUTO_SPEED;
+      rotY = Math.sin(t) * AUTO_AMP_Y;
+      rotX = Math.sin(0.7*t) * AUTO_AMP_X;
+    }
+    pivot.rotation.order = "YXZ";
+    pivot.rotation.y = rotY;
+    pivot.rotation.x = rotX;
+  }
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>

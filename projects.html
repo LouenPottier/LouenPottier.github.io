@@ -24,6 +24,24 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Louen Pottier — Projects</title>
 <link href="style.css" rel="stylesheet"/>
+<style>
+  /* Viewer 3D splat embarqué dans une card */
+  .card-splat {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: #111;
+    border-radius: 3px;
+  }
+  .card-splat iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+</style>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&amp;family=Source+Sans+3:wght@300;400;600&amp;family=JetBrains+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
 </head>
@@ -49,22 +67,23 @@
    data-fr="Cette page présente une sélection de projets industriels et de recherche auxquels j’ai contribué. La plupart ont été réalisés pour le CEA-List et ses partenaires industriels, d’autres ont été menés de manière indépendante. Ils portent principalement sur l’IA appliquée à la simulation numérique et au calcul scientifique, mais explorent également des domaines variés tels que la géolocalisation ou le traitement automatique du langage.">
   This page presents a selection of industrial and research projects I have worked on. Most were carried out at CEA-List and with its industrial partners, while others were conducted independently. They primarily focus on AI for numerical simulation and scientific computing, and also extend to other areas such as geolocation and natural language processing.
 </p>
+
+
 <article class="card card-with-logo">
 <div><div class="card-image card-video card-image-clickable" onclick='openLightboxVideo("./videos/arise.mp4")' title="Cliquer pour agrandir">
 <video autoplay="" loading="lazy" loop="" muted="" playsinline=""><source src="./videos/arise.mp4" type="video/mp4"/></video>
-</div><p class="card-caption" data-en="Grasping operation by a soft gripper used in the ARISE project — contact simulation performed in real time by a LEBNN." data-fr="Opération de grasping par un préhenseur flexible utilisé par le projet ARISE — la simulation du contact est réalisée en temps réel par un LEBNN.">Grasping operation by a soft gripper used in the ARISE project — contact simulation performed in real time by a LEBNN.</p></div>
+</div><p class="card-caption" data-en="Grasping operation by a soft gripper simulated in real time using a LEBNN." data-fr="Opération de grasping par un préhenseur flexible simulé en temps réel par un LEBNN">Grasping operation by a soft gripper simulated in real time using a LEBNN.</p></div>
 <div class="card-body">
 <span class="card-tag" data-en="European Research Programme · CEA-List · 2024–2027" data-fr="Programme de recherche européen · CEA-List · 2024–2027">
           European Research Programme · CEA-List · 2024–2027
         </span>
 <h2 class="card-title">ARISE</h2>
 <ul class="tech-pills">
-<li>Ansys</li>
-<li>Omniverse</li>
+<li>NVIDIA Omniverse</li>
 <li>PyTorch</li>
 </ul>
-<p class="card-desc" data-en="ARISE is a European research programme aimed at designing soft industrial robots operating in close contact with human operators. Robots are trained via reinforcement learning in a physically realistic virtual reality simulation developed by CEA. My LEBNN neural network architecture (published in JMPS, 2024) is used to simulate hyperelastic components in real time, making the full simulation tractable." data-fr="ARISE est un programme de recherche européen visant à concevoir des robots industriels souples opérant au contact d'opérateurs humains. Les robots sont entraînés par apprentissage par renforcement dans une simulation de réalité virtuelle physiquement réaliste, développée par le CEA. Mon architecture de réseaux de neurones LEBNN (publiée dans JMPS, 2024) est utilisée pour simuler les composants hyperélastiques en temps réel, rendant la simulation complète possible.">
-          ARISE is a European research programme aimed at designing soft industrial robots operating in close contact with human operators. Robots are trained via reinforcement learning in a physically realistic virtual reality simulation developed by CEA. My LEBNN neural network architecture (published in JMPS, 2024) is used to simulate hyperelastic components in real time, making the full simulation tractable.
+<p class="card-desc" data-en="ARISE is a European research programme aimed at designing soft industrial robots operating in close contact with human operators. Robots are trained via reinforcement learning in a physically realistic virtual reality simulation developed by CEA. My LEBNN neural network architecture (published in JMPS 2025) is used to simulate hyperelastic components of the 3D scene in real time." data-fr="ARISE est un programme de recherche européen visant à concevoir des robots industriels souples opérant au contact d'opérateurs humains. Les robots sont entraînés par apprentissage par renforcement dans une simulation de réalité virtuelle physiquement réaliste développée par le CEA. Mon architecture de réseaux de neurones LEBNN (publiée dans JMPS 2025) est utilisée pour simuler les composants hyperélastiques de la scène 3D en temps réel.">
+          ARISE is a European research programme aimed at designing soft industrial robots operating in close contact with human operators. Robots are trained via reinforcement learning in a physically realistic virtual reality simulation developed by CEA. My LEBNN neural network architecture (published in JMPS 2025) is used to simulate hyperelastic components of the 3D scene in real time.
         </p>
 <div class="card-links">
 <a data-en="Project website →" data-fr="Site du projet →" href="https://arise-robotics.eu/" target="_blank">Project website →</a>
@@ -74,7 +93,9 @@
 <img alt="European Commission" src="./logos/comissioneuropeene.png"/>
 <img alt="CEA-List" src="./logos/cea-list.png"/>
 </div>
-</article><article class="card card-with-logo">
+</article>
+
+<article class="card card-with-logo">
 <div><div class="card-image card-image-clickable" onclick='openLightbox("./img/projets/contact.png", "")' title="Cliquer pour agrandir">
 <img alt="Coupling project" src="./img/projets/contact.png"/>
 </div><p class="card-caption" data-en="Contact simulation between a soft gripper (simulated by a neural network) and a rigid object (simulated by XDE)." data-fr="Simulation du contact entre un gripper souple (simulé par réseau de neurones) et un objet rigide (simulé par XDE).">Contact simulation between a soft gripper (simulated by a neural network) and a rigid object (simulated by XDE).</p></div>
@@ -104,8 +125,9 @@
 
 </div>
 
+</article>
 
-</article><article class="card card-with-logo">
+<article class="card card-with-logo">
 <div><div class="card-image card-image-clickable" onclick='openLightbox("./img/projets/IMG_4209.jpeg", "")' title="Cliquer pour agrandir">
 <img alt="Wheere project" src="./img/projets/IMG_4209.jpeg"/>
 </div><p class="card-caption" data-en="Generic illustration generated by Mistral AI — NDA compliance." data-fr="Illustration générique générée par Mistral AI pour des raisons de NdA.">Generic illustration generated by Mistral AI — NDA compliance.</p></div>
@@ -127,7 +149,9 @@ Freelance data science mission dedicated to indoor geolocation under severe nois
 <div class="card-logo-col">
 <img alt="Wheere" src="./logos/wheere.png"/>
 </div>
-</article><article class="card card-with-logo">
+</article>
+
+<article class="card card-with-logo">
 <div><div class="card-image card-image-clickable" onclick='openLightbox("./img/projets/IMG_4213.jpeg", "")' title="Cliquer pour agrandir">
 <img alt="Forvia project" src="./img/projets/IMG_4213.jpeg"/>
 </div><p class="card-caption" data-en="Generic illustration generated by Mistral AI — NDA compliance." data-fr="Illustration générique générée par Mistral AI pour des raisons de NdA.">Generic illustration generated by Mistral AI — NDA compliance.</p></div>
@@ -149,7 +173,48 @@ Freelance data science mission dedicated to indoor geolocation under severe nois
 <img alt="Forvia" src="./logos/forvia.png"/>
 <img alt="CEA-List" src="./logos/cea-list.png"/>
 </div>
-</article><article class="card card-with-logo">
+</article>
+
+<article class="card card-with-logo">
+<div>
+  <div class="card-image card-splat">
+    <iframe
+      src="./splat-viewer.html?src=./splats/arkose.splat&fov=3&dist=4.5"
+      title="3D Gaussian Splatting — Arkose"
+      frameborder="0"
+      allowtransparency="true"
+      style="width:100%; height:100%; border:none; display:block;"
+    ></iframe>
+  </div>
+  <p class="card-caption"
+     data-en="3D reconstruction of myself climbing, generated from a single photo. V6/7a+ btw."
+     data-fr="Reconstruction 3D de moi-même en train de grimper, générée depuis une seule photo. V6/7a+ btw."
+     >3D reconstruction of myself climbing, generated from a single photo. V6/7a+ btw.</p>
+</div>
+<div class="card-body">
+  <span class="card-tag"
+        data-en="3D Vision · Freelance · 2024"
+        data-fr="3D Vision · Freelance · 2024"
+        >3D Vision · Freelance · 2024</span>
+  <h2 class="card-title">POC Arkose</h2>
+  <ul class="tech-pills">
+    <li>Python</li>
+    <li>3DGS</li>
+  </ul>
+  <p class="card-desc"
+     data-en="Proof-of-concept developed for Arkose, a French climbing gym chain, to assess the feasibility of reconstructing a 3D model of a climbing wall from a single photograph without depth sensor or LiDAR. Using monocular depth estimation combined with 3D Gaussian Splatting, the pipeline produces a navigable 3D scene from a single image."
+     data-fr="Preuve de concept développée pour Arkose, chaîne française de salles d'escalade, afin d'évaluer la faisabilité de reconstruire un modèle 3D d'un mur d'escalade à partir d'une seule photographie, sans capteur de profondeur ni LiDAR. En combinant estimation de profondeur monoculaire et 3D Gaussian Splatting, le pipeline produit une scène 3D navigable à partir d'une seule image."
+     >Proof-of-concept developed for Arkose, a French climbing gym chain, to assess the feasibility of reconstructing a 3D model of a climbing wall from a single photograph without depth sensor or LiDAR. Using monocular depth estimation combined with 3D Gaussian Splatting, the pipeline produces a navigable 3D scene from a single image.</p>
+  <div class="card-links">
+    <a data-en="Arkose website →" data-fr="Site Arkose →" href="https://arkose.com/" target="_blank">Arkose website →</a>
+  </div>
+</div>
+<div class="card-logo-col">
+  <img alt="Arkose" src="./logos/arkose.png"/>
+</div>
+</article>
+
+<article class="card card-with-logo">
 <div><div class="card-image card-image-clickable" onclick='openLightbox("./img/projets/IMG_4208.jpeg", "")' title="Cliquer pour agrandir">
 <img alt="Renault project" src="./img/projets/IMG_4208.jpeg"/>
 </div><p class="card-caption" data-en="Generic illustration generated by Mistral AI — NDA compliance." data-fr="Illustration générique générée par Mistral AI pour des raisons de NdA.">Generic illustration generated by Mistral AI — NDA compliance.</p></div>
@@ -170,13 +235,16 @@ Freelance data science mission dedicated to indoor geolocation under severe nois
 <img alt="Renault" src="./logos/renault.png"/>
 <img alt="CEA-List" src="./logos/cea-list.png"/>
 </div>
-</article><article class="card card-with-logo">
+</article>
+
+
+<article class="card card-with-logo">
 <div><div class="card-image card-image-clickable" onclick='openLightbox("./img/projets/IMG_4224.png", "")' title="Cliquer pour agrandir">
 <img alt="NLP PI project" src="./img/projets/IMG_4224.png"/>
 </div><p class="card-caption" data-en="Generic illustration generated by Mistral AI — NDA compliance." data-fr="Illustration générique générée par Mistral AI pour des raisons de NdA.">Generic illustration generated by Mistral AI — NDA compliance.</p></div>
 <div class="card-body">
 <span class="card-tag" data-en="NLP · Freelance · 2023" data-fr="NLP · Freelance · 2023">
-          NLP · Freelance · 20XX
+          NLP · Freelance · 2023
         </span>
 <h2 class="card-title" data-en="NLP for Intellectual Property" data-fr="NLP pour la propriété intellectuelle">
           NLP for Intellectual Property
@@ -193,7 +261,9 @@ Freelance data science mission dedicated to indoor geolocation under severe nois
 <div class="card-logo-col">
 <img alt="Condorcet" src="./logos/condorcet.png"/>
 </div>
-</article><article class="card card-with-logo">
+</article>
+
+<article class="card card-with-logo">
 <div><div class="card-image card-image-clickable" onclick='openLightbox("./img/publications/dglstm.png", "")' title="Cliquer pour agrandir">
 <img alt="DGL-LSTM project" src="./img/publications/dglstm.png"/>
 </div><p class="card-caption" data-en="Example of causality graphs and the associated DGLSTM network employed to extract information from ST code." data-fr="Exemple de graphes de causalité et réseau DGLSTM associé utilisés pour extraire l'information du code ST.">Example of causality graphs and the associated DGLSTM network employed to extract information from ST code.</p></div>
@@ -241,7 +311,9 @@ Freelance data science mission dedicated to indoor geolocation under severe nois
 <div class="card-logo-col">
 <img alt="EDF" src="./logos/edf.png"/>
 </div>
-</article><article class="card card-with-logo">
+</article>
+
+<article class="card card-with-logo">
 <div><div class="card-image card-image-clickable" onclick='openLightbox("./img/projets/castem.png", "")' title="Cliquer pour agrandir">
 <img alt="Cast3M project" src="./img/projets/castem.png"/>
 </div><p class="card-caption" data-en="Example result from the coupled simulation. The joint learned by the neural network is present 256 times in each grid of the fuel assembly." data-fr="Exemple de résultat de la simulation couplée. La liaison apprise par le réseau de neurones est présente en 256 exemplaires dans chaque grille de l'assemblage combustible.">Example result from the coupled simulation. The joint learned by the neural network is present 256 times in each grid of the fuel assembly.</p></div>
@@ -249,7 +321,7 @@ Freelance data science mission dedicated to indoor geolocation under severe nois
 <span class="card-tag" data-en="Numerical Simulation · CEA · Centre Borelli · 2020" data-fr="Simulation numérique · CEA · Centre Borelli · 2020">
           Numerical Simulation · CEA · Centre Borelli · 2020
         </span>
-<h2 class="card-title" data-en="Neural Network / Cast3M Coupling — Nuclear Assembly" data-fr="Couplage réseau de neurones / Cast3M — assemblage nucléaire">Neural Network / Cast3M Coupling — Nuclear Assembly</h2>
+<h2 class="card-title" data-en="Neural Network / Cast3M Coupling for Nuclear Assembly Simulation" data-fr="Couplage réseau de neurones / Cast3M pour la simulation d'assemblage nucléaire">Neural Network / Cast3M Coupling for Nuclear Assembly Simulation</h2>
 <ul class="tech-pills">
 <li>LSTM</li>
 <li>Cast3M</li>
@@ -264,33 +336,7 @@ Freelance data science mission dedicated to indoor geolocation under severe nois
 <img alt="Centre Borelli" src="./logos/centreborelli.png"/>
 </div>
 </article>
-<!-- ══════════════════════════════════════════
-         ARISE — European Programme · CEA-List
-    ══════════════════════════════════════════ -->
-<!-- ══════════════════════════════════════════
-         RENAULT — CEA-List
-    ══════════════════════════════════════════ -->
-<!-- ══════════════════════════════════════════
-         FORVIA — CEA-List
-    ══════════════════════════════════════════ -->
-<!-- ══════════════════════════════════════════
-         WHEERE — Freelance
-    ══════════════════════════════════════════ -->
-<!-- ══════════════════════════════════════════
-         NLP POUR LA PI — Condorcet
-    ══════════════════════════════════════════ -->
-<!-- ══════════════════════════════════════════
-         PROJET COUPLAGE — CEA-List
-    ══════════════════════════════════════════ -->
-<!-- ══════════════════════════════════════════
-         PROJET EDF — EDF · lié à publication
-    ══════════════════════════════════════════ -->
-<!-- ══════════════════════════════════════════
-         CASTEM — CEA + Centre Borelli
-    ══════════════════════════════════════════ -->
-<!-- ══════════════════════════════════════════
-         DGL-LSTM — SENS + Crestic + Univ. Champagne · lié à publication
-    ══════════════════════════════════════════ -->
+
 </main>
 <footer><p data-en="Lovingly vibe-coded in html/css/js · Last updated May 2026" data-fr="Vibe-codé avec amour en html/css/js · Dernière màj mai 2026">Vibe-codé avec amour en html/css/js · Dernière màj mai 2026</p></footer>
 <!-- ── LIGHTBOX ── -->
