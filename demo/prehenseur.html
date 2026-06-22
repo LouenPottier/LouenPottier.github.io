@@ -53,7 +53,7 @@
 
   /* SIDEBAR */
   #sidebar {
-    width: 320px; min-width: 320px;
+    width: 380px; min-width: 380px;
     background: var(--surface);
     border-right: 2px solid var(--navy);
     display: flex; flex-direction: column;
@@ -276,28 +276,9 @@
 <div id="app">
   <div id="sidebar">
     <h1>Gripper simulated by LEBNN</h1>
- 
-<div class="about-box">
-  <p>
-<strong>
-  <a href="https://www.sciencedirect.com/science/article/pii/S0022509624004198?via%3Dihub" 
-     target="_blank" rel="noopener noreferrer" style="color: inherit;">LEBNN</a>
-</strong>    (Latent Energy-Based Neural Network) trained on a pneumatic gripper from the 
-<strong><a href="https://arise-robotics.eu/" target="_blank" rel="noopener noreferrer" style="color: inherit;">ARISE project</a></strong>.  </p>
-  <p>
-    The LEBNN is trained on a dataset of Finite Element simulations of the gripper. For a given input pressure <em>p</em> and applied force <em>f</em>, computing the displacement field <em>u</em> takes ~30 seconds with a full FE solve.
-  </p>
-  <p>
-    The network is trained in direct mode (<em>u&nbsp;→&nbsp;f</em>). Thanks to its energy-based structure and well-conditioned latent space, it can be reliably inverted at inference time (<em>f&nbsp;→&nbsp;u</em>), enabling coupling of the surrogate structure to a mechanical simulation — here a simple unilateral contact model with a rigid plane.
-  </p>
-  <p>
-    The input pressure (and optionally the force applied at the gripper tip) can be adjusted via sliders. The gripper tip cannot penetrate the rigid object (unilateral contact constraint). Every time you move a slider, <em>u</em> is computed by inverting the neural network with a Newton method, which requires dozens of network evaluations along with gradient computations. Unlike the original FE simulation, this should run in under a second in your browser.
 
-  </p>
-</div>
- 
     <div class="section-label">Parameters</div>
- 
+
     <div class="param-row">
       <div class="param-header"><span class="param-name">P (gripper internal pressure)</span><span class="param-val" id="v_P">0.00</span></div>
       <input type="range" id="s_P" min="0" max="1" step="0.01" value="0">
@@ -314,9 +295,26 @@
       <div class="param-header"><span class="param-name">Rigid object position</span><span class="param-val" id="v_x0">0.00</span></div>
       <input type="range" id="s_x0" min="-2" max="2" step="0.01" value="0">
     </div>
- 
- 
+
     <button class="btn danger" id="btn_raz">↺ Reset</button>
+
+<div class="about-box" style="margin-top: 20px;">
+  <p>
+<strong>
+  <a href="https://www.sciencedirect.com/science/article/pii/S0022509624004198?via%3Dihub"
+     target="_blank" rel="noopener noreferrer" style="color: inherit;">LEBNN</a>
+</strong>    (Latent Energy-Based Neural Network) trained on a pneumatic gripper from the
+<strong><a href="https://arise-robotics.eu/" target="_blank" rel="noopener noreferrer" style="color: inherit;">ARISE project</a></strong>.  </p>
+  <p>
+    The LEBNN is trained on a dataset of Finite Element simulations of the gripper. For a given input pressure <em>p</em> and applied force <em>f</em>, computing the displacement field <em>u</em> takes ~30 seconds with a full FE solve.
+  </p>
+  <p>
+    The network is trained in direct mode (<em>u&nbsp;→&nbsp;f</em>). Thanks to its energy-based structure and well-conditioned latent space, it can be reliably inverted at inference time (<em>f&nbsp;→&nbsp;u</em>), enabling coupling of the surrogate structure to a mechanical simulation — here a simple unilateral contact model with a rigid plane.
+  </p>
+  <p>
+    The input pressure (and optionally the force applied at the gripper tip) can be adjusted via sliders. The gripper tip cannot penetrate the rigid object (unilateral contact constraint). Every time you move a slider, <em>u</em> is computed by inverting the neural network with a Newton method, which requires dozens of network evaluations along with gradient computations. Unlike the original FE simulation, this should run in under a second in your browser.
+  </p>
+</div>
  
  
  
