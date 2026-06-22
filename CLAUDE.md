@@ -12,16 +12,29 @@ teaching.html       — Enseignements
 splat-viewer.html   — Viewer 3D Gaussian Splatting (Three.js, standalone)
 
 style.css           — Feuille de style unique (950 lignes)
-lang.js             — Switcher EN/FR (chargé sur toutes les pages)
+lang.js             — Switcher EN/FR (chargé sur index/publications/projects/teaching, PAS sur splat-viewer)
 site.js             — Lightbox + comportement mobile (chargé sur publications et projects)
 
 logos/              — Logos institutions (PNG fond transparent)
 img/                — Images de cartes et publications
 videos/             — Vidéos MP4 (simulation, démos)
 pdf/                — CV, articles, posters
+splats/             — Fichiers .splat/.ply pour splat-viewer.html
 
 demo/               — Démos interactives standalone (voir avertissement ci-dessous)
+
+sitemap.xml, robots.txt  — SEO (mettre à jour sitemap.xml lastmod si pages modifiées)
 ```
+
+`splat-viewer.html` est entièrement standalone (Three.js via CDN r128, pas de lang.js/site.js/style.css). C'est un mini-viewer 3D de nuages de points `.splat` (Gaussian Splatting), **embarqué en `<iframe>`** dans `projects.html` (une seule occurrence, ligne ~183) pour illustrer une carte projet. Il se pilote **par paramètres d'URL** :
+
+```
+splat-viewer.html?src=./splats/arkose.splat&fov=3&dist=4.5&bg=0x111111
+```
+- `src` — fichier `.splat` (format binaire 32 o/point : position float32 + couleur uint8)
+- `fov` — focale caméra · `dist` — multiplicateur de distance caméra · `bg` — couleur de fond (hexa)
+
+Rendu : `THREE.Points` + shader custom, taille de point selon densité locale (grille 3D 32³), tri back-to-front au chargement, auto-rotation douce en boucle (±5° X/Y). Purement décoratif, aucune interaction souris. Fichiers `.splat` dans `splats/`.
 
 ## Système de design (style.css)
 
@@ -116,6 +129,16 @@ Le HTML du lightbox doit être présent dans chaque page qui charge `site.js` :
 
 Pour les détails exhaustifs (encoding vidéo, règles i18n, etc.) → voir `GUIDE.md`.
 
+## Démos demo/ — Inventaire
+
+| HTML | Sujet | Poids chargés | Statut |
+|------|-------|---------------|--------|
+| `prehenseur.html` | Pneumatic gripper simulé par LEBNN | `prehenseur-weights.js` (~2,2 Mo) | ✅ **Actif** — lié depuis publications.html + projects.html |
+| `lebnn.html` | LEBNN · poutre cantilever 20-DOF | `lebnn-weights.js` (~2,6 Mo) | ⚠️ **Obsolète** — non lié, conservé pour archive |
+| `lags_demo.html` | LaGS — Gaussian Splatting indexé par état | `rocking_gaussians.js` (~450 Ko) + `rocking_frames.png` (~3,5 Mo) | 🚧 **En finition** — sera lié dans une future publication, pas encore référencé |
+
+Chaque HTML est entièrement standalone et **lisible** (plus aucune ligne lourde). Seul `prehenseur.html` est exposé publiquement aujourd'hui.
+
 ## ⚠️ Fichiers demo/ — Avertissement tokens
 
 Les poids d'un réseau de neurones sont sérialisés en JSON sur **une seule ligne géante** (**plusieurs centaines de kilooctets, voire plusieurs Mo**). Ne **jamais** lire ces lignes — cela consommerait des dizaines de milliers de tokens inutilement.
@@ -125,4 +148,4 @@ Les poids ont été **extraits** dans des fichiers JS dédiés (juin 2026), char
 - `demo/lebnn-weights.js` : `const LEBNN_RAW = {...}`, ~2,6 Mo (référencé dans `loadWeights()` via `const raw = LEBNN_RAW;`)
 - `demo/rocking_gaussians.js` : `window.ROCKING_DATA = {...}`, ~450 Ko (2048 gaussiennes entraînées + frames, utilisé par `demo/lags_demo.html`)
 
-Les trois HTML (`demo/prehenseur.html`, `demo/lebnn.html`, `demo/lags_demo.html`) sont désormais **entièrement lisibles** (plus aucune ligne lourde).
+Ne **jamais** lire non plus `demo/rocking_frames.png` (~3,5 Mo, binaire) — c'est un atlas d'images consommé par la démo LaGS.
