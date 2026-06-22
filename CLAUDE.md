@@ -118,9 +118,13 @@ Pour les détails exhaustifs (encoding vidéo, règles i18n, etc.) → voir `GUI
 
 ## ⚠️ Fichiers demo/ — Avertissement tokens
 
-`demo/lebnn.html` et `demo/prehenseur.html` contiennent les poids d'un réseau de neurones sérialisés en JSON directement dans le HTML (**ligne 338, plusieurs centaines de kilooctets**). Ne **jamais** lire ces fichiers en entier — cela consommerait des dizaines de milliers de tokens inutilement.
+`demo/lebnn.html` et `demo/prehenseur.html` contiennent les poids d'un réseau de neurones sérialisés en JSON directement dans le HTML (**plusieurs centaines de kilooctets**). Ne **jamais** lire ces fichiers en entier — cela consommerait des dizaines de milliers de tokens inutilement.
+
+Localisation des poids (à éviter absolument) :
+- `demo/lebnn.html` : **ligne 338**
+- `demo/prehenseur.html` : **ligne 348** (mis à jour après restyling juin 2026)
 
 Pour inspecter la logique JS de ces démos :
-- Lire uniquement les premières lignes : `offset: 0, limit: 300`
-- Ou les dernières : `offset: 700` (lebnn) / `offset: 600` (prehenseur)
-- **Éviter absolument la ligne 338**
+- Lire uniquement les premières lignes : `offset: 0, limit: 320`
+- Ou les dernières : `offset: 700` (lebnn) / `offset: 620` (prehenseur)
+- **Ne jamais lire les lignes indiquées ci-dessus**

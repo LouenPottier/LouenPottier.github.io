@@ -20,24 +20,31 @@
 </script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>LEBNN demo</title>
+<title>Louen Pottier - Pneumatic Gripper Demo</title>
 <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
- 
+  @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Source+Sans+3:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap');
+
   :root {
-    --bg: #0b0c10;
-    --panel: #13151a;
-    --border: #1f2230;
-    --accent: #00d4ff;
-    --accent2: #ff4d6d;
-    --text: #c8cfe0;
-    --label: #5a6070;
+    --bg:          #f7f5f0;
+    --surface:     #ffffff;
+    --border:      #ddd9d0;
+    --border-soft: #e8e4dc;
+    --navy:        #1a2e4a;
+    --navy-mid:    #2a4570;
+    --navy-light:  #3d6491;
+    --text:        #2c2825;
+    --text-mid:    #4a443d;
+    --text-muted:  #7a7168;
+    --text-faint:  #b0a898;
+    --radius:      3px;
+    --accent:      #1a2e4a;
+    --accent2:     #b0392b;
     --slider-h: 4px;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow: hidden; }
- 
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Source Sans 3', 'Helvetica Neue', sans-serif; overflow: hidden; }
+
 #app {
     display: flex;
     height: 100vh;
@@ -47,8 +54,8 @@
   /* SIDEBAR */
   #sidebar {
     width: 320px; min-width: 320px;
-    background: var(--panel);
-    border-right: 1px solid var(--border);
+    background: var(--surface);
+    border-right: 2px solid var(--navy);
     display: flex; flex-direction: column;
     padding: 20px 16px;
     gap: 0;
@@ -60,7 +67,7 @@
     #sidebar {
       width: 100%; min-width: 0;
       border-right: none;
-      border-top: 1px solid var(--border);
+      border-top: 2px solid var(--navy);
       order: 2;
       flex: 0 0 auto;
       max-height: 45vh;
@@ -70,46 +77,46 @@
       padding: 12px 14px;
     }
     #main { order: 1; flex: 1 1 0; min-height: 0; }
-    #sidebar h1 { font-size: 9px; margin-bottom: 12px; }
+    #sidebar h1 { font-size: 0.9rem; margin-bottom: 12px; }
     .about-box { display: none; }
     .section-label { margin: 10px 0 6px; }
     .param-row { margin-bottom: 8px; }
   }
   #sidebar h1 {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    color: var(--accent);
-    text-transform: uppercase;
-    margin-bottom: 24px;
+    font-family: 'Lora', Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 20px;
     padding-bottom: 12px;
     border-bottom: 1px solid var(--border);
+    line-height: 1.4;
   }
   .section-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.15em;
-    color: var(--label);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
     text-transform: uppercase;
-    margin: 18px 0 10px;
+    margin: 16px 0 8px;
   }
   .param-row {
     display: flex; flex-direction: column;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
   .param-header {
     display: flex; justify-content: space-between; align-items: center;
     margin-bottom: 6px;
   }
   .param-name {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    color: var(--text);
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.85rem;
+    color: var(--text-mid);
   }
   .param-val {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--navy);
     min-width: 42px;
     text-align: right;
   }
@@ -124,59 +131,60 @@
   }
   input[type=range]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 12px; height: 12px;
+    width: 13px; height: 13px;
     border-radius: 50%;
-    background: var(--accent);
+    background: var(--navy);
     cursor: pointer;
     transition: transform 0.1s;
   }
-  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.3); }
- 
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.25); }
+
   .btn {
     width: 100%;
-    padding: 9px 0;
+    padding: 8px 0;
     margin-top: 6px;
     background: transparent;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.1em;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    border-radius: var(--radius);
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
   }
-  .btn:hover { background: var(--accent); color: var(--bg); }
-  .btn.danger { border-color: var(--accent2); color: var(--accent2); margin-top: 8px; }
-  .btn.danger:hover { background: var(--accent2); color: var(--bg); }
- 
+  .btn:hover { background: var(--border-soft); color: var(--text); border-color: var(--navy-light); }
+  .btn.danger { border-color: var(--border); color: var(--text-muted); margin-top: 8px; }
+  .btn.danger:hover { border-color: var(--accent2); color: var(--accent2); background: rgba(176,57,43,0.06); }
+
   #status {
     margin-top: 10px;
-    font-family: 'Space Mono', monospace;
-    font-size: 9px;
-    color: var(--label);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-faint);
     min-height: 14px;
     text-align: center;
   }
   .about-box {
-    background: rgba(255,255,255,0.03);
+    background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 10px 12px;
-    margin-bottom: 4px;
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 6px;
   }
   .about-box p {
-    font-size: 10px;
+    font-size: 0.85rem;
     line-height: 1.6;
-    color: #8a93a8;
-    margin-bottom: 7px;
+    color: var(--text-mid);
+    margin-bottom: 8px;
   }
   .about-box p:last-child { margin-bottom: 0; }
-  .about-box strong { color: var(--accent); font-weight: 500; }
-  .about-box em { color: #c8cfe0; font-style: normal; }
- 
-  #status.running { color: var(--accent); }
-  #status.done { color: #00ff88; }
+  .about-box strong { color: var(--navy); font-weight: 600; }
+  .about-box em { color: var(--text); font-style: italic; }
+
+  #status.running { color: var(--navy-light); }
+  #status.done { color: #2d7a4f; }
  
   .legend-row {
     display: flex; align-items: center; gap: 8px;
@@ -198,37 +206,36 @@
     font-size: 16px; line-height: 1; flex-shrink: 0; width: 22px; text-align: center;
   }
   .legend-txt {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px; color: var(--text);
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.8rem; color: var(--text-mid);
   }
- 
- .legend-toggle {
+
+  .legend-toggle {
     margin-left: auto;
     background: transparent;
     border: 1px solid var(--border);
-    color: var(--label);
-    font-family: 'Space Mono', monospace;
-    font-size: 9px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
     letter-spacing: 0.08em;
     padding: 4px 8px;
+    border-radius: var(--radius);
     cursor: pointer;
     transition: border-color 0.15s, color 0.15s;
   }
-  .legend-toggle:hover { border-color: var(--accent); color: var(--accent); }
-  .legend-toggle.active { border-color: var(--accent); color: var(--accent); }
+  .legend-toggle:hover { border-color: var(--navy-light); color: var(--navy); }
+  .legend-toggle.active { border-color: var(--navy); color: var(--navy); }
 
-.site-link {
+  .site-link {
     display: flex; align-items: center; gap: 6px;
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    color: var(--label);
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.82rem;
+    color: var(--navy-light);
     text-decoration: none;
-    letter-spacing: 0.08em;
     transition: color 0.15s;
-    margin-left: auto;
     margin-right: 12px;
   }
-  .site-link:hover { color: var(--accent); }
+  .site-link:hover { color: var(--navy); }
   .site-link svg { flex-shrink: 0; }
 
 
@@ -242,22 +249,25 @@
   }
   #topbar {
     display: flex; align-items: center;
-    padding: 12px 20px;
+    padding: 10px 16px;
     border-bottom: 1px solid var(--border);
-    gap: 16px;
+    gap: 12px;
+    background: var(--surface);
   }
   #topbar span {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    color: var(--label);
-    letter-spacing: 0.1em;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
   }
   #topbar .badge {
-    background: var(--border);
-    color: var(--accent);
+    background: var(--border-soft);
+    color: var(--navy);
     padding: 3px 8px;
-    font-size: 9px;
-    letter-spacing: 0.12em;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    border-radius: var(--radius);
+    font-family: 'JetBrains Mono', monospace;
   }
   #plot { flex: 1; min-height: 0; }
 </style>
@@ -710,12 +720,12 @@ function renderPlot(){
   // Pointillés parallélogramme
 const dashTrace1 = hasResultant ? {
   type:'scatter', x:[app_x, res_x], y:[app_y, res_y], mode:'lines',
-  line:{color:'rgba(255,255,255,0.35)', width:1, dash:'dot'},
+  line:{color:'rgba(50,50,80,0.3)', width:1, dash:'dot'},
   showlegend:false, hoverinfo:'skip', name:''
 } : null;
 const dashTrace2 = hasResultant ? {
   type:'scatter', x:[ct_x, res_x], y:[ct_y, res_y], mode:'lines',
-  line:{color:'rgba(255,255,255,0.35)', width:1, dash:'dot'},
+  line:{color:'rgba(50,50,80,0.3)', width:1, dash:'dot'},
   showlegend:false, hoverinfo:'skip', name:''
 } : null;
   
@@ -725,23 +735,23 @@ const dashTrace2 = hasResultant ? {
  
   const contourTrace = {
     type:'contour', z:Z, x:xaxis, y:yaxis,
-    colorscale:'RdBu',
+    colorscale:'RdBu', reversescale:true,
     contours:{start:0,end:3,size:0.1},
     line:{width:0.1},
     colorbar:{
       title:{
         text:'Latent energy expressed as a function of gripper tip coordinates',
         side:'right',
-        font:{size:9, color:'#888'}
+        font:{size:9, color:'#7a7168'}
       },
-      len:0.5, tickfont:{color:'#888',size:10}
+      len:0.5, tickfont:{color:'#7a7168',size:10}
     },
     showscale:true,
     name:'Energy V(u,p)−u·f', showlegend:false
   };
   const ucTrace = {
     type:'scatter', x:uc_x, y:uc_z, mode:'markers',
-    marker:{color:'rgba(135,206,250,0.4)', size:3},
+    marker:{color:'rgba(61,100,145,0.4)', size:3},
     name:'Training points', showlegend:true
   };
   const sphereTrace = {
@@ -775,7 +785,7 @@ const dashTrace2 = hasResultant ? {
   };
   const planTrace = {
     type:'scatter', x:plan_x, y:plan_y, mode:'lines',
-    line:{color:'#555566',width:1.5},
+    line:{color:'#7a7168',width:1.5},
     name:'Contact plane', showlegend:false
   };
  
@@ -810,17 +820,17 @@ const dashTrace2 = hasResultant ? {
   };
  
   const layout = {
-    paper_bgcolor:'#0b0c10',
-    plot_bgcolor:'#0b0c10',
-    font:{family:'Space Mono',color:'#c8cfe0',size:10},
-    xaxis:{title:'x', color:'#5a6070', gridcolor:'#1f2230', zerolinecolor:'#1f2230',
+    paper_bgcolor:'#f7f5f0',
+    plot_bgcolor:'#f7f5f0',
+    font:{family:'Source Sans 3',color:'#4a443d',size:10},
+    xaxis:{title:'x', color:'#7a7168', gridcolor:'#ddd9d0', zerolinecolor:'#ddd9d0',
            scaleanchor:'y', scaleratio:1, range:[X_MIN, X_MAX], fixedrange:false},
-    yaxis:{title:'z', color:'#5a6070', gridcolor:'#1f2230', zerolinecolor:'#1f2230',
+    yaxis:{title:'z', color:'#7a7168', gridcolor:'#ddd9d0', zerolinecolor:'#ddd9d0',
            range:[Y_MIN, Y_MAX], fixedrange:false},
     margin:{l:50,r:10,t:30,b:40},
 showlegend:(typeof legendVisible !== 'undefined' ? legendVisible : true),
-    legend:{bgcolor:'rgba(11,12,16,0.85)', bordercolor:'#1f2230', borderwidth:1,
-            font:{size:9, family:'Space Mono', color:'#c8cfe0'},
+    legend:{bgcolor:'rgba(247,245,240,0.92)', bordercolor:'#ddd9d0', borderwidth:1,
+            font:{size:9, family:'Source Sans 3', color:'#4a443d'},
             x:0.99, y:0.01, xanchor:'right', yanchor:'bottom'},
     annotations:[
       ...(hasUser ? [{
