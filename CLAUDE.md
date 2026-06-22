@@ -120,8 +120,9 @@ Pour les détails exhaustifs (encoding vidéo, règles i18n, etc.) → voir `GUI
 
 Les poids d'un réseau de neurones sont sérialisés en JSON sur **une seule ligne géante** (**plusieurs centaines de kilooctets, voire plusieurs Mo**). Ne **jamais** lire ces lignes — cela consommerait des dizaines de milliers de tokens inutilement.
 
-Les poids ont été **extraits** dans des fichiers JS dédiés (juin 2026), chargés via `<script src="...">` avant le bloc inline de chaque démo. **Ne jamais lire ces fichiers** (une seule ligne, plusieurs Mo) :
+Les poids ont été **extraits** dans des fichiers JS dédiés (juin 2026), chargés via `<script src="...">` avant le bloc inline de chaque démo. **Ne jamais lire ces fichiers** (une seule ligne, plusieurs centaines de Ko à plusieurs Mo) :
 - `demo/prehenseur-weights.js` : `const W = {...}`, ~2,2 Mo
 - `demo/lebnn-weights.js` : `const LEBNN_RAW = {...}`, ~2,6 Mo (référencé dans `loadWeights()` via `const raw = LEBNN_RAW;`)
+- `demo/rocking_gaussians.js` : `window.ROCKING_DATA = {...}`, ~450 Ko (2048 gaussiennes entraînées + frames, utilisé par `demo/lags_demo.html`)
 
-Les deux HTML (`demo/prehenseur.html`, `demo/lebnn.html`) sont désormais **entièrement lisibles** (plus aucune ligne lourde).
+Les trois HTML (`demo/prehenseur.html`, `demo/lebnn.html`, `demo/lags_demo.html`) sont désormais **entièrement lisibles** (plus aucune ligne lourde).

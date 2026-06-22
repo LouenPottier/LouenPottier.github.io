@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FLKK795BKL"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    analytics_storage: 'denied', ad_storage: 'denied',
+    ad_user_data: 'denied', ad_personalization: 'denied', wait_for_update: 0
+  });
+  gtag('js', new Date());
+  gtag('config', 'G-FLKK795BKL');
+</script>
+<meta charset="utf-8"/>
+<meta name="description" content="An interactive research note from Louen Pottier's work on LaGS (Lagrangian Gaussian Splatting): why parameterising a dynamic scene by physical state q is far cheaper than by time t."/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Louen Pottier — LaGS: indexing by state, not time</title>
+<link rel="stylesheet" href="../style.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&amp;family=Source+Sans+3:wght@300;400;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+
+<style>
+/* ── LaGS interactive note — scoped to #lags-demo, harmonised with the site theme ── */
+#lags-demo{
+  /* couleur unique des figures du pendule (cadre + texte) = couleur du plan de coupe (bleu) */
+  --t:#5b8fc7;
+  --q:#5b8fc7;
+  --d-line:var(--border);
+  --d-faint:var(--text-faint);
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  margin-top:.5rem;
+}
+#lags-demo .thesis{
+  font-family:'Lora',Georgia,serif;
+  font-size:1.02rem;line-height:1.75;color:var(--text-mid);
+  max-width:78ch;margin:0 0 1.75rem;
+}
+#lags-demo .thesis b{color:var(--navy);font-weight:600}
+/* les symboles t/q en ligne gardent la couleur du texte environnant (plus de bleu clair) */
+#lags-demo .tk{font-weight:600}
+#lags-demo .qk{font-weight:600}
+
+/* controls — barre nue, sans encadré (cohérent entre les deux simulations) */
+#lags-demo .controls{
+  display:flex;flex-wrap:wrap;gap:14px 26px;align-items:flex-end;
+  margin-bottom:1.5rem;
+}
+#lags-demo .ctl{display:flex;flex-direction:column;gap:6px;}
+#lags-demo .ctl label{
+  font-family:var(--mono);font-size:.62rem;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--text-muted);
+}
+#lags-demo .ctl .val{color:var(--navy);font-weight:600}
+#lags-demo input[type=range]{
+  -webkit-appearance:none;appearance:none;width:138px;height:3px;border-radius:3px;
+  background:var(--border);outline:none;cursor:pointer;
+}
+#lags-demo input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  background:var(--navy);border:2px solid #fff;box-shadow:0 0 0 1px var(--border);
+}
+#lags-demo input[type=range]::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;background:var(--navy);border:2px solid #fff;
+}
+#lags-demo button#play{
+  font-family:var(--mono);font-size:1rem;font-weight:600;color:#fff;background:var(--navy);
+  border:none;border-radius:var(--radius);padding:8px 14px;cursor:pointer;min-width:44px;line-height:1;
+}
+#lags-demo button#play:hover{background:var(--navy-mid)}
+#lags-demo .toggle{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);}
+#lags-demo .toggle input{accent-color:var(--q);width:15px;height:15px;cursor:pointer}
+#lags-demo .readout label{margin-bottom:2px}
+#lags-demo .derived{font-family:var(--mono);font-size:.92rem;font-weight:600;color:var(--navy);letter-spacing:.02em;}
+#lags-demo .valbig{font-family:var(--mono);font-size:.92rem;font-weight:600;color:var(--navy);}
+
+/* grid + panels */
+#lags-demo .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start;}
+@media(max-width:880px){#lags-demo .grid{grid-template-columns:1fr}}
+#lags-demo .col{display:flex;flex-direction:column;gap:14px;}
+#lags-demo .panel{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--card-shadow);
+}
+#lags-demo .panel.t{border-top:3px solid var(--t)}
+#lags-demo .panel.q{border-top:3px solid var(--q)}
+#lags-demo .phead{padding:12px 15px 11px;border-bottom:1px solid var(--border-soft);}
+#lags-demo .phead .tag{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--d-faint);}
+#lags-demo .panel.t .phead .tag{color:var(--t)}
+#lags-demo .panel.q .phead .tag{color:var(--q)}
+#lags-demo .phead h2{font-family:'Lora',Georgia,serif;font-weight:600;font-size:1.02rem;color:var(--navy);margin:3px 0 2px;}
+#lags-demo .phead .sub{font-size:.78rem;color:var(--text-muted);line-height:1.4}
+#lags-demo .stage{position:relative;width:100%;
+  background:radial-gradient(130% 120% at 50% 12%,#ffffff 0%,#eef0f3 100%);}
+#lags-demo .stage canvas{display:block;width:100%;height:282px;}
+#lags-demo .stage.short canvas{height:236px;}
+#lags-demo .badge{position:absolute;top:8px;right:10px;font-family:var(--mono);font-size:.58rem;
+  letter-spacing:.05em;color:var(--text-muted);background:rgba(255,255,255,.78);
+  border:1px solid var(--border);border-radius:3px;padding:2px 6px;}
+#lags-demo .pfoot{padding:12px 15px 14px;border-top:1px solid var(--border-soft);
+  display:flex;align-items:baseline;gap:9px;}
+#lags-demo .count{font-family:var(--mono);font-weight:600;font-size:1.8rem;line-height:1;color:var(--navy);}
+#lags-demo .panel.t .count{color:var(--t)}
+#lags-demo .panel.q .count{color:var(--q)}
+#lags-demo .count-lbl{font-size:.78rem;color:var(--text-muted);line-height:1.3}
+#lags-demo .pfoot.video{color:var(--text-muted);font-size:.8rem;align-items:center}
+
+/* verdict card */
+#lags-demo .resume{background:#fbfaf6;}
+#lags-demo .rbody{padding:18px 16px 20px;}
+#lags-demo .rbody .big{font-family:var(--mono);font-weight:600;font-size:2.6rem;color:var(--navy);line-height:1;margin-bottom:8px}
+#lags-demo .rbody .big span{color:var(--t)}
+#lags-demo .rbody .cap{font-size:.85rem;color:var(--text-muted);line-height:1.55;margin-bottom:13px}
+#lags-demo .rbody .counts{font-family:var(--mono);font-size:.85rem;color:var(--text-muted)}
+/* version ultra-synthétique de l'ancien encadré « modèle de gaussienne » */
+#lags-demo .rbody .rnote{
+  margin-top:14px;padding-top:13px;border-top:1px solid var(--border-soft);
+  font-size:.82rem;line-height:1.55;color:var(--text-muted);
+}
+#lags-demo .rbody .rnote b{color:var(--navy);font-weight:600}
+
+/* ── en-têtes d'expérience : même structure pour les deux (sur-titre + titre) ── */
+#lags-demo .exp-divider{border:none;border-top:2px solid var(--navy);margin:2.75rem 0 1.6rem;}
+#lags-demo .exp-head{margin:0 0 1.2rem;}
+#lags-demo .exp-tag{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--navy-light);margin:0 0 .5rem;
+}
+#lags-demo .exp-title{
+  font-family:'Lora',Georgia,serif;font-weight:600;font-size:1.4rem;line-height:1.2;
+  color:var(--navy);margin:0;
+}
+
+/* ── second demo: rocking chair (real trained gaussians) ── */
+#lags-demo .rock-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:14px;align-items:start;}
+@media(max-width:880px){#lags-demo .rock-grid{grid-template-columns:1fr}}
+/* même barre nue que la première expérience (.controls) */
+#lags-demo .rock-controls{
+  display:flex;flex-wrap:wrap;gap:14px 26px;align-items:flex-end;
+  margin:0 0 1.5rem;
+}
+#lags-demo .stage.rock canvas{height:330px;}
+#lags-demo .stage.recon canvas{height:330px;}
+</style>
+</head>
+<body>
+
+<div class="lang-bar">
+  <button class="lang-btn active" onclick="setLang('en')">EN</button>
+  <span class="lang-sep">·</span>
+  <button class="lang-btn" onclick="setLang('fr')">FR</button>
+</div>
+
+<nav>
+  <a class="nav-name" href="../index.html">Louen Pottier</a>
+  <ul>
+    <li><a href="../index.html" data-en="CV" data-fr="CV">CV</a></li>
+    <li><a href="../publications.html" class="active" data-en="Publications" data-fr="Publications">Publications</a></li>
+    <li><a href="../projects.html" data-en="Projects" data-fr="Projets">Projects</a></li>
+    <li><a href="../teaching.html" data-en="Teaching" data-fr="Enseignement">Teaching</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <p class="section-subtitle" data-en="Research note · Gaussian Splatting" data-fr="Note de recherche · Gaussian Splatting">Research note · Gaussian Splatting</p>
+
+  <h1 class="page-title"
+      data-en="LaGS — indexing by state, not by time"
+      data-fr="LaGS — indexer par l'état, pas par le temps">
+    LaGS — indexing by state, not by time
+  </h1>
+
+  <p class="page-intro" style="max-width:680px"
+     data-en="A short interactive note from my work on <b>LaGS (Lagrangian Gaussian Splatting)</b>. On a single damped pendulum, it shows why parameterising a dynamic scene by its physical state <b>q</b> is far cheaper, in number of Gaussians, than parameterising it by time <b>t</b>."
+     data-fr="Une courte note interactive issue de mes travaux sur <b>LaGS (Lagrangian Gaussian Splatting)</b>. Sur un simple pendule amorti, elle montre pourquoi paramétrer une scène dynamique par son état physique <b>q</b> coûte bien moins de gaussiennes que la paramétrer par le temps <b>t</b>.">
+    A short interactive note from my work on <b>LaGS (Lagrangian Gaussian Splatting)</b>. On a single damped pendulum, it shows why parameterising a dynamic scene by its physical state <b>q</b> is far cheaper, in number of Gaussians, than parameterising it by time <b>t</b>.
+  </p>
+
+  <div id="lags-demo">
+
+    <div class="exp-head">
+      <p class="exp-tag" data-en="experiment 1 · synthetic" data-fr="expérience 1 · synthétique">experiment 1 · synthetic</p>
+      <h2 class="exp-title" data-en="The principle, on a damped pendulum" data-fr="Le principe, sur un pendule amorti">The principle, on a damped pendulum</h2>
+    </div>
+
+    <p class="thesis"
+       data-en="The same damped pendulum, seen as a <b>space&ndash;time</b> volume (x, y, <span class='tk'>t</span>) or as a <b>space&ndash;state</b> volume (x, y, <span class='qk'>q</span>) with <span class='qk'>q = angle &theta;</span> &mdash; the latent manifold is then a helix. Each Gaussian is a tube along the trajectory; its slice by the t/q plane returns the mass. The Gaussian <b>length is now tied to the chosen density</b>, so both representations reach the same reconstruction quality &mdash; what differs is the <b>number of Gaussians</b> each one needs. Set the density and compare."
+       data-fr="Le m&ecirc;me pendule amorti, vu comme un volume <b>espace&ndash;temps</b> (x, y, <span class='tk'>t</span>) ou comme un volume <b>espace&ndash;&eacute;tat</b> (x, y, <span class='qk'>q</span>) avec <span class='qk'>q = angle &theta;</span> &mdash; la vari&eacute;t&eacute; latente est alors une h&eacute;lice. Chaque gaussienne est un tube le long de la trajectoire&nbsp;; sa coupe par le plan t/q redonne la masse. La <b>longueur des gaussiennes est d&eacute;sormais fix&eacute;e par la densit&eacute;</b>, si bien que les deux repr&eacute;sentations atteignent la m&ecirc;me qualit&eacute; de reconstruction &mdash; ce qui diff&egrave;re, c'est le <b>nombre de gaussiennes</b> n&eacute;cessaire. R&eacute;glez la densit&eacute; et comparez.">
+    </p>
+
+    <div class="controls">
+      <button id="play" title="play / pause">⏸</button>
+
+      <div class="ctl">
+        <label><span class="lbl" data-en="Speed" data-fr="Vitesse">Speed</span> <span class="val" id="vSpeed">×1.0</span></label>
+        <input id="speed" type="range" min="10" max="180" value="55">
+      </div>
+
+      <div class="ctl">
+        <label><span class="lbl" data-en="Oscillations filmed" data-fr="Oscillations filmées">Oscillations filmed</span> <span class="val" id="vOsc">3</span></label>
+        <input id="osc" type="range" min="1" max="7" step="1" value="3">
+      </div>
+
+      <div class="ctl">
+        <label><span class="lbl" data-en="Damping" data-fr="Amortissement">Damping</span> <span class="val" id="vDamp">ζ 0.17</span></label>
+        <input id="damp" type="range" min="0" max="100" value="28">
+      </div>
+
+      <div class="ctl">
+        <label><span class="lbl" data-en="Density · gaussians / half-swing" data-fr="Densité · gaussiennes / demi-oscillation">Density · gaussians / half-swing</span> <span class="val" id="vD">12</span></label>
+        <input id="density" type="range" min="2" max="50" step="1" value="12">
+      </div>
+
+      <div class="ctl">
+        <label><span class="lbl" data-en="Amplitude" data-fr="Amplitude">Amplitude</span> <span class="val" id="vAmp">75°</span></label>
+        <input id="amp" type="range" min="30" max="150" step="1" value="75">
+      </div>
+
+      <div class="ctl readout">
+        <label><span class="lbl" data-en="Resulting count" data-fr="Nombre obtenu">Resulting count</span></label>
+        <div class="derived" id="derived">–</div>
+      </div>
+
+      <div class="ctl readout">
+        <label><span class="lbl" data-en="Gaussian length ℓ" data-fr="Longueur ℓ">Gaussian length ℓ</span></label>
+        <div class="valbig"><span id="vLen">–</span></div>
+      </div>
+
+      <label class="toggle"><input id="showG" type="checkbox" checked> <span class="lbl" data-en="Gaussians (3D)" data-fr="gaussiennes (3D)">Gaussians (3D)</span></label>
+    </div>
+
+    <div class="grid">
+
+      <div class="col">
+        <section class="panel">
+          <div class="phead">
+            <div class="tag" data-en="input" data-fr="entrée">input</div>
+            <h2 data-en="Input video" data-fr="Vidéo d'entrée">Input video</h2>
+            <div class="sub" data-en="simple damped pendulum, spherical mass" data-fr="pendule simple amorti, masse sphérique">simple damped pendulum, spherical mass</div>
+          </div>
+          <div class="stage"><canvas id="cVideo"></canvas><div class="badge" data-en="current frame" data-fr="image courante">current frame</div></div>
+          <div class="pfoot video" data-en="The observed state — one 2D frame per instant." data-fr="L'état observé — une image 2D par instant.">The observed state — one 2D frame per instant.</div>
+        </section>
+
+        <section class="panel resume">
+          <div class="phead">
+            <div class="tag" data-en="verdict" data-fr="verdict">verdict</div>
+            <h2 data-en="Gaussian budget" data-fr="Coût en gaussiennes">Gaussian budget</h2>
+            <div class="sub" data-en="at equal density &amp; quality" data-fr="à densité et qualité égales">at equal density &amp; quality</div>
+          </div>
+          <div class="rbody">
+            <div class="big">×<span id="ratioBig">–</span></div>
+            <div class="cap"
+                 data-en="extra Gaussians to cover the trajectory in <b class='tk'>time</b> rather than in <b class='qk'>state</b>."
+                 data-fr="gaussiennes en plus pour couvrir la trajectoire en <b class='tk'>temps</b> plutôt qu'en <b class='qk'>état</b>.">
+              extra Gaussians to cover the trajectory in <b class="tk">time</b> rather than in <b class="qk">state</b>.
+            </div>
+            <div class="counts"><span class="qk">q</span>&nbsp; <span id="rQ">–</span> &nbsp;vs&nbsp; <span class="tk">t</span>&nbsp; <span id="rT">–</span></div>
+            <div class="rnote"
+                 data-en="Each Gaussian is a <b>tube along the trajectory</b>. In <b class='tk'>time</b> it must be re-tiled every oscillation; in <b class='qk'>state</b> a single helix is reused — hence the gap."
+                 data-fr="Chaque gaussienne est un <b>tube le long de la trajectoire</b>. En <b class='tk'>temps</b>, il faut la repaver à chaque oscillation ; en <b class='qk'>état</b>, une seule hélice est réutilisée — d'où l'écart.">
+              Each Gaussian is a <b>tube along the trajectory</b>. In <b class="tk">time</b> it must be re-tiled every oscillation; in <b class="qk">state</b> a single helix is reused — hence the gap.
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="col">
+        <section class="panel t">
+          <div class="phead">
+            <div class="tag" data-en="4DGS · parameterised by t" data-fr="4DGS · paramétré par t">4DGS · parameterised by t</div>
+            <h2 data-en="Space–time volume" data-fr="Volume espace–temps">Space–time volume</h2>
+            <div class="sub"
+                 data-en="axes (x, y, <b class='tk'>t</b>) — the plane always moves to the right"
+                 data-fr="axes (x, y, <b class='tk'>t</b>) — le plan avance toujours vers la droite">
+              axes (x, y, <b class="tk">t</b>) — the plane always moves to the right
+            </div>
+          </div>
+          <div class="stage"><canvas id="cTime"></canvas><div class="badge" data-en="drag to rotate" data-fr="glisser pour pivoter">drag to rotate</div></div>
+          <div class="pfoot">
+            <span class="count" id="nTime">–</span>
+            <span class="count-lbl" data-en="Gaussians tiling<br>the space–time volume" data-fr="gaussiennes pavant<br>le volume espace–temps">Gaussians tiling<br>the space–time volume</span>
+          </div>
+        </section>
+
+        <section class="panel t">
+          <div class="phead">
+            <div class="tag" data-en="reconstruction from t" data-fr="reconstruction depuis t">reconstruction from t</div>
+            <h2 data-en="Reconstructed frame" data-fr="Vidéo reconstruite">Reconstructed frame</h2>
+            <div class="sub" data-en="splatting of the slice t = current" data-fr="splatting de la coupe t = courante">splatting of the slice t = current</div>
+          </div>
+          <div class="stage short"><canvas id="cReconT"></canvas><div class="badge" data-en="slice = mass disc" data-fr="coupe = disque masse">slice = mass disc</div></div>
+          <div class="pfoot">
+            <span class="count" id="nReconT">–</span>
+            <span class="count-lbl" data-en="Gaussians active<br>in the slice" data-fr="gaussiennes actives<br>dans la coupe">Gaussians active<br>in the slice</span>
+          </div>
+        </section>
+      </div>
+
+      <div class="col">
+        <section class="panel q">
+          <div class="phead">
+            <div class="tag" data-en="LaGS · parameterised by q" data-fr="LaGS · paramétré par q">LaGS · parameterised by q</div>
+            <h2 data-en="Space–state volume" data-fr="Volume espace–état">Space–state volume</h2>
+            <div class="sub"
+                 data-en="axes (x, y, <b class='qk'>q</b>), q = angle θ — a helical manifold, the plane swings"
+                 data-fr="axes (x, y, <b class='qk'>q</b>), q = angle θ — variété hélicoïdale, le plan oscille">
+              axes (x, y, <b class="qk">q</b>), q = angle θ — a helical manifold, the plane swings
+            </div>
+          </div>
+          <div class="stage"><canvas id="cLat"></canvas><div class="badge" data-en="drag to rotate" data-fr="glisser pour pivoter">drag to rotate</div></div>
+          <div class="pfoot">
+            <span class="count" id="nLat">–</span>
+            <span class="count-lbl" data-en="Gaussians tiling<br>the space–state volume" data-fr="gaussiennes pavant<br>le volume espace–état">Gaussians tiling<br>the space–state volume</span>
+          </div>
+        </section>
+
+        <section class="panel q">
+          <div class="phead">
+            <div class="tag" data-en="reconstruction from q" data-fr="reconstruction depuis q">reconstruction from q</div>
+            <h2 data-en="Reconstructed frame" data-fr="Vidéo reconstruite">Reconstructed frame</h2>
+            <div class="sub" data-en="splatting of the slice q = current" data-fr="splatting de la coupe q = courante">splatting of the slice q = current</div>
+          </div>
+          <div class="stage short"><canvas id="cReconQ"></canvas><div class="badge" data-en="slice = mass disc" data-fr="coupe = disque masse">slice = mass disc</div></div>
+          <div class="pfoot">
+            <span class="count" id="nReconQ">–</span>
+            <span class="count-lbl" data-en="Gaussians active<br>in the slice" data-fr="gaussiennes actives<br>dans la coupe">Gaussians active<br>in the slice</span>
+          </div>
+        </section>
+      </div>
+
+    </div>
+
+    <!-- ── Second demo: real trained rocking-chair model ───────────────── -->
+    <hr class="exp-divider">
+
+    <div class="exp-head">
+      <p class="exp-tag" data-en="experiment 2 · trained model" data-fr="expérience 2 · modèle entraîné">experiment 2 · trained model</p>
+      <h2 class="exp-title" data-en="From theory to a real clip: a rocking chair" data-fr="De la théorie à un vrai clip : un rocking chair">From theory to a real clip: a rocking chair</h2>
+    </div>
+
+    <p class="thesis"
+       data-en="Not a diagram this time &mdash; these are the <b>actual Gaussians learned by LaGS</b> from a short clip of a rocking chair, read straight from the trained decoder weights (<span class='qk'>2048</span> ellipsoids in <span class='qk'>(x, y, q)</span>, a single latent state <span class='qk'>q</span>). The chair has one degree of freedom &mdash; its rocking angle &mdash; so the whole motion collapses onto a <b>1-D state axis</b>. Sweep <span class='qk'>q</span> and the right panel shows the model's own reconstruction sliced at that state: the chair rocks because we move along <span class='qk'>q</span>, never along <span class='tk'>t</span>."
+       data-fr="Pas un schéma cette fois &mdash; ce sont les <b>vraies gaussiennes apprises par LaGS</b> sur un court clip de rocking chair, lues directement dans les poids du décodeur entraîné (<span class='qk'>2048</span> ellipsoïdes dans <span class='qk'>(x, y, q)</span>, un unique état latent <span class='qk'>q</span>). La chaise n'a qu'un degré de libert&eacute; &mdash; son angle de bascule &mdash; toute la dynamique s'effondre donc sur un <b>axe d'&eacute;tat 1-D</b>. Balayez <span class='qk'>q</span> et le panneau de droite montre la reconstruction du mod&egrave;le, coup&eacute;e &agrave; cet &eacute;tat : la chaise bascule parce qu'on se d&eacute;place le long de <span class='qk'>q</span>, jamais le long de <span class='tk'>t</span>.">
+    </p>
+
+    <div class="rock-controls">
+      <button id="rPlay" title="play / pause"
+        style="font-family:var(--mono);font-size:1rem;font-weight:600;color:#fff;background:var(--navy);border:none;border-radius:var(--radius);padding:8px 14px;cursor:pointer;min-width:44px;line-height:1;">⏸</button>
+      <div class="ctl">
+        <label><span class="lbl" data-en="State q (rocking)" data-fr="État q (bascule)">State q (rocking)</span> <span class="val" id="rVq">–</span></label>
+        <input id="rckQ" type="range" min="0" max="1000" value="500">
+      </div>
+      <div class="ctl">
+        <label><span class="lbl" data-en="Speed" data-fr="Vitesse">Speed</span> <span class="val" id="rVs">×1.0</span></label>
+        <input id="rSpeed" type="range" min="10" max="200" value="105">
+      </div>
+      <div class="ctl">
+        <label><span class="lbl" data-en="Dissipation" data-fr="Dissipation">Dissipation</span> <span class="val" id="rVd">–</span></label>
+        <input id="rDiss" type="range" min="0" max="100" value="14">
+      </div>
+      <label class="toggle"><input id="rDrag" type="checkbox" checked> <span class="lbl" data-en="auto-rock" data-fr="bascule auto">auto-rock</span></label>
+      <label class="toggle"><input id="rShowBg" type="checkbox" checked> <span class="lbl" data-en="background" data-fr="fond">background</span></label>
+    </div>
+
+    <div class="rock-grid">
+      <section class="panel q">
+        <div class="phead">
+          <div class="tag" data-en="LaGS · learned gaussians" data-fr="LaGS · gaussiennes apprises">LaGS · learned gaussians</div>
+          <h2 data-en="Space–state volume" data-fr="Volume espace–état">Space–state volume</h2>
+          <div class="sub"
+               data-en="axes (x, y, <b class='qk'>q</b>) — 2048 real ellipsoids, the plane is the current state"
+               data-fr="axes (x, y, <b class='qk'>q</b>) — 2048 ellipsoïdes réels, le plan = l'état courant">
+            axes (x, y, <b class="qk">q</b>) — 2048 real ellipsoids, the plane is the current state
+          </div>
+        </div>
+        <div class="stage rock"><canvas id="cRock3D"></canvas><div class="badge" data-en="drag to rotate" data-fr="glisser pour pivoter">drag to rotate</div></div>
+        <div class="pfoot">
+          <span class="count" id="rCount">2048</span>
+          <span class="count-lbl" data-en="trained Gaussians<br>read from decoder2dpt.pt" data-fr="gaussiennes entraînées<br>lues dans decoder2dpt.pt">trained Gaussians<br>read from decoder2dpt.pt</span>
+        </div>
+      </section>
+
+      <section class="panel q">
+        <div class="phead">
+          <div class="tag" data-en="reconstruction from q" data-fr="reconstruction depuis q">reconstruction from q</div>
+          <h2 data-en="Reconstructed frame" data-fr="Image reconstruite">Reconstructed frame</h2>
+          <div class="sub" data-en="model's RGB output, sliced at q = current" data-fr="sortie RGB du modèle, coupe q = courante">model's RGB output, sliced at q = current</div>
+        </div>
+        <div class="stage recon"><canvas id="cRockRecon"></canvas><div class="badge" data-en="right-click to push · left-click to clear" data-fr="clic droit pour pousser · clic gauche pour effacer">right-click to push · left-click to clear</div></div>
+        <div class="pfoot video" data-en="Decoded by slicing the Gaussians at state q. Right-click to apply a downward force via the Jacobian ∂μ/∂q; forces accumulate." data-fr="Décodée en coupant les gaussiennes à l'état q. Clic droit pour appliquer une force vers le bas via le jacobien ∂μ/∂q ; les forces s'accumulent.">Decoded by slicing the Gaussians at state q. Right-click to apply a downward force via the Jacobian ∂μ/∂q; forces accumulate.</div>
+      </section>
+    </div>
+
+  </div>
+
+</main>
+
+<footer><p data-en="Lovingly vibe-coded in html/css/js · Last updated June 2026" data-fr="Vibe-codé avec amour en html/css/js · Dernière màj juin 2026">Vibe-codé avec amour en html/css/js · Dernière màj juin 2026</p></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+"use strict";
+const TAU=Math.PI*2;
+// Pendulum body uses one navy palette from style.css (--navy / --navy-mid); the t/q accents stay.
+// plane : couleur unique des figures du pendule (cadre, texte, axe, plan de coupe) = bleu clair. pend : corps du pendule (rouge).
+const COL={t:0xc2610e,q:0x0d8a7e,axis:0x9aa6b4,grid:0xdbe1ea,rod:0x2a4570,mass:0x1a2e4a,plane:0x5b8fc7,pend:0xd23b3b};
+const PLANE_CSS='#5b8fc7', PEND_CSS='#d23b3b';
+const T_CSS=PLANE_CSS, Q_CSS=PLANE_CSS;
+const XAXIS=new THREE.Vector3(1,0,0);
+
+const MASS_R=0.1;     // mass radius = radius of the conditional slices (and tube)
+
+const orbit={az:0.66,el:0.30,dragging:false,lx:0,ly:0};
+const params={speed:0.55,nOsc:3,theta0:75*Math.PI/180,zeta:0.168,density:12,showG:true,running:true};
+let tau=0, lastTime=performance.now();
+
+const PIVOT_Y=0.92, ZSPAN_T=2.2, HALF_Z_Q=0.72;
+
+// ── bouchons de coupe ────────────────────────────────────────────────────
+// Les gaussiennes sont des coquilles surfaciques : une fois coupées par le plan,
+// le trou laisse voir l'intérieur creux. On comble chaque trou par l'ellipse
+// d'intersection de l'ellipsoïde avec le plan z = const (un disque plat scalé).
+// precomputeCap calcule, une fois par gaussienne, les paramètres indépendants de z ;
+// applyCaps les évalue à chaque image pour la cote z du plan courant.
+function precomputeCap(cx,cy,cz, quat, sx,sy,sz){
+  // Matrice de forme A = R·diag(1/sx²,1/sy²,1/sz²)·Rᵀ (ellipsoïde {d : dᵀA d ≤ 1}).
+  const e=new THREE.Matrix4().makeRotationFromQuaternion(quat).elements;
+  const ax=[e[0],e[1],e[2]], ay=[e[4],e[5],e[6]], az=[e[8],e[9],e[10]];
+  const inv=[1/(sx*sx),1/(sy*sy),1/(sz*sz)], cols=[ax,ay,az];
+  let A00=0,A01=0,A02=0,A11=0,A12=0,A22=0;
+  for(let k=0;k<3;k++){const v=cols[k],w=inv[k];
+    A00+=w*v[0]*v[0];A01+=w*v[0]*v[1];A02+=w*v[0]*v[2];
+    A11+=w*v[1]*v[1];A12+=w*v[1]*v[2];A22+=w*v[2]*v[2];}
+  // Bloc 2×2 (x,y) : axes propres (orientation) constants en z.
+  const theta=0.5*Math.atan2(2*A01, A00-A11), ct=Math.cos(theta), st=Math.sin(theta);
+  const lTheta=Math.max(A00*ct*ct+2*A01*ct*st+A11*st*st, 1e-9);
+  const lPerp =Math.max(A00*st*st-2*A01*ct*st+A11*ct*ct, 1e-9);
+  // Décalage du centre de l'ellipse et terme quadratique, via l'inverse du bloc 2×2.
+  const det=A00*A11-A01*A01, ia00=A11/det, ia01=-A01/det, ia11=A00/det;
+  const ig0=ia00*A02+ia01*A12, ig1=ia01*A02+ia11*A12, gAg=A02*ig0+A12*ig1;
+  return {cx,cy,cz,A22,theta,lTheta,lPerp,ig0,ig1,gAg};
+}
+// Place/échelle les bouchons (InstancedMesh de disques unité) au plan z0.
+function applyCaps(mesh,data,z0,dummy,vis){
+  for(let i=0;i<data.length;i++){const c=data[i], h=z0-c.cz;
+    const k=(vis&&!vis[i])?0:(1 - c.A22*h*h + h*h*c.gAg);
+    if(k<=1e-7){dummy.scale.set(0,0,0);dummy.position.set(0,0,z0);dummy.rotation.set(0,0,0);
+      dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);continue;}
+    dummy.position.set(c.cx-h*c.ig0, c.cy-h*c.ig1, z0);
+    dummy.rotation.set(0,0,c.theta);
+    dummy.scale.set(Math.sqrt(k/c.lTheta), Math.sqrt(k/c.lPerp), 1);
+    dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);}
+  mesh.instanceMatrix.needsUpdate=true;
+}
+
+// ── density → counts and length ───────────────────────────────
+// The length is set by the INTEGER number of gaussians per half-swing (not the real-valued
+// density slider), so the gaussian size stays fixed while that count is unchanged and only
+// steps when a gaussian is actually added/removed.
+function lengthFromCount(n){
+  if(n<=2)  return 0.80;
+  if(n<=8)  return 0.80 + (0.30-0.80)*(n-2)/(8-2);    // 2→0.80 , 8→0.30
+  if(n<=20) return 0.30 + (0.20-0.30)*(n-8)/(20-8);   // 8→0.30 , 20→0.20
+  if(n<=30) return 0.20 + (0.15-0.20)*(n-20)/(30-20); // 20→0.20, 30→0.15
+  return 0.15;                                         // ≥30 → 0.15
+}
+// Gaussians per half-swing scale with the trajectory arc length (helix half-swing length),
+// so the discretisation quality stays roughly constant across amplitudes — low amplitude is
+// no longer starved of gaussians at equal density. Reference = 75°.
+function halfSwingArc(A){return 2*Math.sqrt(A*A+HALF_Z_Q*HALF_Z_Q);}
+const ARC_REF=halfSwingArc(75*Math.PI/180);
+function computeCounts(){
+  const d=params.density;
+  const ampFactor=halfSwingArc(params.theta0)/ARC_REF;          // 75°→1
+  const nQ=Math.max(2,Math.round(d*ampFactor));                 // one half-swing manifold
+  const nT=Math.max(2,Math.round(d*2*params.nOsc*ampFactor));   // 2·nOsc half-swings
+  return {nQ,nT,L:lengthFromCount(nQ)};
+}
+let counts=computeCounts();
+
+function thetaAt(s){return params.theta0*Math.exp(-params.zeta*s)*Math.cos(TAU*s);}
+function massWorld(th,z){return new THREE.Vector3(Math.sin(th),PIVOT_Y-Math.cos(th),z);}
+
+// N gaussians at curvature-weighted arc spacing; uniform length L (fixed by density)
+function sampleGaussians(pts,N,L){
+  const n=pts.length;
+  const cumArc=[0]; for(let i=1;i<n;i++) cumArc.push(cumArc[i-1]+pts[i].distanceTo(pts[i-1]));
+  const curv=new Array(n).fill(0);
+  for(let i=1;i<n-1;i++){
+    const a=pts[i].clone().sub(pts[i-1]), b=pts[i+1].clone().sub(pts[i]);
+    const la=a.length(), lb=b.length();
+    if(la>1e-9&&lb>1e-9){let c=a.dot(b)/(la*lb); c=Math.max(-1,Math.min(1,c));
+      curv[i]=Math.acos(c)/((la+lb)*0.5);}
+  }
+  const CURV0=1.5, KAPPA=0.14, DMAX=8;
+  const dens=curv.map(k=>Math.min(DMAX,1+KAPPA*Math.max(0,k-CURV0)));
+  const cumW=[0]; for(let i=1;i<n;i++) cumW.push(cumW[i-1]+0.5*(dens[i]+dens[i-1])*(cumArc[i]-cumArc[i-1]));
+  const Wtot=cumW[n-1]||1;
+  const g=[];
+  const CAP=10;
+  for(let k=0;k<N;k++){
+    const target=Wtot*(k+0.5)/N;
+    let i=1; while(i<n-1 && cumW[i]<target) i++;
+    const seg=(cumW[i]-cumW[i-1])||1, tt=(target-cumW[i-1])/seg;
+    const a=pts[i-1], b=pts[i];
+    const m=a.clone().lerp(b,tt);
+    let dx=b.x-a.x, dy=b.y-a.y, dz=b.z-a.z; if(Math.abs(dz)<1e-6)dz=1e-6;
+    const T=new THREE.Vector3(dx,dy,dz).normalize();
+    // adaptive length from local radius of curvature, with a quadratic falloff so the
+    // gaussians get strongly thinner in tight turns (oscillation peaks). Capped at L, floored at L/CAP.
+    const kappa=Math.max(curv[i-1]+(curv[i]-curv[i-1])*tt, 1e-4);
+    const r=(1/kappa)/L;                                 // relative radius of curvature
+    const len=L*Math.max(Math.min(r*r,1), 1/CAP);
+    g.push({mx:m.x,my:m.y,mz:m.z,sx:dx/dz,sy:dy/dz,Tx:T.x,Ty:T.y,Tz:T.z,len});
+  }
+  return g;   // sorted by increasing mz (z monotone)
+}
+
+function clearGroup(g){while(g.children.length){const c=g.children.pop();
+  if(typeof c.dispose==='function')c.dispose(); if(c.geometry)c.geometry.dispose(); if(c.material)c.material.dispose();}}
+function lineSeg(a,b,color,opacity){return new THREE.Line(new THREE.BufferGeometry().setFromPoints([a,b]),
+  new THREE.LineBasicMaterial({color,transparent:opacity<1,opacity:opacity||1}));}
+function makeLabel(text,colorCss){
+  const cv=document.createElement('canvas');cv.width=160;cv.height=88;const x=cv.getContext('2d');
+  x.fillStyle=colorCss;x.font="600 60px 'JetBrains Mono', monospace";x.textAlign='center';x.textBaseline='middle';x.fillText(text,80,46);
+  const tex=new THREE.CanvasTexture(cv);tex.minFilter=THREE.LinearFilter;
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false}));
+  sp.scale.set(0.42,0.231,1);return sp;}
+const hex=n=>'#'+n.toString(16).padStart(6,'0');
+
+function buildScene(canvas,kind){
+  const accent=COL.plane;   // axe z + label de la même couleur (bleu) que le plan de coupe
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));
+  renderer.localClippingEnabled=true;   // pour couper les gaussiennes au plan de coupe
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(42,1,0.05,100);
+  const target=kind==='time'?new THREE.Vector3(0,0.48,ZSPAN_T/2):new THREE.Vector3(0,0.48,0);
+  const dist=kind==='time'?4.6:3.8;   // zoomed out a touch
+
+  const grid=new THREE.GridHelper(3.2,14,COL.grid,COL.grid);
+  grid.material.transparent=true;grid.material.opacity=0.85;grid.position.set(0,-0.04,target.z);scene.add(grid);
+
+  const axg=new THREE.Group();
+  const x0=-1.06,y0=-0.04, zmin=kind==='time'?0:-HALF_Z_Q, zmax=kind==='time'?ZSPAN_T:HALF_Z_Q;
+  const corner=new THREE.Vector3(x0,y0,zmin);
+  axg.add(lineSeg(corner,new THREE.Vector3(1.06,y0,zmin),COL.axis,0.9));
+  axg.add(lineSeg(corner,new THREE.Vector3(x0,1.0,zmin),COL.axis,0.9));
+  axg.add(lineSeg(corner,new THREE.Vector3(x0,y0,zmax),accent,0.85));
+  const lx=makeLabel('x',hex(0x5d6b7a));lx.position.set(1.20,y0,zmin);axg.add(lx);
+  const ly=makeLabel('y',hex(0x5d6b7a));ly.position.set(x0,1.14,zmin);axg.add(ly);
+  const lz=makeLabel(kind==='time'?'t':'q',hex(accent));lz.position.set(x0,y0,zmax+0.16);axg.add(lz);
+  scene.add(axg);
+
+  const dyn=new THREE.Group();scene.add(dyn);
+
+  const slice=new THREE.Group();scene.add(slice);
+  const planeGeo=new THREE.PlaneGeometry(2.5,1.9);
+  const plane=new THREE.Mesh(planeGeo,new THREE.MeshBasicMaterial({color:COL.plane,transparent:true,opacity:0.08,side:THREE.DoubleSide,depthWrite:false}));
+  plane.position.set(0,0.36,0);plane.renderOrder=-1;
+  plane.add(new THREE.LineSegments(new THREE.EdgesGeometry(planeGeo),new THREE.LineBasicMaterial({color:COL.plane,transparent:true,opacity:0.4})));
+  slice.add(plane);
+  // Plan de clipping : ne garde que la partie des gaussiennes à droite du plan (z <= z_plan).
+  // La constante est mise à jour dans updateSlice() au fil du balayage.
+  const clipPlane=new THREE.Plane(new THREE.Vector3(0,0,-1),0);
+  const pivotMesh=new THREE.Mesh(new THREE.SphereGeometry(0.03,16,12),new THREE.MeshBasicMaterial({color:COL.mass}));
+  // masse = disque (cercle) dans le plan de coupe, pas une sphère : le cercle xy fait face à la normale z du plan
+  const massMesh=new THREE.Mesh(new THREE.CircleGeometry(MASS_R,24),new THREE.MeshBasicMaterial({color:COL.pend,side:THREE.DoubleSide}));
+  const rod=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,1,10),new THREE.MeshBasicMaterial({color:COL.rod}));
+  slice.add(pivotMesh,massMesh,rod);
+
+  let gaussians=[], coverage=0, length=0;
+  let capMesh=null, capData=[];
+  const capDummy=new THREE.Object3D();
+
+  function rebuild(){
+    clearGroup(dyn);
+    const N=kind==='time'?counts.nT:counts.nQ;
+    const L=counts.L;
+    const pts=[];
+    if(kind==='time'){
+      const T=params.nOsc, M=Math.max(70,45*params.nOsc);
+      for(let i=0;i<=M;i++){const s=i/M*T; pts.push(massWorld(thetaAt(s),s/T*ZSPAN_T));}
+    }else{
+      const M=140, A=params.theta0;
+      for(let i=0;i<=M;i++){const q=-A+2*A*i/M;            // q = angle theta (helical manifold)
+        pts.push(massWorld(q,(q/A)*HALF_Z_Q));}
+    }
+    length=0; for(let i=1;i<pts.length;i++) length+=pts[i].distanceTo(pts[i-1]);
+
+    // thin tube = true trajectory
+    dyn.add(new THREE.Mesh(
+      new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),Math.max(40,pts.length),0.005,6,false),
+      new THREE.MeshBasicMaterial({color:COL.pend,transparent:true,opacity:0.4})));
+
+    gaussians=sampleGaussians(pts,N,L);
+
+    // 3D gaussians: ellipsoid of radius MASS_R, half-length L along the tangent
+    const M2=gaussians.length;
+    const inst=new THREE.InstancedMesh(new THREE.SphereGeometry(1,18,12),
+      new THREE.MeshBasicMaterial({color:COL.pend,transparent:true,opacity:0.20,depthWrite:false}),M2);
+    const dummy=new THREE.Object3D();
+    for(let i=0;i<M2;i++){const g=gaussians[i];
+      const along=Math.max(g.len,0.012);
+      dummy.position.set(g.mx,g.my,g.mz);
+      dummy.quaternion.setFromUnitVectors(XAXIS,new THREE.Vector3(g.Tx,g.Ty,g.Tz));
+      dummy.scale.set(along,MASS_R,MASS_R); dummy.updateMatrix(); inst.setMatrixAt(i,dummy.matrix);}
+    inst.instanceMatrix.needsUpdate=true; inst.visible=params.showG; dyn.add(inst);
+
+    // Pas de bouchons de coupe pour le pendule : les ellipses d'intersection au plan ne sont
+    // volontairement pas affichées ici (capMesh reste null, applyCaps n'est jamais appelé).
+
+    let sumLen=0; for(const g of gaussians) sumLen+=g.len;
+    coverage=Math.min(100,Math.round(200*sumLen/Math.max(length,1e-6)));
+    return M2;
+  }
+
+  function currentZ(){return kind==='time' ? (tau/params.nOsc)*ZSPAN_T : (thetaAt(tau)/params.theta0)*HALF_Z_Q;}
+  function updateSlice(){
+    const th=thetaAt(tau), z=currentZ();
+    plane.position.z=z;
+    clipPlane.constant=z;   // coupe les gaussiennes au plan : ne garde que z <= z
+    if(capMesh) applyCaps(capMesh,capData,z,capDummy);   // comble les coupes
+    const piv=new THREE.Vector3(0,PIVOT_Y,z), m=massWorld(th,z);
+    pivotMesh.position.copy(piv); massMesh.position.copy(m);
+    const dir=m.clone().sub(piv), len=dir.length();
+    rod.position.copy(piv.clone().add(m).multiplyScalar(0.5)); rod.scale.set(1,len,1);
+    rod.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.normalize());
+  }
+  function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h)return;
+    renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+  function render(){
+    camera.position.set(target.x+dist*Math.cos(orbit.el)*Math.sin(orbit.az),
+      target.y+dist*Math.sin(orbit.el), target.z+dist*Math.cos(orbit.el)*Math.cos(orbit.az));
+    camera.lookAt(target);renderer.render(scene,camera);}
+
+  return {renderer,resize,rebuild,updateSlice,render,currentZ,canvas,
+    getCount:()=>gaussians.length,getGaussians:()=>gaussians,
+    getCoverage:()=>coverage,getLength:()=>length};
+}
+
+function setup2D(cv){
+  const w=cv.clientWidth,h=cv.clientHeight,dpr=Math.min(devicePixelRatio||1,2);
+  if(cv.width!==w*dpr||cv.height!==h*dpr){cv.width=w*dpr;cv.height=h*dpr;}
+  const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);
+  return {x,w,h,cx:w/2,cy:h*0.24,R:Math.min(w,h)*0.30};
+}
+function hexRgba(s,a){const r=parseInt(s.slice(1,3),16),g=parseInt(s.slice(3,5),16),b=parseInt(s.slice(5,7),16);return `rgba(${r},${g},${b},${a})`;}
+
+function drawVideo(){
+  const {x,w,h,cx,cy,R}=setup2D(document.getElementById('cVideo'));
+  const th=thetaAt(tau), mx=cx+R*Math.sin(th), my=cy+R*Math.cos(th), mr=MASS_R*R;
+  x.beginPath();
+  for(let i=0;i<=60;i++){const a=-params.theta0+2*params.theta0*i/60;const px=cx+R*Math.sin(a),py=cy+R*Math.cos(a);i?x.lineTo(px,py):x.moveTo(px,py);}
+  x.strokeStyle='rgba(93,107,122,.22)';x.lineWidth=2;x.setLineDash([4,5]);x.stroke();x.setLineDash([]);
+  x.beginPath();x.moveTo(cx,cy);x.lineTo(mx,my);x.strokeStyle='#2a4570';x.lineWidth=3;x.stroke();
+  x.beginPath();x.arc(cx,cy,5,0,TAU);x.fillStyle='#1a2e4a';x.fill();
+  x.beginPath();x.arc(mx,my,mr,0,TAU);x.fillStyle=PEND_CSS;x.fill();   // masse = disque rouge
+  // angle arc q = theta at the pivot.
+  // rodAng derived analytically (π/2 − θ, consistent with mx/my above) instead of atan2,
+  // which wraps to (−π,π] and made the wedge span the reflex angle past 90° of amplitude.
+  const ra=0.34*R, rodAng=Math.PI/2-th;
+  x.beginPath();x.moveTo(cx,cy);x.lineTo(cx,cy+ra);   // vertical reference, matches arc radius
+  x.strokeStyle=hexRgba(Q_CSS,.3);x.lineWidth=1.5;x.setLineDash([3,4]);x.stroke();x.setLineDash([]);
+  x.beginPath();x.arc(cx,cy,ra,Math.min(Math.PI/2,rodAng),Math.max(Math.PI/2,rodAng));
+  x.strokeStyle=hexRgba(Q_CSS,.75);x.lineWidth=2;x.stroke();
+  // label just outside the arc, on the wedge bisector; hidden near θ≈0 so it never sits on the rod
+  if(Math.abs(th)>0.12){
+    const labAng=(Math.PI/2+rodAng)/2, lr=ra+11;
+    x.fillStyle=Q_CSS;x.font="600 13px 'JetBrains Mono', monospace";x.textAlign='center';x.textBaseline='middle';
+    x.fillText('q',cx+Math.cos(labAng)*lr,cy+Math.sin(labAng)*lr);
+    x.textBaseline='alphabetic';
+  }
+}
+
+// reconstruction: sum of conditional splats whose t/q centre is near the slice
+function drawReconInto(canvasId,scene,col,countId){
+  const {x,cx,cy,R}=setup2D(document.getElementById(canvasId));
+  const gs=scene.getGaussians(), z0=scene.currentZ();
+  const rad=MASS_R*R*1.25;
+  const th=thetaAt(tau);
+  const tmx=cx+R*Math.sin(th), tmy=cy+R*Math.cos(th);
+  x.beginPath();x.moveTo(cx,cy);x.lineTo(tmx,tmy);x.strokeStyle='#2a4570';x.lineWidth=3;x.stroke();
+  x.beginPath();x.arc(cx,cy,5,0,TAU);x.fillStyle='#1a2e4a';x.fill();
+  // hard temporal window: a gaussian whose centre (in t/q) is more than ~3 inter-gaussian
+  // spacings from the current slice is hidden — temporally distant primitives never bleed
+  // in, unlike classic 4DGS where the (infinite) gaussian tails still would.
+  let win=Infinity;
+  if(gs.length>1){const span=Math.abs(gs[gs.length-1].mz-gs[0].mz); win=3.0*span/(gs.length-1);}
+  let kvis=0;
+  for(const g of gs){const dz=z0-g.mz;
+    if(Math.abs(dz)>win) continue;                             // too distant in t/q → hidden
+    const sz=Math.max(g.len*Math.abs(g.Tz),0.004);
+    const w=Math.exp(-0.5*dz*dz/(sz*sz)); if(w<0.06)continue;
+    const sxc=cx+R*(g.mx+g.sx*dz), syc=cy+R*(PIVOT_Y-(g.my+g.sy*dz));
+    const grd=x.createRadialGradient(sxc,syc,0,sxc,syc,rad);
+    grd.addColorStop(0,hexRgba(col,w*w));
+    grd.addColorStop(1,hexRgba(col,0));
+    x.fillStyle=grd;x.beginPath();x.arc(sxc,syc,rad,0,TAU);x.fill();kvis++;}
+  document.getElementById(countId).textContent=kvis;
+}
+
+const sceneT=buildScene(document.getElementById('cTime'),'time');
+const sceneL=buildScene(document.getElementById('cLat'),'latent');
+const $=id=>document.getElementById(id);
+
+function refreshBadges(){
+  $('nTime').textContent=counts.nT;
+  $('nLat').textContent=counts.nQ;
+  $('rT').textContent=counts.nT;
+  $('rQ').textContent=counts.nQ;
+  const r=counts.nQ>0?counts.nT/counts.nQ:0;
+  $('ratioBig').textContent=(r>=10?Math.round(r):(Math.round(r*10)/10));
+  $('vLen').textContent=counts.L.toFixed(2);
+  $('derived').innerHTML='<span class="qk">q</span> '+counts.nQ+' &nbsp;·&nbsp; <span class="tk">t</span> '+counts.nT;
+}
+function rebuildAll(){counts=computeCounts();sceneT.rebuild();sceneL.rebuild();refreshBadges();}
+function resizeAll(){sceneT.resize();sceneL.resize();}
+
+function attachDrag(canvas){
+  canvas.addEventListener('pointerdown',e=>{orbit.dragging=true;orbit.lx=e.clientX;orbit.ly=e.clientY;canvas.setPointerCapture(e.pointerId);});
+  canvas.addEventListener('pointermove',e=>{if(!orbit.dragging)return;
+    orbit.az-=(e.clientX-orbit.lx)*0.008;orbit.el+=(e.clientY-orbit.ly)*0.006;
+    orbit.el=Math.max(-0.2,Math.min(0.95,orbit.el));orbit.lx=e.clientX;orbit.ly=e.clientY;});
+  const up=()=>{orbit.dragging=false;};
+  canvas.addEventListener('pointerup',up);canvas.addEventListener('pointerleave',up);
+}
+attachDrag(sceneT.canvas);attachDrag(sceneL.canvas);
+
+$('play').addEventListener('click',()=>{params.running=!params.running;$('play').textContent=params.running?'⏸':'▶';});
+$('speed').addEventListener('input',e=>{params.speed=e.target.value/100;$('vSpeed').textContent='×'+(Math.round(params.speed/0.55*10)/10).toFixed(1);});
+$('osc').addEventListener('input',e=>{params.nOsc=+e.target.value;$('vOsc').textContent=params.nOsc;if(tau>params.nOsc)tau=0;rebuildAll();});
+$('damp').addEventListener('input',e=>{const v=+e.target.value;params.zeta=(v/100)*0.6;$('vDamp').textContent='ζ '+params.zeta.toFixed(2);rebuildAll();});
+$('density').addEventListener('input',e=>{params.density=+e.target.value;$('vD').textContent=params.density;rebuildAll();});
+$('amp').addEventListener('input',e=>{params.theta0=e.target.value*Math.PI/180;$('vAmp').textContent=e.target.value+'°';rebuildAll();});
+$('showG').addEventListener('change',e=>{params.showG=e.target.checked;rebuildAll();});
+
+window.addEventListener('resize',resizeAll);
+
+let frameAcc=0;
+function loop(now){
+  requestAnimationFrame(loop);
+  const dt=(now-lastTime)/1000; lastTime=now; frameAcc+=dt;
+  if(frameAcc<1/40) return;
+  const useDt=Math.min(0.05,frameAcc); frameAcc=0;
+  if(params.running){tau+=params.speed*useDt;if(tau>params.nOsc)tau-=params.nOsc;}
+  drawVideo();
+  drawReconInto('cReconT',sceneT,PEND_CSS,'nReconT');
+  drawReconInto('cReconQ',sceneL,PEND_CSS,'nReconQ');
+  sceneT.updateSlice();sceneL.updateSlice();
+  sceneT.render();sceneL.render();
+}
+requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();requestAnimationFrame(loop);});
+</script>
+
+<!-- trained rocking-chair gaussians (generated by extract_rocking.py) -->
+<script src="rocking_gaussians.js"></script>
+<script>
+"use strict";
+/* ── Second demo: render the real trained rocking-chair Gaussians ──────────
+   Reads window.ROCKING_DATA (2048 ellipsoids in (x,y,q)) + the reconstruction
+   sprite sheet. No model/torch at runtime — everything was decoded offline. */
+(function(){
+  const D = window.ROCKING_DATA;
+  const cv3d = document.getElementById('cRock3D');
+  if(!D || !window.THREE || !cv3d) return;
+
+  const FORCE_SCALE = 10.0;
+  // Données Schur pré-extraites pour le calcul de force latente
+  const rockJac = D.gaussians.map(g => ({
+    mz:g.mz, szzi:g.szzi, jac:g.jac, scinv:g.scinv,
+    px:g.p[0], py:1-g.p[1], a:g.a   // py = mu_xy[k,1] (axe image, vers le bas)
+  }));
+  const forces = [];        // [{cx,cy}, ...] — points d'application persistants
+  const FORCE_MAG_Y = 0.06;    // norme de la force vers le bas (espace image)
+  const SPATIAL_SHARP = 2.0;  // sharpness spatiale : exp(-SHARP·quad) au lieu de exp(-0.5·quad)
+
+  const Q = 0x0d8a7e, QCSS = '#0d8a7e';
+  const COL = {axis:0x9aa6b4, grid:0xdbe1ea, accent:Q};
+  const Q_VIS_SCALE = 0.5;                   // compression visuelle de l'axe q (sans toucher aux données)
+  const ZS = D.z_span * Q_VIS_SCALE;        // visual half-extent of the q axis (trained range)
+  const ZS_EXT_POS = D.frac_ext_max != null ? (D.frac_ext_max*2-1)*ZS : ZS;
+  const ZS_EXT_NEG = D.frac_ext_min != null ? (D.frac_ext_min*2-1)*ZS : -ZS;
+  const hex = n=>'#'+n.toString(16).padStart(6,'0');
+
+  // ── reconstruction sprite sheet ─────────────────────────────────────────
+  const sheet = new Image(); let sheetReady=false;
+  sheet.onload=()=>{sheetReady=true;}; sheet.src = D.sheet;
+
+  // ── helpers (local copies; the pendulum script's are out of scope) ───────
+  function lineSeg(a,b,color,op){return new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints([a,b]),
+    new THREE.LineBasicMaterial({color,transparent:op<1,opacity:op||1}));}
+  function makeLabel(text,colorCss){
+    const c=document.createElement('canvas');c.width=160;c.height=88;const x=c.getContext('2d');
+    x.fillStyle=colorCss;x.font="600 60px 'JetBrains Mono', monospace";x.textAlign='center';x.textBaseline='middle';x.fillText(text,80,46);
+    const tex=new THREE.CanvasTexture(c);tex.minFilter=THREE.LinearFilter;
+    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false}));
+    sp.scale.set(0.42,0.231,1);return sp;}
+
+  // ── scene ────────────────────────────────────────────────────────────────
+  const renderer=new THREE.WebGLRenderer({canvas:cv3d,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));
+  renderer.localClippingEnabled=true;   // pour couper les gaussiennes au plan de coupe
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(42,1,0.05,100);
+  const target=new THREE.Vector3(0,0,0);
+  const orbit={az:0.66,el:0.26,dragging:false,lx:0,ly:0};
+  const dist=3.5;
+
+  const grid=new THREE.GridHelper(3.0,12,COL.grid,COL.grid);
+  grid.material.transparent=true;grid.material.opacity=0.85;grid.position.set(0,-0.5,0);scene.add(grid);
+
+  // axis corner (x,y,q)
+  const x0=-0.6,y0=-0.5;
+  const corner=new THREE.Vector3(x0,y0,-ZS);
+  scene.add(lineSeg(corner,new THREE.Vector3(0.6,y0,-ZS),COL.axis,0.9));
+  scene.add(lineSeg(corner,new THREE.Vector3(x0,0.55,-ZS),COL.axis,0.9));
+  // axe q : plage entraînée (accent, plein) + extensions hors distribution (accent, atténué)
+  scene.add(lineSeg(new THREE.Vector3(x0,y0,ZS_EXT_NEG),corner,COL.accent,0.3));
+  scene.add(lineSeg(corner,new THREE.Vector3(x0,y0,ZS),COL.accent,0.85));
+  scene.add(lineSeg(new THREE.Vector3(x0,y0,ZS),new THREE.Vector3(x0,y0,ZS_EXT_POS),COL.accent,0.3));
+  const lx=makeLabel('x',hex(0x5d6b7a));lx.position.set(0.72,y0,-ZS);scene.add(lx);
+  const ly=makeLabel('y',hex(0x5d6b7a));ly.position.set(x0,0.68,-ZS);scene.add(ly);
+  const lq=makeLabel('q',QCSS);lq.position.set(x0,y0,ZS_EXT_POS+0.18);scene.add(lq);
+
+  // ── instanced ellipsoids = the trained gaussians ─────────────────────────
+  const N=D.gaussians.length;
+  // True 1σ ellipsoids, but cap the q-elongation: every gaussian is very broad along q
+  // (a tube in state), so uncapped they'd fill the whole axis and read as mush.
+  const MIN=0.01, SMAX=100;
+  const clampS=v=>Math.min(Math.max(v,MIN),SMAX);
+  const geo=new THREE.SphereGeometry(1,12,8);
+  // Plan de clipping : ne garde que la partie des gaussiennes à droite du plan (z <= z_plan).
+  // La constante est mise à jour dans loop() au fil du balayage de q.
+  const clipPlane=new THREE.Plane(new THREE.Vector3(0,0,-1),0);
+  const mat=new THREE.MeshBasicMaterial({transparent:true,opacity:0.4,depthWrite:false,clippingPlanes:[clipPlane]});
+  const inst=new THREE.InstancedMesh(geo,mat,N);
+  const dummy=new THREE.Object3D(), col=new THREE.Color();
+  for(let i=0;i<N;i++){const g=D.gaussians[i];
+    dummy.position.set(g.p[0]-0.5, g.p[1]-0.5, g.p[2]*Q_VIS_SCALE);
+    dummy.quaternion.set(g.q[0],g.q[1],g.q[2],g.q[3]);
+    const vis=g.a>=0.8;
+    dummy.scale.set(vis?clampS(g.s[0]*1.5):0, vis?clampS(g.s[1]*1.5):0, vis?clampS(g.s[2]*1.5*Q_VIS_SCALE):0);
+    dummy.updateMatrix();inst.setMatrixAt(i,dummy.matrix);
+    col.setRGB(g.c[0]*g.a,g.c[1]*g.a,g.c[2]*g.a);inst.setColorAt(i,col);}
+  inst.instanceMatrix.needsUpdate=true;if(inst.instanceColor)inst.instanceColor.needsUpdate=true;
+  scene.add(inst);
+
+  // bouchons pleins : ellipses de coupe comblant les gaussiennes sectionnées par le plan
+  const capData=[], capDummy=new THREE.Object3D();
+  const capMesh=new THREE.InstancedMesh(new THREE.CircleGeometry(1,20),
+    new THREE.MeshBasicMaterial({transparent:true,opacity:0.82,depthWrite:false,side:THREE.DoubleSide}),N);
+  for(let i=0;i<N;i++){const g=D.gaussians[i];
+    const vis2=g.a>=0.8;
+    capData.push(precomputeCap(g.p[0]-0.5,g.p[1]-0.5,g.p[2]*Q_VIS_SCALE,
+      new THREE.Quaternion(g.q[0],g.q[1],g.q[2],g.q[3]),
+      vis2?clampS(g.s[0]*1.5):0, vis2?clampS(g.s[1]*1.5):0, vis2?clampS(g.s[2]*1.5*Q_VIS_SCALE):0));
+    col.setRGB(g.c[0]*g.a,g.c[1]*g.a,g.c[2]*g.a);capMesh.setColorAt(i,col);}
+  if(capMesh.instanceColor)capMesh.instanceColor.needsUpdate=true;
+  scene.add(capMesh);
+
+  // Classification fond/avant-plan : grand axe ≈ axe q (|cos θ| > 0.9) → gaussienne de fond
+  const BG_THR=0.9997;
+  const isBg=new Array(N);
+  for(let i=0;i<N;i++){const g=D.gaussians[i];
+    const s=g.s,ms=Math.max(s[0],s[1],s[2]);
+    const mi=s[0]===ms?0:s[1]===ms?1:2;
+    const [qx,qy,qz,qw]=g.q;
+    let d2;if(mi===0)d2=2*(qx*qz-qy*qw);else if(mi===1)d2=2*(qy*qz+qx*qw);else d2=1-2*(qx*qx+qy*qy);
+    isBg[i]=Math.abs(d2)>BG_THR;}
+  let showBg=true;
+  const visFlags=new Array(N).fill(true);
+  function refreshInst(){
+    for(let i=0;i<N;i++){const g=D.gaussians[i];
+      const ok=showBg||!isBg[i];
+      const v=g.a>=0.8&&ok;
+      dummy.position.set(g.p[0]-0.5,g.p[1]-0.5,g.p[2]*Q_VIS_SCALE);
+      dummy.quaternion.set(g.q[0],g.q[1],g.q[2],g.q[3]);
+      dummy.scale.set(v?clampS(g.s[0]*1.5):0,v?clampS(g.s[1]*1.5):0,v?clampS(g.s[2]*1.5*Q_VIS_SCALE):0);
+      dummy.updateMatrix();inst.setMatrixAt(i,dummy.matrix);
+      visFlags[i]=ok;}
+    inst.instanceMatrix.needsUpdate=true;}
+
+  // slice plane (current state q)
+  const planeGeo=new THREE.PlaneGeometry(1.3,1.2);
+  const plane=new THREE.Mesh(planeGeo,new THREE.MeshBasicMaterial({color:COL.accent,transparent:true,opacity:0.12,side:THREE.DoubleSide,depthWrite:false}));
+  plane.renderOrder=2;
+  plane.add(new THREE.LineSegments(new THREE.EdgesGeometry(planeGeo),new THREE.LineBasicMaterial({color:COL.accent,transparent:true,opacity:0.6})));
+  scene.add(plane);
+
+  // ── controls / state ──────────────────────────────────────────────────────
+  const $=id=>document.getElementById(id);
+  const st={running:true,auto:true,speed:4.20,frac:0.5,diss:0.084,x:0.5,v:0,still:0};
+  const STILL_EPS=0.02, STILL_RESET=2;   // reset auto quand |(x,v)| < EPS pendant STILL_RESET secondes
+  // état de l'oscillateur : x = frac − 0.5 (écart à l'équilibre), v = dx/dτ ; still = temps immobile cumulé (s)
+  $('rPlay').addEventListener('click',()=>{st.running=!st.running;$('rPlay').textContent=st.running?'⏸':'▶';});
+  $('rSpeed').addEventListener('input',e=>{st.speed=e.target.value/25;$('rVs').textContent='×'+(Math.round(st.speed/4.20*10)/10).toFixed(1);});
+  $('rDiss').addEventListener('input',e=>{st.diss=(e.target.value/100)*0.6;$('rVd').textContent=st.diss.toFixed(2);});
+  $('rDrag').addEventListener('change',e=>{st.auto=e.target.checked;if(st.auto){st.x=st.frac-0.5;st.v=0;st.still=0;}});  // reprend l'intégration depuis l'état courant
+  $('rckQ').addEventListener('input',e=>{st.frac=e.target.value/1000;st.auto=false;$('rDrag').checked=false;});
+  $('rShowBg').addEventListener('change',e=>{showBg=e.target.checked;refreshInst();});
+
+  function attachDrag(c){
+    c.addEventListener('pointerdown',e=>{orbit.dragging=true;orbit.lx=e.clientX;orbit.ly=e.clientY;c.setPointerCapture(e.pointerId);});
+    c.addEventListener('pointermove',e=>{if(!orbit.dragging)return;
+      orbit.az-=(e.clientX-orbit.lx)*0.008;orbit.el+=(e.clientY-orbit.ly)*0.006;
+      orbit.el=Math.max(-0.2,Math.min(0.95,orbit.el));orbit.lx=e.clientX;orbit.ly=e.clientY;});
+    const up=()=>{orbit.dragging=false;};
+    c.addEventListener('pointerup',up);c.addEventListener('pointerleave',up);
+  }
+  attachDrag(cv3d);
+
+  // ── interaction force sur l'image reconstruite ────────────────────────────
+  {
+    const cvR=document.getElementById('cRockRecon');
+    if(cvR){
+      const layout=()=>{const w=cvR.clientWidth,h=cvR.clientHeight,side=Math.min(w,h);
+        return{side,ox:(w-side)/2,oy:(h-side)/2};};
+      // Supprimer le menu contextuel natif
+      cvR.addEventListener('contextmenu',e=>e.preventDefault());
+      cvR.addEventListener('mousedown',e=>{
+        if(e.button===2){
+          // Clic droit : sélectionner les gaussiennes au moment du clic et fixer leurs poids
+          const {side,ox,oy}=layout();
+          const cx=(e.offsetX-ox)/side, cy=(e.offsetY-oy)/side;
+          const q=D.zmin+st.frac*(D.zmax-D.zmin);
+          const sel=[];
+          for(let k=0;k<rockJac.length;k++){
+            const g=rockJac[k];
+            const dz=q-g.mz;
+            const wz=Math.exp(-0.5*dz*dz*g.szzi);
+            if(wz<1e-3)continue;
+            const mcx=g.px+g.jac[0]*dz, mcy=g.py+g.jac[1]*dz;
+            const dpx=cx-mcx, dpy=cy-mcy;
+            const quad=g.scinv[0]*dpx*dpx+2*g.scinv[1]*dpx*dpy+g.scinv[2]*dpy*dpy;
+            if(quad>20)continue;
+            sel.push({k, w:Math.exp(-SPATIAL_SHARP*quad)*wz*g.a});
+          }
+          forces.push({cx, cy, sel});
+          if(!st.running){st.running=true;$('rPlay').textContent='⏸';}
+          if(!st.auto){st.auto=true;st.x=st.frac-0.5;st.v=0;st.still=0;$('rDrag').checked=true;}
+        } else if(e.button===0){
+          // Clic gauche : effacer tous les efforts
+          forces.length=0;
+        }
+      });
+    }
+  }
+
+  // ── reconstruction panel ──────────────────────────────────────────────────
+  // Accepte frac ∈ [0,1] et interpole linéairement entre les deux frames voisines.
+  function drawRecon(frac){
+    const cv=document.getElementById('cRockRecon');if(!cv)return;
+    const dpr=Math.min(devicePixelRatio||1,2),w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;
+    if(cv.width!==w*dpr||cv.height!==h*dpr){cv.width=w*dpr;cv.height=h*dpr;}
+    const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);
+    if(!sheetReady)return;
+    const T=D.tile,cols=D.cols;
+    const side=Math.min(w,h),ox=(w-side)/2,oy=(h-side)/2;
+    x.imageSmoothingEnabled=true;
+    const extMin=D.frac_ext_min??0, extMax=D.frac_ext_max??1;
+    const fracSheet=(frac-extMin)/(extMax-extMin);
+    const exact=Math.max(0,Math.min(1,fracSheet))*(D.nframes-1);
+    const f0=Math.floor(exact), f1=Math.min(f0+1,D.nframes-1), blend=exact-f0;
+    const r0=Math.floor(f0/cols),c0=f0%cols;
+    x.drawImage(sheet,c0*T,r0*T,T,T,ox,oy,side,side);
+    if(blend>1e-4){
+      x.globalAlpha=blend;
+      const r1=Math.floor(f1/cols),c1=f1%cols;
+      x.drawImage(sheet,c1*T,r1*T,T,T,ox,oy,side,side);
+      x.globalAlpha=1.0;
+    }
+    if(forces.length>0){
+      const qval=D.zmin+frac*(D.zmax-D.zmin);
+      for(const f of forces)
+        drawForceArrow(x,qval,f,0,FORCE_MAG_Y,side,ox,oy);
+    }
+  }
+
+  // ── force latente : projection jacobienne ∂μ/∂q ──────────────────────────
+  function computeLatentForce(force,fx,fy){
+    // Sélection fixée au clic — poids w_k constants, seuls jac_k entrent dans le calcul
+    let num=0,den=0;
+    for(const {k,w} of force.sel){
+      const g=rockJac[k];
+      num+=w*(g.jac[0]*fx+g.jac[1]*fy); den+=w;
+    }
+    return den>1e-6?num/den:0;
+  }
+  function drawForceArrow(ctx,q,force,fx,fy,side,ox,oy){
+    ctx.save();
+    // Barycentre : gaussiennes fixées au clic, centres conditionnels suivis avec q courant
+    let bx=0,by=0,den=0;
+    for(const {k,w} of force.sel){
+      const g=rockJac[k];
+      const dz=q-g.mz;
+      const mcx=g.px+g.jac[0]*dz, mcy=g.py+g.jac[1]*dz;
+      bx+=w*mcx; by+=w*mcy; den+=w;
+    }
+    // Si sélection vide, repli sur le point de clic
+    const ax=den>1e-6?ox+(bx/den)*side:ox+force.cx*side;
+    const ay=den>1e-6?oy+(by/den)*side:oy+force.cy*side;
+    const raw_x=fx*side, raw_y=fy*side;
+    const rawM=Math.sqrt(raw_x*raw_x+raw_y*raw_y)||1;
+    const cap=Math.min(rawM,400)/rawM;
+    const x1=ax+raw_x*cap, y1=ay+raw_y*cap;
+    ctx.strokeStyle='#ff4444'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(x1,y1); ctx.stroke();
+    const ang=Math.atan2(y1-ay,x1-ax);
+    ctx.fillStyle='#ff4444';
+    ctx.beginPath();
+    ctx.moveTo(x1,y1);
+    ctx.lineTo(x1-12*Math.cos(ang-0.4),y1-12*Math.sin(ang-0.4));
+    ctx.lineTo(x1-12*Math.cos(ang+0.4),y1-12*Math.sin(ang+0.4));
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function resize(){const w=cv3d.clientWidth,h=cv3d.clientHeight;if(!w||!h)return;
+    renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+  window.addEventListener('resize',resize);
+
+  let last=performance.now(),acc=0;
+  function loop(now){
+    requestAnimationFrame(loop);
+    const dt=(now-last)/1000;last=now;acc+=dt;
+    if(acc<1/40)return;const useDt=Math.min(0.05,acc);acc=0;
+
+    if(st.auto&&st.running){
+      const dtau=st.speed*useDt;
+      // EDO linéaire d'ordre 2 intégrée pas à pas (schéma semi-implicite) :  q'' + c1·q' + c0·q = 0,  q = frac − 0.5.
+      // c1 = dissipation (coeff. d'ordre 1, appliqué à CHAQUE instant) ; c0 = 1+(c1/2)² fixe ω_d=1 ⇒ même période et amplitude qu'avant.
+      // Intégrer (au lieu d'évaluer la forme close en τ) rend le plan continu quand on change la dissipation :
+      // seule l'évolution future est affectée, l'état (x,v) reste continu.
+      const c1=st.diss, c0=1+0.25*c1*c1;
+      let facc=0;
+      if(forces.length>0){
+        const qval=D.zmin+st.frac*(D.zmax-D.zmin);
+        for(const f of forces)
+          facc+=computeLatentForce(f,0,FORCE_MAG_Y)*(D.zmax-D.zmin)*FORCE_SCALE;
+      }
+      const acc=-c0*st.x - c1*st.v + facc;
+      st.v+=acc*dtau; st.x+=st.v*dtau;
+      st.frac=0.5+st.x;
+      // relâché du sommet une fois le rocking chair quasi arrêté depuis STILL_RESET s (au lieu d'un reset périodique)
+      if(forces.length===0&&Math.hypot(st.x,st.v)<STILL_EPS){st.still+=useDt;if(st.still>STILL_RESET){st.still=0;st.x=0.5;st.v=0;}}
+      else st.still=0;
+      $('rckQ').value=Math.round(Math.max(0,Math.min(1,st.frac))*1000);
+    }
+    const zpos=(st.frac*2-1)*ZS;   // non clampé : suit q même hors distribution entraînée
+    plane.position.z=zpos;
+    clipPlane.constant=zpos;   // coupe les gaussiennes au plan : ne garde que z <= zpos
+    applyCaps(capMesh,capData,zpos,capDummy,visFlags);   // comble les coupes
+    const qval=D.zmin+st.frac*(D.zmax-D.zmin);
+    $('rVq').textContent=qval.toFixed(1);
+
+    drawRecon(st.frac);   // sprite sheet étendue : st.frac non clampé
+
+    camera.position.set(target.x+dist*Math.cos(orbit.el)*Math.sin(orbit.az),
+      target.y+dist*Math.sin(orbit.el),target.z+dist*Math.cos(orbit.el)*Math.cos(orbit.az));
+    camera.lookAt(target);renderer.render(scene,camera);
+  }
+  requestAnimationFrame(()=>{resize();$('rVs').textContent='×1.0';$('rVd').textContent=st.diss.toFixed(2);last=performance.now();requestAnimationFrame(loop);});
+})();
+</script>
+
+<script src="../lang.js"></script>
+</body>
+</html>
