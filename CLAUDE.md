@@ -34,7 +34,7 @@ splat-viewer.html?src=./splats/arkose.splat&fov=3&dist=4.5&bg=0x111111
 - `src` — fichier `.splat` (format binaire 32 o/point : position float32 + couleur uint8)
 - `fov` — focale caméra · `dist` — multiplicateur de distance caméra · `bg` — couleur de fond (hexa)
 
-Rendu : `THREE.Points` + shader custom, taille de point selon densité locale (grille 3D 32³), tri back-to-front au chargement, auto-rotation douce en boucle (±5° X/Y). Purement décoratif, aucune interaction souris. Fichiers `.splat` dans `splats/`.
+Rendu `THREE.Points` + shader custom, auto-rotation en boucle. **Purement décoratif, aucune interaction souris.**
 
 ## Système de design (style.css)
 
@@ -129,23 +129,14 @@ Le HTML du lightbox doit être présent dans chaque page qui charge `site.js` :
 
 Pour les détails exhaustifs (encoding vidéo, règles i18n, etc.) → voir `GUIDE.md`.
 
-## Démos demo/ — Inventaire
+## Démos demo/
 
-| HTML | Sujet | Poids chargés | Statut |
-|------|-------|---------------|--------|
-| `prehenseur.html` | Pneumatic gripper simulé par LEBNN | `prehenseur-weights.js` (~2,2 Mo) | ✅ **Actif** — lié depuis publications.html + projects.html |
-| `lebnn.html` | LEBNN · poutre cantilever 20-DOF | `lebnn-weights.js` (~2,6 Mo) | ⚠️ **Obsolète** — non lié, conservé pour archive |
-| `lags_demo.html` | LaGS — Gaussian Splatting indexé par état | `rocking_gaussians.js` (~450 Ko) + `rocking_frames.png` (~3,5 Mo) | 🚧 **En finition** — sera lié dans une future publication, pas encore référencé |
+Chaque HTML est standalone et lisible. Les poids du réseau de neurones sont chargés via `<script src>` avant le bloc inline.
 
-Chaque HTML est entièrement standalone et **lisible** (plus aucune ligne lourde). Seul `prehenseur.html` est exposé publiquement aujourd'hui.
+| HTML | Sujet | Poids (var globale) | Statut |
+|------|-------|---------------------|--------|
+| `prehenseur.html` | Pneumatic gripper simulé par LEBNN | `prehenseur-weights.js` · `W` (~2,2 Mo) | ✅ **Actif** — lié depuis publications.html + projects.html |
+| `lebnn.html` | LEBNN · poutre cantilever 20-DOF | `lebnn-weights.js` · `LEBNN_RAW` (~2,6 Mo) | ⚠️ **Obsolète** — non lié, archive |
+| `lags_demo.html` | LaGS — Gaussian Splatting indexé par état | `rocking_gaussians.js` · `ROCKING_DATA` (~450 Ko) + `rocking_frames.png` (~3,5 Mo, atlas binaire) | 🚧 **En finition** — pas encore référencé |
 
-## ⚠️ Fichiers demo/ — Avertissement tokens
-
-Les poids d'un réseau de neurones sont sérialisés en JSON sur **une seule ligne géante** (**plusieurs centaines de kilooctets, voire plusieurs Mo**). Ne **jamais** lire ces lignes — cela consommerait des dizaines de milliers de tokens inutilement.
-
-Les poids ont été **extraits** dans des fichiers JS dédiés (juin 2026), chargés via `<script src="...">` avant le bloc inline de chaque démo. **Ne jamais lire ces fichiers** (une seule ligne, plusieurs centaines de Ko à plusieurs Mo) :
-- `demo/prehenseur-weights.js` : `const W = {...}`, ~2,2 Mo
-- `demo/lebnn-weights.js` : `const LEBNN_RAW = {...}`, ~2,6 Mo (référencé dans `loadWeights()` via `const raw = LEBNN_RAW;`)
-- `demo/rocking_gaussians.js` : `window.ROCKING_DATA = {...}`, ~450 Ko (2048 gaussiennes entraînées + frames, utilisé par `demo/lags_demo.html`)
-
-Ne **jamais** lire non plus `demo/rocking_frames.png` (~3,5 Mo, binaire) — c'est un atlas d'images consommé par la démo LaGS.
+> ⚠️ **Ne jamais lire** les fichiers de poids ci-dessus ni `rocking_frames.png` : JSON sur **une seule ligne géante** (centaines de Ko à plusieurs Mo) ou binaire → des dizaines de milliers de tokens pour rien.
