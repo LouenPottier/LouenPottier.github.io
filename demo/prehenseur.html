@@ -444,32 +444,47 @@ function V_grad_sim(u_sim, p){
 }
  
 // ─── CONTACT PLAN (Adam optimizer in JS) ─────────────────────────────────────
-function contact_plan(p, f, u0_start, c=0.8, z0=2.0, lr=0.1, nmax=50, tol=1e-6){
+// bh = BOX_HALF: half-side of the square box in NN coords
+// Box in NN coords: u[2] in [z0, z0+2*bh], u[0] in [-bh, bh]
+// (right face at u[2]=z0 ↔ x_sim=x0p, top/bottom at u[0]=±bh ↔ z_sim=∓bh)
+function contact_plan(p, f, u0_start, c=0.8, z0=2.0, bh=1.5, lr=0.1, nmax=50, tol=1e-6){
   let u = [...u0_start];
   const b1=0.9, b2=0.999, eps=1e-8;
   let m=[0,0,0], v2=[0,0,0], t=0;
- 
+
   for(let iter=0; iter<nmax; iter++){
     const g = iV_grad(u, p);
     const residual = vsub(g, f);
-    if(dot(residual,residual) < tol && u[2] <= z0) break;
- 
+    const inBox = u[2] >= z0 && u[2] <= z0+2*bh && u[0] >= -bh && u[0] <= bh;
+    if(dot(residual,residual) < tol && !inBox) break;
+
     t++;
     m = vadd(vscale(m,b1), vscale(residual, 1-b1));
     v2 = vadd(vscale(v2,b2), vscale(residual.map(x=>x*x), 1-b2));
     const mh = vscale(m, 1/(1-Math.pow(b1,t)));
     const vh = vscale(v2, 1/(1-Math.pow(b2,t)));
     u = vsub(u, mh.map((mi,i) => lr*mi/(Math.sqrt(vh[i])+eps)));
- 
-    // contact constraint
-    // contact constraint
-    if(u[2] >= z0){
-      u[2] = z0;
+
+    // Box contact: project to nearest face, then check friction
+    const inX = u[2] >= z0 && u[2] <= z0+2*bh;
+    const inZ = u[0] >= -bh && u[0] <= bh;
+    if(inX && inZ){
+      const dRight = u[2] - z0;
+      const dLeft  = z0+2*bh - u[2];
+      const dTop   = u[0] + bh;   // u[0] - (-bh)
+      const dBot   = bh - u[0];
+      const minD   = Math.min(dRight, dLeft, dTop, dBot);
+      let nIdx = 2;
+      if     (minD === dRight){ u[2] = z0;       nIdx = 2; }
+      else if(minD === dLeft) { u[2] = z0+2*bh;  nIdx = 2; }
+      else if(minD === dTop)  { u[0] = -bh;       nIdx = 0; }
+      else                    { u[0] = bh;        nIdx = 0; }
       const gn = iV_grad(u, p);
-      const fn_comp = (gn[2]-f[2]);
-      const ft_vec = [gn[0]-f[0], gn[1]-f[1], 0];
-      if(vnorm(ft_vec) < c*Math.abs(fn_comp)) break;
-      if(dot(ft_vec,ft_vec) < tol) break;
+      const fn_comp = gn[nIdx] - f[nIdx];
+      const ft = [gn[0]-f[0], 0, gn[2]-f[2]];
+      ft[nIdx] = 0;
+      if(vnorm(ft) < c*Math.abs(fn_comp)) break;
+      if(dot(ft,ft) < tol) break;
     }
   }
   return u;
@@ -615,6 +630,9 @@ function linspace(a,b,n){
   return r;
 }
  
+// ─── BOX OBSTACLE ────────────────────────────────────────────────────────────
+const BOX_HALF = 1.5; // half-side of the square rigid object (sim/plot coords)
+
 // ─── STATE ───────────────────────────────────────────────────────────────────
 // u in simulation coords: init = ptspheres(0)[-3:]
 // ptspheres(0) = utspheres(PUtF().u0(0)) -> u0(0) in NN coords = [0,0,0]
@@ -630,7 +648,7 @@ function getParams(){
     P:  parseFloat(document.getElementById('s_P').value),
     fx: parseFloat(document.getElementById('s_fx').value),
     fz: parseFloat(document.getElementById('s_fz').value),
-    x0p: parseFloat(document.getElementById('s_x0').value),
+    x0p: parseFloat(document.getElementById('s_x0').value) + 1,
     c: 0.,
   };
 }
@@ -727,9 +745,13 @@ const dashTrace2 = hasResultant ? {
   showlegend:false, hoverinfo:'skip', name:''
 } : null;
   
-  // plan line
-  const plan_x = [x0p, x0p];
-  const plan_y = [-2, 7];
+  // square rigid object: in plot coords x_plot = 2 - u_nn[2], y_plot = -u_nn[0]
+  // right face at x_plot = x0p, left face at x_plot = x0p - 2*BOX_HALF
+  // top face at y_plot = BOX_HALF, bottom at y_plot = -BOX_HALF
+  const box_x0 = x0p - 2*BOX_HALF;
+  const box_x1 = x0p;
+  const box_y0 = -BOX_HALF;
+  const box_y1 =  BOX_HALF;
  
   const contourTrace = {
     type:'contour', z:Z, x:xaxis, y:yaxis,
@@ -754,12 +776,12 @@ const dashTrace2 = hasResultant ? {
   };
   const sphereTrace = {
     type:'scatter', x:sph_x, y:sph_z, mode:'lines',
-    line:{color:'#00aa55',width:1.5},
+    line:{color:'#1f7a1f',width:1.5},
     name:'Gripper shape', legendgroup:'gripper', showlegend:false
   };
   const skeletonTrace = {
     type:'scatter', x:sk_x, y:sk_z, mode:'lines',
-    line:{color:'#00aa55',width:2},
+    line:{color:'#1f7a1f',width:2},
     name:'Gripper shape', legendgroup:'gripper', showlegend:true
   };
   // Gripper tip marker
@@ -776,15 +798,18 @@ const dashTrace2 = hasResultant ? {
   const fillTrace = {
     type:'scatter', x:fill_x, y:fill_z, mode:'none',
     fill:'toself',
-    fillcolor:'rgba(0,180,80,0.6)',
+    fillcolor:'#38b538',
     line:{width:0},
     legendgroup:'gripper', showlegend:false,
     hoverinfo:'skip', name:''
   };
   const planTrace = {
-    type:'scatter', x:plan_x, y:plan_y, mode:'lines',
-    line:{color:'#7a7168',width:1.5},
-    name:'Contact plane', showlegend:false
+    type:'scatter',
+    x:[box_x0, box_x1, box_x1, box_x0, box_x0],
+    y:[box_y0, box_y0, box_y1, box_y1, box_y0],
+    mode:'lines',
+    line:{color:'#7a7168', width:1.5},
+    name:'Rigid object outline', showlegend:false
   };
  
   // Invisible legend-only traces for force arrows
@@ -806,13 +831,12 @@ const dashTrace2 = hasResultant ? {
   // Fixed axis bounds (from grid: x_plot=2-ys in [-3,6], y_plot=-xs in [-2,7])
   const X_MIN = -3, X_MAX = 6, Y_MIN = -2, Y_MAX = 7;
  
-  // Grey zone left of contact plane: rectangle from X_MIN to x0p
   const greyTrace = {
     type:'scatter',
-    x:[X_MIN, x0p, x0p, X_MIN, X_MIN],
-    y:[Y_MIN, Y_MIN, Y_MAX, Y_MAX, Y_MIN],
+    x:[box_x0, box_x1, box_x1, box_x0, box_x0],
+    y:[box_y0, box_y0, box_y1, box_y1, box_y0],
     mode:'none', fill:'toself',
-    fillcolor:'rgba(100,100,120,0.5)',
+    fillcolor:'rgba(155,155,158,0.88)',
     line:{width:0},
     showlegend:true, name:'Rigid object', hoverinfo:'skip'
   };
@@ -865,7 +889,7 @@ function runSim(nmax=10){
   const u_cp = [-u_state[2], u_state[1], 2-u_state[0]];
   const f_cp = [-fz, 0, -fx];
   const z0 = 2 - x0p;
-  const u_sol = contact_plan(pval, f_cp, u_cp, c, z0, 0.1,nmax);
+  const u_sol = contact_plan(pval, f_cp, u_cp, c, z0, BOX_HALF, 0.1, nmax);
   u_state = [2-u_sol[2], u_sol[1], -u_sol[0]];
   updateUI();
   renderPlot();
