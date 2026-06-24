@@ -570,8 +570,11 @@ function buildScene(canvas,kind){
 
   const slice=new THREE.Group();scene.add(slice);
   const planeGeo=new THREE.PlaneGeometry(2.5,1.9);
-  const plane=new THREE.Mesh(planeGeo,new THREE.MeshBasicMaterial({color:COL.plane,transparent:true,opacity:0.08,side:THREE.DoubleSide,depthWrite:false}));
-  plane.position.set(0,0.36,0);plane.renderOrder=-1;
+  // Dessiné APRÈS le nuage (renderOrder=2) et testé en profondeur (depthWrite:false) → les
+  // gaussiennes devant l'occultent. polygonOffset : biaise le plan vers la caméra pour qu'il ne
+  // z-fighte pas le corps du pendule (masse + tige) coplanaire à z=z_plan.
+  const plane=new THREE.Mesh(planeGeo,new THREE.MeshBasicMaterial({color:COL.plane,transparent:true,opacity:0.08,side:THREE.DoubleSide,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
+  plane.position.set(0,0.36,0);plane.renderOrder=2;
   plane.add(new THREE.LineSegments(new THREE.EdgesGeometry(planeGeo),new THREE.LineBasicMaterial({color:COL.plane,transparent:true,opacity:0.4})));
   slice.add(plane);
   // Plan de clipping : ne garde que la partie des gaussiennes à droite du plan (z <= z_plan).
@@ -611,8 +614,10 @@ function buildScene(canvas,kind){
 
     // 3D gaussians: ellipsoid of radius MASS_R, half-length L along the tangent
     const M2=gaussians.length;
+    // depthWrite:true → le nuage écrit la profondeur et occulte le plan de coupe placé derrière
+    // lui (test de profondeur « le plus proche gagne »), comme pour le rocking chair.
     const inst=new THREE.InstancedMesh(new THREE.SphereGeometry(1,18,12),
-      new THREE.MeshBasicMaterial({color:COL.pend,transparent:true,opacity:0.20,depthWrite:false}),M2);
+      new THREE.MeshBasicMaterial({color:COL.pend,transparent:true,opacity:0.20,depthWrite:true}),M2);
     const dummy=new THREE.Object3D();
     for(let i=0;i<M2;i++){const g=gaussians[i];
       const along=Math.max(g.len,0.012);
