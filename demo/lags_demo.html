@@ -158,8 +158,8 @@
   <a class="nav-name" href="../index.html">Louen Pottier</a>
   <ul>
     <li><a href="../index.html" data-en="CV" data-fr="CV">CV</a></li>
-    <li><a href="../publications.html" class="active" data-en="Publications" data-fr="Publications">Publications</a></li>
-    <li><a href="../projects.html" data-en="Projects" data-fr="Projets">Projects</a></li>
+    <li><a href="../publications.html" data-en="Publications" data-fr="Publications">Publications</a></li>
+    <li><a href="../projects.html" class="active" data-en="Projects" data-fr="Projets">Projects</a></li>
     <li><a href="../teaching.html" data-en="Teaching" data-fr="Enseignement">Teaching</a></li>
   </ul>
 </nav>
@@ -245,28 +245,6 @@
           <div class="stage"><canvas id="cVideo"></canvas><div class="badge" data-en="current frame" data-fr="image courante">current frame</div></div>
           <div class="pfoot video" data-en="The observed state — one 2D frame per instant." data-fr="L'état observé — une image 2D par instant.">The observed state — one 2D frame per instant.</div>
         </section>
-
-        <section class="panel resume">
-          <div class="phead">
-            <div class="tag" data-en="verdict" data-fr="verdict">verdict</div>
-            <h2 data-en="Gaussian budget" data-fr="Coût en gaussiennes">Gaussian budget</h2>
-            <div class="sub" data-en="at equal density &amp; quality" data-fr="à densité et qualité égales">at equal density &amp; quality</div>
-          </div>
-          <div class="rbody">
-            <div class="big">×<span id="ratioBig">–</span></div>
-            <div class="cap"
-                 data-en="extra Gaussians to cover the trajectory in <b class='tk'>time</b> rather than in <b class='qk'>state</b>."
-                 data-fr="gaussiennes en plus pour couvrir la trajectoire en <b class='tk'>temps</b> plutôt qu'en <b class='qk'>état</b>.">
-              extra Gaussians to cover the trajectory in <b class="tk">time</b> rather than in <b class="qk">state</b>.
-            </div>
-            <div class="counts"><span class="qk">q</span>&nbsp; <span id="rQ">–</span> &nbsp;vs&nbsp; <span class="tk">t</span>&nbsp; <span id="rT">–</span></div>
-            <div class="rnote"
-                 data-en="Each Gaussian is a <b>tube along the trajectory</b>. In <b class='tk'>time</b> it must be re-tiled every oscillation; in <b class='qk'>state</b> a single helix is reused — hence the gap."
-                 data-fr="Chaque gaussienne est un <b>tube le long de la trajectoire</b>. En <b class='tk'>temps</b>, il faut la repaver à chaque oscillation ; en <b class='qk'>état</b>, une seule hélice est réutilisée — d'où l'écart.">
-              Each Gaussian is a <b>tube along the trajectory</b>. In <b class="tk">time</b> it must be re-tiled every oscillation; in <b class="qk">state</b> a single helix is reused — hence the gap.
-            </div>
-          </div>
-        </section>
       </div>
 
       <div class="col">
@@ -286,19 +264,6 @@
             <span class="count-lbl" data-en="Gaussians tiling<br>the space–time volume" data-fr="gaussiennes pavant<br>le volume espace–temps">Gaussians tiling<br>the space–time volume</span>
           </div>
         </section>
-
-        <section class="panel t">
-          <div class="phead">
-            <div class="tag" data-en="reconstruction from t" data-fr="reconstruction depuis t">reconstruction from t</div>
-            <h2 data-en="Reconstructed frame" data-fr="Vidéo reconstruite">Reconstructed frame</h2>
-            <div class="sub" data-en="splatting of the slice t = current" data-fr="splatting de la coupe t = courante">splatting of the slice t = current</div>
-          </div>
-          <div class="stage short"><canvas id="cReconT"></canvas><div class="badge" data-en="slice = mass disc" data-fr="coupe = disque masse">slice = mass disc</div></div>
-          <div class="pfoot">
-            <span class="count" id="nReconT">–</span>
-            <span class="count-lbl" data-en="Gaussians active<br>in the slice" data-fr="gaussiennes actives<br>dans la coupe">Gaussians active<br>in the slice</span>
-          </div>
-        </section>
       </div>
 
       <div class="col">
@@ -316,19 +281,6 @@
           <div class="pfoot">
             <span class="count" id="nLat">–</span>
             <span class="count-lbl" data-en="Gaussians tiling<br>the space–state volume" data-fr="gaussiennes pavant<br>le volume espace–état">Gaussians tiling<br>the space–state volume</span>
-          </div>
-        </section>
-
-        <section class="panel q">
-          <div class="phead">
-            <div class="tag" data-en="reconstruction from q" data-fr="reconstruction depuis q">reconstruction from q</div>
-            <h2 data-en="Reconstructed frame" data-fr="Vidéo reconstruite">Reconstructed frame</h2>
-            <div class="sub" data-en="splatting of the slice q = current" data-fr="splatting de la coupe q = courante">splatting of the slice q = current</div>
-          </div>
-          <div class="stage short"><canvas id="cReconQ"></canvas><div class="badge" data-en="slice = mass disc" data-fr="coupe = disque masse">slice = mass disc</div></div>
-          <div class="pfoot">
-            <span class="count" id="nReconQ">–</span>
-            <span class="count-lbl" data-en="Gaussians active<br>in the slice" data-fr="gaussiennes actives<br>dans la coupe">Gaussians active<br>in the slice</span>
           </div>
         </section>
       </div>
@@ -391,8 +343,64 @@
           <h2 data-en="Reconstructed frame" data-fr="Image reconstruite">Reconstructed frame</h2>
           <div class="sub" data-en="model's RGB output, sliced at q = current" data-fr="sortie RGB du modèle, coupe q = courante">model's RGB output, sliced at q = current</div>
         </div>
-        <div class="stage recon"><canvas id="cRockRecon"></canvas><div class="badge" data-en="right-click to push · left-click to clear" data-fr="clic droit pour pousser · clic gauche pour effacer">right-click to push · left-click to clear</div></div>
-        <div class="pfoot video" data-en="Decoded by slicing the Gaussians at state q. Right-click to apply a downward force via the Jacobian ∂μ/∂q; forces accumulate." data-fr="Décodée en coupant les gaussiennes à l'état q. Clic droit pour appliquer une force vers le bas via le jacobien ∂μ/∂q ; les forces s'accumulent.">Decoded by slicing the Gaussians at state q. Right-click to apply a downward force via the Jacobian ∂μ/∂q; forces accumulate.</div>
+        <div class="stage recon"><canvas id="cRockRecon"></canvas><div class="badge" data-en="grab &amp; drag the object" data-fr="attraper et glisser l'objet">grab &amp; drag the object</div></div>
+        <div class="pfoot video" data-en="Decoded by slicing the Gaussians at state q. Grab the object: the click→cursor drag is an image-space force f on the picked Gaussian, pulled back through the decoder Jacobian ∂μ/∂q to a latent force F=Jᵀf that drives the dynamics. Release it and the learned damped oscillator takes over." data-fr="Décodée en coupant les gaussiennes à l'état q. Attrapez l'objet : le drag clic→curseur est une force image f sur la gaussienne saisie, rapatriée par le jacobien du décodeur ∂μ/∂q en force latente F=Jᵀf qui pilote la dynamique. Relâchez : l'oscillateur amorti appris reprend la main.">Decoded by slicing the Gaussians at state q. Grab the object: the click→cursor drag is an image-space force f on the picked Gaussian, pulled back through the decoder Jacobian ∂μ/∂q to a latent force F=Jᵀf that drives the dynamics. Release it and the learned damped oscillator takes over.</div>
+      </section>
+    </div>
+
+    <!-- ── Third demo: 2-DOF soft actuator (latent d=2) ─────────────────── -->
+    <hr class="exp-divider">
+
+    <div class="exp-head">
+      <p class="exp-tag" data-en="experiment 3 · two degrees of freedom" data-fr="expérience 3 · deux degrés de liberté">experiment 3 · two degrees of freedom</p>
+      <h2 class="exp-title" data-en="A soft actuator with a 2-D state" data-fr="Un actionneur mou à état 2-D">A soft actuator with a 2-D state</h2>
+    </div>
+
+    <p class="thesis"
+       data-en="The rocking chair had a single state <span class='qk'>q</span>. A bending soft actuator needs <b>two</b> &mdash; so the learned state is a point <span class='qk'>q = (q&#8321;, q&#8322;)</span> in a <b>latent plane</b>. There is no time axis to slide along any more: the left panel <b>is</b> that plane (the faint curve is the trajectory the model learned from the clip). <b>Drag the dot</b> anywhere and the right panel shows the model's own reconstruction sliced at that 2-D state; release it and the learned damped oscillator takes over. Right-click the image to push it &mdash; the force is pulled back through the decoder Jacobian <span class='qk'>∂μ/∂q</span> and moves the dot in <i>both</i> latent directions."
+       data-fr="Le rocking chair avait un seul état <span class='qk'>q</span>. Un actionneur mou qui se courbe en demande <b>deux</b> &mdash; l'état appris est donc un point <span class='qk'>q = (q&#8321;, q&#8322;)</span> dans un <b>plan latent</b>. Plus d'axe temporel à balayer : le panneau de gauche <b>est</b> ce plan (la courbe pâle est la trajectoire que le modèle a apprise du clip). <b>Glissez le point</b> n'importe où et le panneau de droite montre la reconstruction du modèle, coupée à cet état 2-D ; relâchez-le et l'oscillateur amorti appris reprend la main. Clic droit sur l'image pour la pousser &mdash; la force est rapatriée par le jacobien du décodeur <span class='qk'>∂μ/∂q</span> et déplace le point dans les <i>deux</i> directions latentes.">
+    </p>
+
+    <div class="rock-controls">
+      <button id="sPlay" title="play / pause"
+        style="font-family:var(--mono);font-size:1rem;font-weight:600;color:#fff;background:var(--navy);border:none;border-radius:var(--radius);padding:8px 14px;cursor:pointer;min-width:44px;line-height:1;">⏸</button>
+      <div class="ctl">
+        <label><span class="lbl" data-en="Speed" data-fr="Vitesse">Speed</span> <span class="val" id="sVs">×1.0</span></label>
+        <input id="sSpeed" type="range" min="10" max="200" value="100">
+      </div>
+      <div class="ctl">
+        <label><span class="lbl" data-en="Dissipation" data-fr="Dissipation">Dissipation</span> <span class="val" id="sVd">–</span></label>
+        <input id="sDiss" type="range" min="0" max="100" value="20">
+      </div>
+      <label class="toggle"><input id="sAuto" type="checkbox" checked> <span class="lbl" data-en="auto-play" data-fr="lecture auto">auto-play</span></label>
+    </div>
+
+    <div class="rock-grid">
+      <section class="panel q">
+        <div class="phead">
+          <div class="tag" data-en="LaGS · latent state" data-fr="LaGS · état latent">LaGS · latent state</div>
+          <h2 data-en="Latent plane" data-fr="Plan latent">Latent plane</h2>
+          <div class="sub"
+               data-en="axes (<b class='qk'>q&#8321;</b>, <b class='qk'>q&#8322;</b>) — the 2-D state; faint curve = learned trajectory"
+               data-fr="axes (<b class='qk'>q&#8321;</b>, <b class='qk'>q&#8322;</b>) — l'état 2-D ; courbe pâle = trajectoire apprise">
+            axes (<b class="qk">q&#8321;</b>, <b class="qk">q&#8322;</b>) — the 2-D state; faint curve = learned trajectory
+          </div>
+        </div>
+        <div class="stage recon"><canvas id="cSacPhase"></canvas><div class="badge" data-en="drag the dot" data-fr="glisser le point">drag the dot</div></div>
+        <div class="pfoot">
+          <span class="count" id="sCount">–</span>
+          <span class="count-lbl" data-en="trained Gaussians<br>in (x, y, q&#8321;, q&#8322;)" data-fr="gaussiennes entraînées<br>dans (x, y, q&#8321;, q&#8322;)">trained Gaussians<br>in (x, y, q&#8321;, q&#8322;)</span>
+        </div>
+      </section>
+
+      <section class="panel q">
+        <div class="phead">
+          <div class="tag" data-en="reconstruction from q" data-fr="reconstruction depuis q">reconstruction from q</div>
+          <h2 data-en="Reconstructed frame" data-fr="Image reconstruite">Reconstructed frame</h2>
+          <div class="sub" data-en="model's RGB output, sliced at (q&#8321;, q&#8322;) = current" data-fr="sortie RGB du modèle, coupe (q&#8321;, q&#8322;) = courante">model's RGB output, sliced at (q&#8321;, q&#8322;) = current</div>
+        </div>
+        <div class="stage recon"><canvas id="cSacRecon"></canvas><div class="badge" data-en="grab &amp; drag the object" data-fr="attraper et glisser l'objet">grab &amp; drag the object</div></div>
+        <div class="pfoot video" data-en="Decoded by slicing the 4-D Gaussians at the 2-D state (q&#8321;, q&#8322;). Grab the object: the click→cursor drag is an image-space force f on the picked Gaussian, pulled back through the decoder Jacobian to a latent force F=Jᵀf that drives the dynamics. A Gaussian fixed w.r.t. q (jac≈0) feels no force." data-fr="Décodée en coupant les gaussiennes 4-D à l'état 2-D (q&#8321;, q&#8322;). Attrapez l'objet : le drag clic→curseur est une force image f sur la gaussienne saisie, rapatriée par le jacobien du décodeur en force latente F=Jᵀf qui pilote la dynamique. Une gaussienne fixe par rapport à q (jac≈0) ne subit aucune force.">Decoded by slicing the 4-D Gaussians at the 2-D state (q&#8321;, q&#8322;). Grab the object: the click→cursor drag is an image-space force f on the picked Gaussian, pulled back through the decoder Jacobian to a latent force F=Jᵀf that drives the dynamics. A Gaussian fixed w.r.t. q (jac≈0) feels no force.</div>
       </section>
     </div>
 
@@ -448,7 +456,8 @@ function precomputeCap(cx,cy,cz, quat, sx,sy,sz){
 // Place/échelle les bouchons (InstancedMesh de disques unité) au plan z0.
 function applyCaps(mesh,data,z0,dummy,vis){
   for(let i=0;i<data.length;i++){const c=data[i], h=z0-c.cz;
-    const k=(vis&&!vis[i])?0:(1 - c.A22*h*h + h*h*c.gAg);
+    const gi=(c.gi!==undefined)?c.gi:i;   // index gaussienne d'origine (les bouchons peuvent être réordonnés)
+    const k=(vis&&!vis[gi])?0:(1 - c.A22*h*h + h*h*c.gAg);
     if(k<=1e-7){dummy.scale.set(0,0,0);dummy.position.set(0,0,z0);dummy.rotation.set(0,0,0);
       dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);continue;}
     dummy.position.set(c.cx-h*c.ig0, c.cy-h*c.ig1, z0);
@@ -679,32 +688,6 @@ function drawVideo(){
 }
 
 // reconstruction: sum of conditional splats whose t/q centre is near the slice
-function drawReconInto(canvasId,scene,col,countId){
-  const {x,cx,cy,R}=setup2D(document.getElementById(canvasId));
-  const gs=scene.getGaussians(), z0=scene.currentZ();
-  const rad=MASS_R*R*1.25;
-  const th=thetaAt(tau);
-  const tmx=cx+R*Math.sin(th), tmy=cy+R*Math.cos(th);
-  x.beginPath();x.moveTo(cx,cy);x.lineTo(tmx,tmy);x.strokeStyle='#2a4570';x.lineWidth=3;x.stroke();
-  x.beginPath();x.arc(cx,cy,5,0,TAU);x.fillStyle='#1a2e4a';x.fill();
-  // hard temporal window: a gaussian whose centre (in t/q) is more than ~3 inter-gaussian
-  // spacings from the current slice is hidden — temporally distant primitives never bleed
-  // in, unlike classic 4DGS where the (infinite) gaussian tails still would.
-  let win=Infinity;
-  if(gs.length>1){const span=Math.abs(gs[gs.length-1].mz-gs[0].mz); win=3.0*span/(gs.length-1);}
-  let kvis=0;
-  for(const g of gs){const dz=z0-g.mz;
-    if(Math.abs(dz)>win) continue;                             // too distant in t/q → hidden
-    const sz=Math.max(g.len*Math.abs(g.Tz),0.004);
-    const w=Math.exp(-0.5*dz*dz/(sz*sz)); if(w<0.06)continue;
-    const sxc=cx+R*(g.mx+g.sx*dz), syc=cy+R*(PIVOT_Y-(g.my+g.sy*dz));
-    const grd=x.createRadialGradient(sxc,syc,0,sxc,syc,rad);
-    grd.addColorStop(0,hexRgba(col,w*w));
-    grd.addColorStop(1,hexRgba(col,0));
-    x.fillStyle=grd;x.beginPath();x.arc(sxc,syc,rad,0,TAU);x.fill();kvis++;}
-  document.getElementById(countId).textContent=kvis;
-}
-
 const sceneT=buildScene(document.getElementById('cTime'),'time');
 const sceneL=buildScene(document.getElementById('cLat'),'latent');
 const $=id=>document.getElementById(id);
@@ -712,10 +695,6 @@ const $=id=>document.getElementById(id);
 function refreshBadges(){
   $('nTime').textContent=counts.nT;
   $('nLat').textContent=counts.nQ;
-  $('rT').textContent=counts.nT;
-  $('rQ').textContent=counts.nQ;
-  const r=counts.nQ>0?counts.nT/counts.nQ:0;
-  $('ratioBig').textContent=(r>=10?Math.round(r):(Math.round(r*10)/10));
   $('vLen').textContent=counts.L.toFixed(2);
   $('derived').innerHTML='<span class="qk">q</span> '+counts.nQ+' &nbsp;·&nbsp; <span class="tk">t</span> '+counts.nT;
 }
@@ -750,8 +729,6 @@ function loop(now){
   const useDt=Math.min(0.05,frameAcc); frameAcc=0;
   if(params.running){tau+=params.speed*useDt;if(tau>params.nOsc)tau-=params.nOsc;}
   drawVideo();
-  drawReconInto('cReconT',sceneT,PEND_CSS,'nReconT');
-  drawReconInto('cReconQ',sceneL,PEND_CSS,'nReconQ');
   sceneT.updateSlice();sceneL.updateSlice();
   sceneT.render();sceneL.render();
 }
@@ -770,14 +747,18 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   const cv3d = document.getElementById('cRock3D');
   if(!D || !window.THREE || !cv3d) return;
 
-  const FORCE_SCALE = 10.0;
+  const FORCE_SCALE = 2.0;
   // Données Schur pré-extraites pour le calcul de force latente
   const rockJac = D.gaussians.map(g => ({
     mz:g.mz, szzi:g.szzi, jac:g.jac, scinv:g.scinv,
     px:g.p[0], py:1-g.p[1], a:g.a   // py = mu_xy[k,1] (axe image, vers le bas)
   }));
-  const forces = [];        // [{cx,cy}, ...] — points d'application persistants
-  const FORCE_MAG_Y = 0.06;    // norme de la force vers le bas (espace image)
+  // ── prise interactive (drag & drop, comme la démo du sac) ─────────────────
+  // Une seule prise à la fois : grabStart = {sel, mouse:[cx,cy]} fixée au clic ; null = pas de prise.
+  let grabStart = null;
+  const FGRAB_MAX = 0.35;     // clamp du vecteur force image |f| (fraction de l'image) → borne la prise
+  const FMAX = 4.0;           // garde-fou final sur |F_lat| (anti-divergence si jac très grand)
+  const FORCE_CSS = '#ff4444';
   const SPATIAL_SHARP = 2.0;  // sharpness spatiale : exp(-SHARP·quad) au lieu de exp(-0.5·quad)
 
   const Q = 0x0d8a7e, QCSS = '#0d8a7e';
@@ -831,37 +812,65 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
 
   // ── instanced ellipsoids = the trained gaussians ─────────────────────────
   const N=D.gaussians.length;
-  // True 1σ ellipsoids, but cap the q-elongation: every gaussian is very broad along q
-  // (a tube in state), so uncapped they'd fill the whole axis and read as mush.
+  // Ellipsoïdes tracés à SIGMA·σ (enveloppe ET bouchons de coupe), mais on plafonne
+  // l'allongement en q : chaque gaussienne est très étalée le long de q (un tube en état),
+  // sinon elle remplirait tout l'axe et le nuage deviendrait illisible.
+  const SIGMA=1.5;            // niveau d'iso-contour dessiné (enveloppe des gaussiennes ET leur coupe)
   const MIN=0.01, SMAX=100;
   const clampS=v=>Math.min(Math.max(v,MIN),SMAX);
   const geo=new THREE.SphereGeometry(1,12,8);
   // Plan de clipping : ne garde que la partie des gaussiennes à droite du plan (z <= z_plan).
   // La constante est mise à jour dans loop() au fil du balayage de q.
   const clipPlane=new THREE.Plane(new THREE.Vector3(0,0,-1),0);
-  const mat=new THREE.MeshBasicMaterial({transparent:true,opacity:0.4,depthWrite:false,clippingPlanes:[clipPlane]});
+  // depthWrite:true → le nuage (opaque) écrit la profondeur et occulte le plan de coupe et les
+  // ellipses de coupe placés derrière lui. L'InstancedMesh ne trie pas ses instances, mais le test
+  // de profondeur résout l'occlusion « le plus proche gagne » (rendu solide voulu).
+  const mat=new THREE.MeshBasicMaterial({transparent:true,opacity:0.4,depthWrite:true,clippingPlanes:[clipPlane]});
   const inst=new THREE.InstancedMesh(geo,mat,N);
   const dummy=new THREE.Object3D(), col=new THREE.Color();
   for(let i=0;i<N;i++){const g=D.gaussians[i];
     dummy.position.set(g.p[0]-0.5, g.p[1]-0.5, g.p[2]*Q_VIS_SCALE);
     dummy.quaternion.set(g.q[0],g.q[1],g.q[2],g.q[3]);
     const vis=g.a>=0.8;
-    dummy.scale.set(vis?clampS(g.s[0]*1.5):0, vis?clampS(g.s[1]*1.5):0, vis?clampS(g.s[2]*1.5*Q_VIS_SCALE):0);
+    dummy.scale.set(vis?clampS(g.s[0]*SIGMA):0, vis?clampS(g.s[1]*SIGMA):0, vis?clampS(g.s[2]*SIGMA*Q_VIS_SCALE):0);
     dummy.updateMatrix();inst.setMatrixAt(i,dummy.matrix);
     col.setRGB(g.c[0]*g.a,g.c[1]*g.a,g.c[2]*g.a);inst.setColorAt(i,col);}
   inst.instanceMatrix.needsUpdate=true;if(inst.instanceColor)inst.instanceColor.needsUpdate=true;
   scene.add(inst);
 
-  // bouchons pleins : ellipses de coupe comblant les gaussiennes sectionnées par le plan
+  // bouchons pleins : ellipses de coupe comblant les gaussiennes sectionnées par le plan.
+  // Ordre d'occlusion voulu : rouge occulte blanc occulte rose occulte jaune occulte bleu
+  // occulte vert occulte gris occulte noir. L'InstancedMesh dessine ses instances dans l'ordre
+  // d'index (et avec depthWrite:false les bouchons coplanaires sont rendus en peintre : le dernier
+  // dessiné l'emporte). On range donc les bouchons par priorité de couleur CROISSANTE → les rouges,
+  // dessinés en dernier, occultent tout le reste.
+  const CAP_PALETTE=[                 // couleurs de référence, du moins au plus prioritaire
+    [0,0,0],        // noir
+    [0.5,0.5,0.5],  // gris
+    [0,1,0],        // vert
+    [0,0,1],        // bleu
+    [1,1,0],        // jaune
+    [1,0.6,0.8],    // rose
+    [1,1,1],        // blanc
+    [1,0,0],        // rouge
+  ];
+  const capPriority=g=>{       // priorité = index de la couleur de référence la plus proche
+    let best=0,bd=Infinity;
+    for(let p=0;p<CAP_PALETTE.length;p++){const r=CAP_PALETTE[p];
+      const d=(g.c[0]-r[0])**2+(g.c[1]-r[1])**2+(g.c[2]-r[2])**2;
+      if(d<bd){bd=d;best=p;}}
+    return best;};
+  const capOrder=[...Array(N).keys()].sort((a,b)=>capPriority(D.gaussians[a])-capPriority(D.gaussians[b]));
   const capData=[], capDummy=new THREE.Object3D();
   const capMesh=new THREE.InstancedMesh(new THREE.CircleGeometry(1,20),
     new THREE.MeshBasicMaterial({transparent:true,opacity:0.82,depthWrite:false,side:THREE.DoubleSide}),N);
-  for(let i=0;i<N;i++){const g=D.gaussians[i];
+  for(let pos=0;pos<N;pos++){const gi=capOrder[pos], g=D.gaussians[gi];
     const vis2=g.a>=0.8;
-    capData.push(precomputeCap(g.p[0]-0.5,g.p[1]-0.5,g.p[2]*Q_VIS_SCALE,
+    const cap=precomputeCap(g.p[0]-0.5,g.p[1]-0.5,g.p[2]*Q_VIS_SCALE,
       new THREE.Quaternion(g.q[0],g.q[1],g.q[2],g.q[3]),
-      vis2?clampS(g.s[0]*1.5):0, vis2?clampS(g.s[1]*1.5):0, vis2?clampS(g.s[2]*1.5*Q_VIS_SCALE):0));
-    col.setRGB(g.c[0]*g.a,g.c[1]*g.a,g.c[2]*g.a);capMesh.setColorAt(i,col);}
+      vis2?clampS(g.s[0]*SIGMA):0, vis2?clampS(g.s[1]*SIGMA):0, vis2?clampS(g.s[2]*SIGMA*Q_VIS_SCALE):0);
+    cap.gi=gi; capData.push(cap);   // mémorise l'index gaussienne pour les flags de visibilité
+    col.setRGB(g.c[0]*g.a,g.c[1]*g.a,g.c[2]*g.a);capMesh.setColorAt(pos,col);}
   if(capMesh.instanceColor)capMesh.instanceColor.needsUpdate=true;
   scene.add(capMesh);
 
@@ -882,14 +891,16 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
       const v=g.a>=0.8&&ok;
       dummy.position.set(g.p[0]-0.5,g.p[1]-0.5,g.p[2]*Q_VIS_SCALE);
       dummy.quaternion.set(g.q[0],g.q[1],g.q[2],g.q[3]);
-      dummy.scale.set(v?clampS(g.s[0]*1.5):0,v?clampS(g.s[1]*1.5):0,v?clampS(g.s[2]*1.5*Q_VIS_SCALE):0);
+      dummy.scale.set(v?clampS(g.s[0]*SIGMA):0,v?clampS(g.s[1]*SIGMA):0,v?clampS(g.s[2]*SIGMA*Q_VIS_SCALE):0);
       dummy.updateMatrix();inst.setMatrixAt(i,dummy.matrix);
       visFlags[i]=ok;}
     inst.instanceMatrix.needsUpdate=true;}
 
   // slice plane (current state q)
   const planeGeo=new THREE.PlaneGeometry(1.3,1.2);
-  const plane=new THREE.Mesh(planeGeo,new THREE.MeshBasicMaterial({color:COL.accent,transparent:true,opacity:0.12,side:THREE.DoubleSide,depthWrite:false}));
+  // polygonOffset : biaise la profondeur du plan vers la caméra pour qu'il ne z-fighte pas la
+  // tranche de coupe (bouchons + bord des gaussiennes, coplanaires à z=zpos) → plus de scintillement.
+  const plane=new THREE.Mesh(planeGeo,new THREE.MeshBasicMaterial({color:COL.accent,transparent:true,opacity:0.12,side:THREE.DoubleSide,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
   plane.renderOrder=2;
   plane.add(new THREE.LineSegments(new THREE.EdgesGeometry(planeGeo),new THREE.LineBasicMaterial({color:COL.accent,transparent:true,opacity:0.6})));
   scene.add(plane);
@@ -916,41 +927,61 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   }
   attachDrag(cv3d);
 
-  // ── interaction force sur l'image reconstruite ────────────────────────────
-  {
-    const cvR=document.getElementById('cRockRecon');
-    if(cvR){
-      const layout=()=>{const w=cvR.clientWidth,h=cvR.clientHeight,side=Math.min(w,h);
-        return{side,ox:(w-side)/2,oy:(h-side)/2};};
-      // Supprimer le menu contextuel natif
-      cvR.addEventListener('contextmenu',e=>e.preventDefault());
-      cvR.addEventListener('mousedown',e=>{
-        if(e.button===2){
-          // Clic droit : sélectionner les gaussiennes au moment du clic et fixer leurs poids
-          const {side,ox,oy}=layout();
-          const cx=(e.offsetX-ox)/side, cy=(e.offsetY-oy)/side;
-          const q=D.zmin+st.frac*(D.zmax-D.zmin);
-          const sel=[];
-          for(let k=0;k<rockJac.length;k++){
-            const g=rockJac[k];
-            const dz=q-g.mz;
-            const wz=Math.exp(-0.5*dz*dz*g.szzi);
-            if(wz<1e-3)continue;
-            const mcx=g.px+g.jac[0]*dz, mcy=g.py+g.jac[1]*dz;
-            const dpx=cx-mcx, dpy=cy-mcy;
-            const quad=g.scinv[0]*dpx*dpx+2*g.scinv[1]*dpx*dpy+g.scinv[2]*dpy*dpy;
-            if(quad>20)continue;
-            sel.push({k, w:Math.exp(-SPATIAL_SHARP*quad)*wz*g.a});
-          }
-          forces.push({cx, cy, sel});
-          if(!st.running){st.running=true;$('rPlay').textContent='⏸';}
-          if(!st.auto){st.auto=true;st.x=st.frac-0.5;st.v=0;st.still=0;$('rDrag').checked=true;}
-        } else if(e.button===0){
-          // Clic gauche : effacer tous les efforts
-          forces.length=0;
-        }
-      });
+  // ── prise interactive de l'image reconstruite (drag & drop, cf. démo du sac) ─
+  // On saisit la(les) gaussienne(s) cliquée(s) et on les tire par une FORCE image
+  // f = souris − point d'application. Tant que le bouton est tenu, F_lat = J̄ᵀf entre dans la
+  // dynamique ; au relâcher la force cesse mais l'élan reste. Le point d'application suit les
+  // gaussiennes (centres conditionnels à q courant) → f se contracte comme un ressort.
+  const cvR=document.getElementById('cRockRecon');
+  function rockLayout(){const w=cvR.clientWidth,h=cvR.clientHeight,side=Math.min(w,h);
+    return{side,ox:(w-side)/2,oy:(h-side)/2};}
+  // sélection des gaussiennes sous le clic (même double gate Mahalanobis latent + image que le sac)
+  function selectAt(cx,cy){
+    const q=D.zmin+st.frac*(D.zmax-D.zmin), sel=[];
+    for(let k=0;k<rockJac.length;k++){
+      const g=rockJac[k], dz=q-g.mz;
+      const wz=Math.exp(-0.5*dz*dz*g.szzi); if(wz<1e-3)continue;
+      const mcx=g.px+g.jac[0]*dz, mcy=g.py+g.jac[1]*dz;
+      const dpx=cx-mcx, dpy=cy-mcy;
+      const quad=g.scinv[0]*dpx*dpx+2*g.scinv[1]*dpx*dpy+g.scinv[2]*dpy*dpy;
+      if(quad>20)continue;
+      const w=Math.exp(-SPATIAL_SHARP*quad)*wz*g.a;
+      if(w>0)sel.push({k,w});
     }
+    return sel;
+  }
+  // point d'application = barycentre des centres conditionnels à q courant (suit l'objet)
+  function appPoint(sel){
+    const q=D.zmin+st.frac*(D.zmax-D.zmin); let bx=0,by=0,den=0;
+    for(const {k,w} of sel){const g=rockJac[k], dz=q-g.mz;
+      bx+=w*(g.px+g.jac[0]*dz); by+=w*(g.py+g.jac[1]*dz); den+=w;}
+    return den>1e-6?[bx/den,by/den]:null;
+  }
+  // prise courante : point d'application + vecteur force image f CLAMPÉ à FGRAB_MAX
+  function grabForce(){
+    if(!grabStart)return null;
+    const ap=appPoint(grabStart.sel); if(!ap)return null;
+    let fx=grabStart.mouse[0]-ap[0], fy=grabStart.mouse[1]-ap[1];
+    const m=Math.hypot(fx,fy); if(m>FGRAB_MAX){fx*=FGRAB_MAX/m; fy*=FGRAB_MAX/m;}
+    return {ax:ap[0],ay:ap[1],fx,fy};
+  }
+  if(cvR){
+    cvR.addEventListener('contextmenu',e=>e.preventDefault());
+    cvR.addEventListener('pointerdown',e=>{
+      const {side,ox,oy}=rockLayout();
+      const cx=(e.offsetX-ox)/side, cy=(e.offsetY-oy)/side;
+      const sel=selectAt(cx,cy); if(!sel.length)return;   // clic hors de toute gaussienne → rien à saisir
+      cvR.setPointerCapture(e.pointerId);
+      grabStart={sel,mouse:[cx,cy]};
+      if(!st.running){st.running=true;$('rPlay').textContent='⏸';}
+      if(!st.auto){st.auto=true;st.x=st.frac-0.5;st.v=0;st.still=0;$('rDrag').checked=true;}
+    });
+    cvR.addEventListener('pointermove',e=>{if(!grabStart)return;
+      const {side,ox,oy}=rockLayout();
+      grabStart.mouse=[(e.offsetX-ox)/side,(e.offsetY-oy)/side];});
+    const endGrab=()=>{grabStart=null;st.still=0;};   // force coupée, l'élan reste
+    cvR.addEventListener('pointerup',endGrab);
+    cvR.addEventListener('pointerleave',endGrab);
   }
 
   // ── reconstruction panel ──────────────────────────────────────────────────
@@ -976,50 +1007,31 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
       x.drawImage(sheet,c1*T,r1*T,T,T,ox,oy,side,side);
       x.globalAlpha=1.0;
     }
-    if(forces.length>0){
-      const qval=D.zmin+frac*(D.zmax-D.zmin);
-      for(const f of forces)
-        drawForceArrow(x,qval,f,0,FORCE_MAG_Y,side,ox,oy);
-    }
+    // flèche de force : point d'application (suit l'objet) → bout du vecteur force clampé
+    const gf=grabForce();
+    if(gf)drawForceArrow(x,ox+gf.ax*side,oy+gf.ay*side,ox+(gf.ax+gf.fx)*side,oy+(gf.ay+gf.fy)*side);
   }
 
-  // ── force latente : projection jacobienne ∂μ/∂q ──────────────────────────
-  function computeLatentForce(force,fx,fy){
-    // Sélection fixée au clic — poids w_k constants, seuls jac_k entrent dans le calcul
+  // ── force latente Jᵀf (d=1) : projection jacobienne ∂μ/∂q ────────────────
+  // jac = [j0,j1] = ∂(x,y)/∂q. F_lat = Σ w·(j0·fx + j1·fy) / Σ w (rapatriement covecteur).
+  // Sélection fixée au clic → poids w_k constants, seuls jac_k entrent dans le calcul.
+  function computeLatentForce(sel,fx,fy){
     let num=0,den=0;
-    for(const {k,w} of force.sel){
+    for(const {k,w} of sel){
       const g=rockJac[k];
       num+=w*(g.jac[0]*fx+g.jac[1]*fy); den+=w;
     }
     return den>1e-6?num/den:0;
   }
-  function drawForceArrow(ctx,q,force,fx,fy,side,ox,oy){
-    ctx.save();
-    // Barycentre : gaussiennes fixées au clic, centres conditionnels suivis avec q courant
-    let bx=0,by=0,den=0;
-    for(const {k,w} of force.sel){
-      const g=rockJac[k];
-      const dz=q-g.mz;
-      const mcx=g.px+g.jac[0]*dz, mcy=g.py+g.jac[1]*dz;
-      bx+=w*mcx; by+=w*mcy; den+=w;
-    }
-    // Si sélection vide, repli sur le point de clic
-    const ax=den>1e-6?ox+(bx/den)*side:ox+force.cx*side;
-    const ay=den>1e-6?oy+(by/den)*side:oy+force.cy*side;
-    const raw_x=fx*side, raw_y=fy*side;
-    const rawM=Math.sqrt(raw_x*raw_x+raw_y*raw_y)||1;
-    const cap=Math.min(rawM,400)/rawM;
-    const x1=ax+raw_x*cap, y1=ay+raw_y*cap;
-    ctx.strokeStyle='#ff4444'; ctx.lineWidth=3;
-    ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(x1,y1); ctx.stroke();
-    const ang=Math.atan2(y1-ay,x1-ax);
-    ctx.fillStyle='#ff4444';
-    ctx.beginPath();
-    ctx.moveTo(x1,y1);
-    ctx.lineTo(x1-12*Math.cos(ang-0.4),y1-12*Math.sin(ang-0.4));
-    ctx.lineTo(x1-12*Math.cos(ang+0.4),y1-12*Math.sin(ang+0.4));
-    ctx.fill();
-    ctx.restore();
+  // flèche de force : du point d'application (sur l'objet) vers la souris, + pastille à l'ancrage.
+  function drawForceArrow(ctx,x0,y0,x1,y1){
+    ctx.save();ctx.strokeStyle=FORCE_CSS;ctx.fillStyle=FORCE_CSS;ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();
+    const ang=Math.atan2(y1-y0,x1-x0),L=Math.hypot(x1-x0,y1-y0);
+    if(L>6){ctx.beginPath();ctx.moveTo(x1,y1);
+      ctx.lineTo(x1-12*Math.cos(ang-0.4),y1-12*Math.sin(ang-0.4));
+      ctx.lineTo(x1-12*Math.cos(ang+0.4),y1-12*Math.sin(ang+0.4));ctx.closePath();ctx.fill();}
+    ctx.beginPath();ctx.arc(x0,y0,4,0,Math.PI*2);ctx.fill();ctx.restore();
   }
 
   function resize(){const w=cv3d.clientWidth,h=cv3d.clientHeight;if(!w||!h)return;
@@ -1039,17 +1051,19 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
       // Intégrer (au lieu d'évaluer la forme close en τ) rend le plan continu quand on change la dissipation :
       // seule l'évolution future est affectée, l'état (x,v) reste continu.
       const c1=st.diss, c0=1+0.25*c1*c1;
+      // force de prise : f = souris − point d'application (suit l'objet), F_lat = J̄ᵀf, plafonnée.
+      // Comme l'ancrage suit l'objet, f se contracte quand il rejoint la souris (ressort).
       let facc=0;
-      if(forces.length>0){
-        const qval=D.zmin+st.frac*(D.zmax-D.zmin);
-        for(const f of forces)
-          facc+=computeLatentForce(f,0,FORCE_MAG_Y)*(D.zmax-D.zmin)*FORCE_SCALE;
+      const gf=grabForce();
+      if(gf){
+        facc=computeLatentForce(grabStart.sel,gf.fx,gf.fy)*(D.zmax-D.zmin)*FORCE_SCALE;
+        if(facc>FMAX)facc=FMAX;else if(facc<-FMAX)facc=-FMAX;
       }
       const acc=-c0*st.x - c1*st.v + facc;
       st.v+=acc*dtau; st.x+=st.v*dtau;
       st.frac=0.5+st.x;
-      // relâché du sommet une fois le rocking chair quasi arrêté depuis STILL_RESET s (au lieu d'un reset périodique)
-      if(forces.length===0&&Math.hypot(st.x,st.v)<STILL_EPS){st.still+=useDt;if(st.still>STILL_RESET){st.still=0;st.x=0.5;st.v=0;}}
+      // relâché du sommet une fois quasi arrêté depuis STILL_RESET s (pas pendant une prise)
+      if(!grabStart&&Math.hypot(st.x,st.v)<STILL_EPS){st.still+=useDt;if(st.still>STILL_RESET){st.still=0;st.x=0.5;st.v=0;}}
       else st.still=0;
       $('rckQ').value=Math.round(Math.max(0,Math.min(1,st.frac))*1000);
     }
@@ -1067,6 +1081,322 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
     camera.lookAt(target);renderer.render(scene,camera);
   }
   requestAnimationFrame(()=>{resize();$('rVs').textContent='×1.0';$('rVd').textContent=st.diss.toFixed(2);last=performance.now();requestAnimationFrame(loop);});
+})();
+</script>
+
+<!-- trained 2-DOF soft actuator gaussians (generated by extract_sac.py) -->
+<script src="sac_gaussians.js"></script>
+<script>
+"use strict";
+/* ── Third demo: the real trained 2-DOF soft-actuator model (latent d=2) ────
+   Reads window.SAC_DATA : per-gaussian Schur blocks generalised to d=2
+   (mz∈ℝ², szzi=Σzz⁻¹, jac=∂μ/∂q 2×2, scinv), a sprite GRID over the (q1,q2)
+   plane, the learned trajectory polyline, and a synthetic 2-DOF damped
+   oscillator (A,B,q0) fitted to the data. No torch at runtime. */
+(function(){
+  const D = window.SAC_DATA;
+  const cvPhase = document.getElementById('cSacPhase');
+  const cvRecon = document.getElementById('cSacRecon');
+  if(!D || !cvPhase || !cvRecon) return;
+
+  const $=id=>document.getElementById(id);
+  const [[Q1MIN,Q1MAX],[Q2MIN,Q2MAX]] = D.bbox;
+  const A=D.osc.A, B=D.osc.B, q0=D.osc.q0;
+  const N=D.grid_n, T=D.tile, G=D.gaussians;
+  $('sCount').textContent = D.n_gaussians;
+
+  const DOT_CSS='#d23b3b';
+  const TRAIL_CSS='#d23b3b';                 // traînée pointillée rouge de la trajectoire vécue
+  const FORCE_CSS='#ff7a18';                 // flèche de force de prise (point d'application → souris)
+  const SPATIAL_SHARP=2.0;
+  const FLICK_GAIN=0.25, TRAIL_MAX=1200;     // gain vitesse de lâcher (¼ de la vitesse souris) · longueur max de la traînée
+  const trail=[];    // [[q1,q2],…] — trajectoire tracée au fil de la simulation
+
+  // ── calibration de la force de prise F_lat = J̄ᵀf ─────────────────────────
+  // Saisir = appliquer à la(les) gaussienne(s) cliquée(s) une force image f (vecteur de drag
+  // clic→souris), rapatriée en force latente par le jacobien : F_lat = Σw·Jᵀf/Σw. Une gaussienne
+  // fixe (jac≈0) donne Jᵀf≈0 → aucune force → elle ne bouge pas, sans seuil ad hoc.
+  const MEAN_SPAN=0.5*((Q1MAX-Q1MIN)+(Q2MAX-Q2MIN));
+  const STIFF=Math.max(0.5*(Math.abs(A[0][0])+Math.abs(A[1][1])),1e-3);  // raideur latente typique
+  const _jn=G.map(g=>Math.hypot(g.jac[0],g.jac[1],g.jac[2],g.jac[3])).filter(v=>v>0).sort((a,b)=>a-b);
+  const JREF=_jn.length? _jn[Math.floor(0.85*(_jn.length-1))] : 1;       // ‖jac‖ d'avant-plan (85ᵉ pct)
+  const GRAB_FORCE=0.8;          // gain : un drag plein écran sur l'avant-plan ≈ déplace l'équilibre de GRAB_FORCE·span
+  const FORCE_SCALE=GRAB_FORCE*STIFF*MEAN_SPAN/Math.max(JREF,1e-6);
+  const FGRAB_MAX=0.35;                      // clamp du vecteur force image |f| (fraction de l'image) → borne la prise
+  const FMAX=STIFF*1.2*MEAN_SPAN;            // garde-fou final sur |F_lat| (anti-divergence si jac très grand)
+
+  // ── reconstruction sprite sheet (grille N×N) ─────────────────────────────
+  const sheet=new Image(); let sheetReady=false;
+  sheet.onload=()=>{sheetReady=true;}; sheet.src=D.sheet;
+  // deux canevas hors-écran pour l'interpolation bilinéaire exacte (2 lignes)
+  const offA=document.createElement('canvas'), offB=document.createElement('canvas');
+  offA.width=offA.height=T; offB.width=offB.height=T;
+  const ctxA=offA.getContext('2d'), ctxB=offB.getContext('2d');
+
+  // ── état : q (2), q̇ (2) ; départ sur la trajectoire apprise ──────────────
+  const st={running:true, auto:true, speed:0.4, diss:0.12,
+            q:[(Q1MIN+Q1MAX)/2,(Q2MIN+Q2MAX)/2], qd:[0,0], dragging:false, grab:false, still:0,
+            dragV:[0,0], dragLastT:0, dragLastQ:[0,0]};   // suivi de la vitesse de la souris pendant le drag/grab
+  if(D.traj && D.traj.length){ st.q=[D.traj[0][0], D.traj[0][1]]; }
+  const STILL_EPS=0.02, STILL_RESET=2.5;
+  // masse du sac : inertie qui divise les forces généralisées (A·e, B·q̇, dissipation, prise).
+  // MASS<1 ⇒ sac plus léger → oscillation plus rapide (ω∝1/√MASS) et réponse à la prise plus vive.
+  const MASS=0.5;
+
+  // ── contrôles ─────────────────────────────────────────────────────────────
+  $('sPlay').addEventListener('click',()=>{st.running=!st.running;$('sPlay').textContent=st.running?'⏸':'▶';});
+  $('sSpeed').addEventListener('input',e=>{st.speed=e.target.value/250;$('sVs').textContent='×'+(Math.round(st.speed/0.4*10)/10).toFixed(1);});
+  $('sDiss').addEventListener('input',e=>{st.diss=(e.target.value/100)*0.6;$('sVd').textContent=st.diss.toFixed(2);});
+  $('sAuto').addEventListener('change',e=>{st.auto=e.target.checked;if(st.auto)st.qd=[0,0];});
+
+  // ── repère plan latent ↔ canevas (q1→x droite, q2→y vers le haut) ─────────
+  function setup2D(cv){
+    const dpr=Math.min(devicePixelRatio||1,2),w=cv.clientWidth,h=cv.clientHeight;
+    if(cv.width!==w*dpr||cv.height!==h*dpr){cv.width=w*dpr;cv.height=h*dpr;}
+    const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);
+    return {x,w,h};
+  }
+  // Échelle ISOTROPE : q1 et q2 partagent la même unité/pixel (sinon le plan de phase est
+  // déformé — ici span(q1)≈7.9 ≠ span(q2)≈11.35, donc q1 paraissait étiré ×1.44). On cale le
+  // pas sur le plus grand span (q2 remplit le carré) et on centre chaque axe sur son milieu bbox.
+  const PHASE_SPAN=Math.max(Q1MAX-Q1MIN, Q2MAX-Q2MIN);
+  const Q1C=(Q1MIN+Q1MAX)/2, Q2C=(Q2MIN+Q2MAX)/2;
+  function phaseBox(w,h){const side=Math.min(w,h),pad=0.10*side;
+    return {ox:(w-side)/2+pad, oy:(h-side)/2+pad, inner:side-2*pad};}
+  function q2px(q1,q2,L){const s=L.inner/PHASE_SPAN;
+    return [L.ox+L.inner/2+(q1-Q1C)*s, L.oy+L.inner/2-(q2-Q2C)*s];}
+  function px2q(px,py,L){const s=L.inner/PHASE_SPAN;
+    return [Q1C+(px-(L.ox+L.inner/2))/s, Q2C-(py-(L.oy+L.inner/2))/s];}
+
+  // ── plan de phase : trajectoire + équilibre + état courant ────────────────
+  function drawPhase(){
+    const {x,w,h}=setup2D(cvPhase); const L=phaseBox(w,h);
+    // cadre
+    x.strokeStyle='rgba(154,166,180,.6)';x.lineWidth=1;
+    x.strokeRect(L.ox,L.oy,L.inner,L.inner);
+    x.fillStyle='#5d6b7a';x.font="600 12px 'JetBrains Mono', monospace";
+    x.textAlign='center';x.fillText('q₁',L.ox+L.inner/2,L.oy+L.inner+16);
+    x.save();x.translate(L.ox-14,L.oy+L.inner/2);x.rotate(-Math.PI/2);x.fillText('q₂',0,0);x.restore();
+    // trajectoire apprise (courbe pâle, segments coupés aux sauts = bornes vidéo)
+    if(D.traj && D.traj.length>1){
+      x.strokeStyle='rgba(13,138,126,.30)';x.lineWidth=1.5;x.beginPath();
+      let pen=false, prev=null;
+      for(const p of D.traj){
+        const [cx,cy]=q2px(p[0],p[1],L);
+        const jump=prev&&(Math.abs(p[0]-prev[0])+Math.abs(p[1]-prev[1]))>0.25*(Q1MAX-Q1MIN);
+        if(!pen||jump){x.moveTo(cx,cy);pen=true;}else x.lineTo(cx,cy);
+        prev=p;
+      }
+      x.stroke();
+    }
+    // traînée vécue (pointillé rouge ; s'efface quand on rattrape le point)
+    if(trail.length>1){
+      x.save();x.strokeStyle=TRAIL_CSS;x.lineWidth=1.5;x.setLineDash([4,4]);
+      x.globalAlpha=0.85;x.beginPath();
+      for(let i=0;i<trail.length;i++){const [cx,cy]=q2px(trail[i][0],trail[i][1],L);
+        if(i===0)x.moveTo(cx,cy);else x.lineTo(cx,cy);}
+      x.stroke();x.restore();
+    }
+    // équilibre q0
+    const [ex,ey]=q2px(q0[0],q0[1],L);
+    x.strokeStyle='rgba(93,107,122,.7)';x.lineWidth=1.5;
+    x.beginPath();x.moveTo(ex-5,ey);x.lineTo(ex+5,ey);x.moveTo(ex,ey-5);x.lineTo(ex,ey+5);x.stroke();
+    // état courant
+    const [sx,sy]=q2px(st.q[0],st.q[1],L);
+    x.beginPath();x.arc(sx,sy,7,0,Math.PI*2);x.fillStyle=DOT_CSS;x.fill();
+    x.strokeStyle='#fff';x.lineWidth=2;x.stroke();
+  }
+
+  // ── reconstruction : échantillonnage bilinéaire de la grille ──────────────
+  function blendRow(ctx,c0,c1,r,bx){
+    ctx.clearRect(0,0,T,T);ctx.globalAlpha=1;
+    ctx.drawImage(sheet,c0*T,r*T,T,T,0,0,T,T);
+    if(bx>1e-4){ctx.globalAlpha=bx;ctx.drawImage(sheet,c1*T,r*T,T,T,0,0,T,T);ctx.globalAlpha=1;}
+  }
+  function reconLayout(){const w=cvRecon.clientWidth,h=cvRecon.clientHeight,side=Math.min(w,h);
+    return {side,ox:(w-side)/2,oy:(h-side)/2};}
+  function drawRecon(){
+    const {x,w,h}=setup2D(cvRecon);
+    if(!sheetReady)return;
+    const {side,ox,oy}=reconLayout();
+    const f1=Math.max(0,Math.min(1,(st.q[0]-Q1MIN)/(Q1MAX-Q1MIN)));
+    const f2=Math.max(0,Math.min(1,(st.q[1]-Q2MIN)/(Q2MAX-Q2MIN)));
+    const cf=f1*(N-1), rf=f2*(N-1);
+    const c0=Math.floor(cf),c1=Math.min(c0+1,N-1),bx=cf-c0;
+    const r0=Math.floor(rf),r1=Math.min(r0+1,N-1),by=rf-r0;
+    blendRow(ctxA,c0,c1,r0,bx);
+    blendRow(ctxB,c0,c1,r1,bx);
+    x.imageSmoothingEnabled=true;
+    x.globalAlpha=1;x.drawImage(offA,ox,oy,side,side);
+    if(by>1e-4){x.globalAlpha=by;x.drawImage(offB,ox,oy,side,side);x.globalAlpha=1;}
+    // flèche de force : point d'application (suit l'objet) → bout du vecteur force clampé
+    const gf=grabForce();
+    if(gf)drawForceArrow(x,ox+gf.ax*side,oy+gf.ay*side,ox+(gf.ax+gf.fx)*side,oy+(gf.ay+gf.fy)*side);
+  }
+
+  // ── force latente Jᵀf (d=2) ───────────────────────────────────────────────
+  // jac = [j00,j01,j10,j11] : ∂μ/∂q, lignes = image (x,y), colonnes = (q1,q2).
+  function latentWeight(g,dz0,dz1){
+    // w_z = exp(−½ dzᵀ Σzz⁻¹ dz), szzi = [s00,s01,s11]
+    const s=g.szzi, quad=s[0]*dz0*dz0+2*s[1]*dz0*dz1+s[2]*dz1*dz1;
+    return Math.exp(-0.5*quad);
+  }
+  function condCenter(g,dz0,dz1){
+    return [g.px+g.jac[0]*dz0+g.jac[1]*dz1, g.py+g.jac[2]*dz0+g.jac[3]*dz1];
+  }
+  function selectAt(cx,cy){
+    const sel=[];
+    for(let k=0;k<G.length;k++){const g=G[k];
+      const dz0=st.q[0]-g.mz[0], dz1=st.q[1]-g.mz[1];
+      const wz=latentWeight(g,dz0,dz1); if(!(wz>1e-3))continue;   // !(.) attrape aussi NaN
+      const [mcx,mcy]=condCenter(g,dz0,dz1);
+      const dpx=cx-mcx, dpy=cy-mcy, sc=g.scinv;
+      const quad=sc[0]*dpx*dpx+2*sc[1]*dpx*dpy+sc[2]*dpy*dpy;
+      // Scond⁻¹ peut être numériquement indéfini (Schur en float) ⇒ quad < 0 ⇒
+      // exp(−SHARP·quad)=+∞ ⇒ poids infini ⇒ Σw·…/Σw = NaN. On rejette quad<0/NaN/trop loin.
+      if(!(quad>=0)||quad>20)continue;
+      const w=Math.exp(-SPATIAL_SHARP*quad)*wz*g.a;
+      if(!Number.isFinite(w)||w<=0)continue;                     // gaussienne dégénérée → ignorer
+      sel.push({k, w});
+    }
+    return sel;
+  }
+  // Force latente de prise : F_lat = Σ w·Jᵀf / Σ w  (rapatriement covecteur du jacobien).
+  // Jᵀf = [j00·fx+j10·fy, j01·fx+j11·fy]. Les gaussiennes fixes (jac≈0) ne contribuent pas.
+  function latentForce(sel,fx,fy){
+    let n0=0,n1=0,den=0;
+    for(const {k,w} of sel){const j=G[k].jac;
+      n0+=w*(j[0]*fx+j[2]*fy); n1+=w*(j[1]*fx+j[3]*fy); den+=w;}
+    return den>1e-6?[n0/den,n1/den]:[0,0];
+  }
+  // point d'application (espace image, normalisé) = barycentre des centres conditionnels des
+  // gaussiennes saisies à l'état courant → SUIT les gaussiennes quand q évolue.
+  function appPoint(sel){
+    let bx=0,by=0,den=0;
+    for(const {k,w} of sel){const g=G[k];
+      const [mcx,mcy]=condCenter(g,st.q[0]-g.mz[0],st.q[1]-g.mz[1]);
+      bx+=w*mcx;by+=w*mcy;den+=w;}
+    return den>1e-6?[bx/den,by/den]:null;
+  }
+  // prise courante : point d'application (suit l'objet) + vecteur force image f CLAMPÉ à FGRAB_MAX.
+  // Un même clamp sert à la dynamique et à l'affichage → la flèche montre la force réellement appliquée.
+  function grabForce(){
+    if(!(st.grab&&grabStart))return null;
+    const ap=appPoint(grabStart.sel); if(!ap)return null;
+    let fx=grabStart.mouse[0]-ap[0], fy=grabStart.mouse[1]-ap[1];
+    const m=Math.hypot(fx,fy);
+    if(m>FGRAB_MAX){fx*=FGRAB_MAX/m; fy*=FGRAB_MAX/m;}
+    return {ax:ap[0],ay:ap[1],fx,fy};
+  }
+  // flèche de force : du point d'application (sur l'objet) vers la souris, + pastille à l'ancrage.
+  function drawForceArrow(ctx,x0,y0,x1,y1){
+    ctx.save();ctx.strokeStyle=FORCE_CSS;ctx.fillStyle=FORCE_CSS;ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();
+    const ang=Math.atan2(y1-y0,x1-x0), L=Math.hypot(x1-x0,y1-y0);
+    if(L>6){ctx.beginPath();ctx.moveTo(x1,y1);
+      ctx.lineTo(x1-12*Math.cos(ang-0.4),y1-12*Math.sin(ang-0.4));
+      ctx.lineTo(x1-12*Math.cos(ang+0.4),y1-12*Math.sin(ang+0.4));ctx.closePath();ctx.fill();}
+    ctx.beginPath();ctx.arc(x0,y0,4,0,Math.PI*2);ctx.fill();ctx.restore();
+  }
+
+  // ── interactions souris ───────────────────────────────────────────────────
+  // plan de phase : glisser le point d'état
+  cvPhase.addEventListener('pointerdown',e=>{
+    st.dragging=true;st.auto=false;$('sAuto').checked=false;cvPhase.setPointerCapture(e.pointerId);
+    trail.length=0;                                   // on rattrape le point → efface la traînée
+    const L=phaseBox(cvPhase.clientWidth,cvPhase.clientHeight);
+    st.q=px2q(e.offsetX,e.offsetY,L);st.qd=[0,0];
+    st.dragV=[0,0];st.dragLastT=performance.now();st.dragLastQ=[st.q[0],st.q[1]];
+  });
+  cvPhase.addEventListener('pointermove',e=>{if(!st.dragging)return;
+    const L=phaseBox(cvPhase.clientWidth,cvPhase.clientHeight);
+    const nq=px2q(e.offsetX,e.offsetY,L);
+    // vitesse de la souris en (q/s), lissée pour amortir le bruit de pointage
+    const now=performance.now(), dt=Math.max(1e-3,(now-st.dragLastT)/1000);
+    const iv0=(nq[0]-st.dragLastQ[0])/dt, iv1=(nq[1]-st.dragLastQ[1])/dt;
+    st.dragV=[0.6*st.dragV[0]+0.4*iv0, 0.6*st.dragV[1]+0.4*iv1];
+    st.dragLastT=now;st.dragLastQ=[nq[0],nq[1]];
+    st.q=nq;st.qd=[0,0];});
+  const endDrag=()=>{if(st.dragging){st.dragging=false;st.auto=true;$('sAuto').checked=true;st.still=0;
+    // lâcher = on injecte la vitesse de la souris comme vitesse initiale du rollout
+    st.qd=[FLICK_GAIN*st.dragV[0], FLICK_GAIN*st.dragV[1]];
+    if(!st.running){st.running=true;$('sPlay').textContent='⏸';}}};
+  cvPhase.addEventListener('pointerup',endDrag);cvPhase.addEventListener('pointerleave',endDrag);
+
+  // reconstruction : saisir la(les) gaussienne(s) cliquée(s) et les tirer par une FORCE.
+  // f = (souris − clic) en espace image ; tant que le bouton est tenu, F_lat=J̄ᵀf entre dans la
+  // dynamique (intégrée par le rollout). Au lâcher, la force cesse — l'objet garde son élan.
+  let grabStart=null;   // {sel, mouse:[mx,my]} ; le point d'application est recalculé (suit les gaussiennes)
+  cvRecon.addEventListener('contextmenu',e=>e.preventDefault());
+  cvRecon.addEventListener('pointerdown',e=>{
+    const {side,ox,oy}=reconLayout();
+    const cx=(e.offsetX-ox)/side, cy=(e.offsetY-oy)/side;
+    const sel=selectAt(cx,cy);
+    if(!sel.length)return;                            // clic hors de toute gaussienne → rien à saisir
+    cvRecon.setPointerCapture(e.pointerId);
+    st.grab=true;st.auto=true;$('sAuto').checked=true;trail.length=0;   // la dynamique tourne pour subir la force
+    if(!st.running){st.running=true;$('sPlay').textContent='⏸';}
+    grabStart={sel,mouse:[cx,cy]};
+  });
+  cvRecon.addEventListener('pointermove',e=>{if(!st.grab||!grabStart)return;
+    const {side,ox,oy}=reconLayout();
+    // position souris (espace image) ; la force f = souris − point_d'application (qui suit l'objet)
+    grabStart.mouse=[(e.offsetX-ox)/side,(e.offsetY-oy)/side];});
+  const endGrab=()=>{if(st.grab){st.grab=false;grabStart=null;st.still=0;}};   // force coupée, l'élan reste
+  cvRecon.addEventListener('pointerup',endGrab);cvRecon.addEventListener('pointerleave',endGrab);
+
+  // ── boucle / intégrateur semi-implicite : q̈ = A(q−q0) + B q̇ − diss·q̇ ──
+  let last=performance.now(),acc=0;
+  function loop(now){
+    requestAnimationFrame(loop);
+    const dt=(now-last)/1000;last=now;acc+=dt;
+    if(acc<1/40)return;const useDt=Math.min(0.05,acc);acc=0;
+
+    try{
+    if(st.auto&&st.running&&!st.dragging){
+      const dtau=st.speed*useDt;
+      // force de prise : f = souris − point d'application (qui suit les gaussiennes), puis
+      // F_lat = J̄ᵀf, plafonnée pour rester stable. Comme l'ancrage suit l'objet, f se contracte
+      // quand l'objet rejoint la souris (ressort), au lieu d'un effort constant.
+      let fl0=0,fl1=0;
+      const gf=grabForce();
+      if(gf){
+        const g=latentForce(grabStart.sel,gf.fx,gf.fy);   // f déjà clampé à FGRAB_MAX
+        fl0=g[0]*FORCE_SCALE; fl1=g[1]*FORCE_SCALE;
+        const fmag=Math.hypot(fl0,fl1); if(fmag>FMAX){fl0*=FMAX/fmag; fl1*=FMAX/fmag;}
+      }
+      const e0=st.q[0]-q0[0], e1=st.q[1]-q0[1];
+      const a0=(A[0][0]*e0+A[0][1]*e1 + B[0][0]*st.qd[0]+B[0][1]*st.qd[1] - st.diss*st.qd[0] + fl0)/MASS;
+      const a1=(A[1][0]*e0+A[1][1]*e1 + B[1][0]*st.qd[0]+B[1][1]*st.qd[1] - st.diss*st.qd[1] + fl1)/MASS;
+      st.qd[0]+=a0*dtau; st.qd[1]+=a1*dtau;
+      st.q[0]+=st.qd[0]*dtau; st.q[1]+=st.qd[1]*dtau;
+      // garde-fou de finitude : NaN/Inf échappe aux comparaisons de bornes → recentrer d'abord
+      if(!Number.isFinite(st.q[0])||!Number.isFinite(st.q[1])||
+         !Number.isFinite(st.qd[0])||!Number.isFinite(st.qd[1])){
+        st.q=[q0[0],q0[1]];st.qd=[0,0];trail.length=0;}
+      // garde-fou : si l'état s'échappe loin de la bbox, recentrer
+      const m1=(Q1MAX-Q1MIN), m2=(Q2MAX-Q2MIN);
+      if(st.q[0]<Q1MIN-m1||st.q[0]>Q1MAX+m1||st.q[1]<Q2MIN-m2||st.q[1]>Q2MAX+m2){
+        st.q=[q0[0],q0[1]];st.qd=[0,0];trail.length=0;}
+      // trace la trajectoire vécue (pointillé rouge, bornée en longueur)
+      trail.push([st.q[0],st.q[1]]); if(trail.length>TRAIL_MAX)trail.shift();
+      // relancer l'oscillation quand l'état s'est immobilisé (pas pendant une prise)
+      const dist=Math.hypot(e0,e1)+Math.hypot(st.qd[0],st.qd[1]);
+      if(!st.grab&&dist<STILL_EPS){st.still+=useDt;
+        if(st.still>STILL_RESET){st.still=0;
+          if(D.traj&&D.traj.length){st.q=[D.traj[0][0],D.traj[0][1]];}else{st.q=[Q1MIN+0.2*m1,Q2MIN+0.2*m2];}
+          st.qd=[0,0];trail.length=0;}}
+      else st.still=0;
+    }
+    drawPhase();
+    drawRecon();
+    }catch(err){   // jamais figer l'animation : recentrer et purger la traînée fautive
+      console.error('sac loop:',err);
+      st.q=[q0[0],q0[1]];st.qd=[0,0];trail.length=0;
+    }
+  }
+  requestAnimationFrame(()=>{$('sVs').textContent='×1.0';$('sVd').textContent=st.diss.toFixed(2);
+    last=performance.now();requestAnimationFrame(loop);});
 })();
 </script>
 
