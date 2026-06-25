@@ -144,6 +144,11 @@
 }
 #lags-demo .stage.rock canvas{height:330px;}
 #lags-demo .stage.recon canvas{height:330px;}
+/* plots interactifs (drag d'effort, sélection d'état, rotation caméra 3D) :
+   le geste pilote le drag/la rotation, pas le scroll de la page → évite le
+   conflit geste/scroll sur mobile (issue #1). cVideo (affichage) reste scrollable. */
+#lags-demo .stage.recon canvas,
+#lags-demo #cTime, #lags-demo #cLat, #lags-demo #cRock3D{touch-action:none;}
 </style>
 </head>
 <body>
