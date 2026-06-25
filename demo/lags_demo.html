@@ -35,7 +35,7 @@
 #lags-demo .thesis{
   font-family:'Lora',Georgia,serif;
   font-size:1.02rem;line-height:1.75;color:var(--text-mid);
-  max-width:78ch;margin:0 0 1.75rem;
+  max-width:96ch;margin:0 0 1.75rem;
 }
 #lags-demo .thesis b{color:var(--navy);font-weight:600}
 /* les symboles t/q en ligne gardent la couleur du texte environnant (plus de bleu clair) */
@@ -134,6 +134,19 @@
   color:var(--navy);margin:0;
 }
 
+/* ── figure d'architecture (sous l'intro) ── */
+#lags-demo + .lags-arch, .lags-arch{
+  max-width:680px;margin:1.6rem 0 2rem;
+}
+.lags-arch img{
+  display:block;width:100%;height:auto;
+  border:1px solid var(--border);border-radius:var(--radius);
+  background:#fff;padding:14px;box-sizing:border-box;
+}
+.lags-arch figcaption{
+  margin-top:.7rem;font-size:.82rem;line-height:1.55;color:var(--text-muted);
+}
+
 /* ── second demo: rocking chair (real trained gaussians) ── */
 #lags-demo .rock-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:14px;align-items:start;}
 @media(max-width:880px){#lags-demo .rock-grid{grid-template-columns:1fr}}
@@ -171,30 +184,37 @@
 
 <main>
 
-  <p class="section-subtitle" data-en="Research note · Gaussian Splatting" data-fr="Note de recherche · Gaussian Splatting">Research note · Gaussian Splatting</p>
-
   <h1 class="page-title"
-      data-en="LaGS — indexing by state, not by time"
-      data-fr="LaGS — indexer par l'état, pas par le temps">
-    LaGS — indexing by state, not by time
+      data-en="LaGS — Lagrangian Gaussian Splatting"
+      data-fr="LaGS — Lagrangian Gaussian Splatting">
+    LaGS — Lagrangian Gaussian Splatting
   </h1>
 
   <p class="page-intro" style="max-width:680px"
-     data-en="A short interactive note from my work on <b>LaGS (Lagrangian Gaussian Splatting)</b>. On a single damped pendulum, it shows why parameterising a dynamic scene by its physical state <b>q</b> is far cheaper, in number of Gaussians, than parameterising it by time <b>t</b>."
-     data-fr="Une courte note interactive issue de mes travaux sur <b>LaGS (Lagrangian Gaussian Splatting)</b>. Sur un simple pendule amorti, elle montre pourquoi paramétrer une scène dynamique par son état physique <b>q</b> coûte bien moins de gaussiennes que la paramétrer par le temps <b>t</b>.">
-    A short interactive note from my work on <b>LaGS (Lagrangian Gaussian Splatting)</b>. On a single damped pendulum, it shows why parameterising a dynamic scene by its physical state <b>q</b> is far cheaper, in number of Gaussians, than parameterising it by time <b>t</b>.
+     data-en="From videos of a dynamical system, LaGS builds an interactive 2D or 3D scene that obeys the equations of physics."
+     data-fr="À partir de vidéos d'un système dynamique, LaGS permet de créer une scène 2 ou 3D interactive vérifiant les équations de la physique.">
+    À partir de vidéos d'un système dynamique, LaGS permet de créer une scène 2 ou 3D interactive vérifiant les équations de la physique.
   </p>
+
+  <figure class="lags-arch">
+    <img src="lags_architecture.png" alt="Architecture LaGS : encodeur, réseau lagrangien latent, décodeur Gaussian Splatting"/>
+    <figcaption
+      data-en="Three stages: projection into the latent space → self-supervised learning of the physics in a latent space → reconstruction by a GS decoder parameterised by the physical state of the system."
+      data-fr="3 étapes : projection dans l'espace latent → apprentissage auto-supervisé de la physique dans un espace latent → reconstruction par un décodeur GS paramétré par l'état physique du système.">
+      3 étapes : projection dans l'espace latent → apprentissage auto-supervisé de la physique dans un espace latent → reconstruction par un décodeur GS paramétré par l'état physique du système.
+    </figcaption>
+  </figure>
 
   <div id="lags-demo">
 
     <div class="exp-head">
       <p class="exp-tag" data-en="experiment 1 · synthetic" data-fr="expérience 1 · synthétique">experiment 1 · synthetic</p>
-      <h2 class="exp-title" data-en="The principle, on a damped pendulum" data-fr="Le principe, sur un pendule amorti">The principle, on a damped pendulum</h2>
+      <h2 class="exp-title" data-en="Gaussians parameterised by the latent state" data-fr="Gaussiennes paramétrées par l'état latent">Gaussians parameterised by the latent state</h2>
     </div>
 
     <p class="thesis"
-       data-en="The same damped pendulum, seen as a <b>space&ndash;time</b> volume (x, y, <span class='tk'>t</span>) or as a <b>space&ndash;state</b> volume (x, y, <span class='qk'>q</span>) with <span class='qk'>q = angle &theta;</span> &mdash; the latent manifold is then a helix. Each Gaussian is a tube along the trajectory; its slice by the t/q plane returns the mass. The Gaussian <b>length is now tied to the chosen density</b>, so both representations reach the same reconstruction quality &mdash; what differs is the <b>number of Gaussians</b> each one needs. Set the density and compare."
-       data-fr="Le m&ecirc;me pendule amorti, vu comme un volume <b>espace&ndash;temps</b> (x, y, <span class='tk'>t</span>) ou comme un volume <b>espace&ndash;&eacute;tat</b> (x, y, <span class='qk'>q</span>) avec <span class='qk'>q = angle &theta;</span> &mdash; la vari&eacute;t&eacute; latente est alors une h&eacute;lice. Chaque gaussienne est un tube le long de la trajectoire&nbsp;; sa coupe par le plan t/q redonne la masse. La <b>longueur des gaussiennes est d&eacute;sormais fix&eacute;e par la densit&eacute;</b>, si bien que les deux repr&eacute;sentations atteignent la m&ecirc;me qualit&eacute; de reconstruction &mdash; ce qui diff&egrave;re, c'est le <b>nombre de gaussiennes</b> n&eacute;cessaire. R&eacute;glez la densit&eacute; et comparez.">
+       data-en="The same damped pendulum, seen as a <b>space&ndash;time</b> volume (x, y, <span class='tk'>t</span>) or as a <b>space&ndash;state</b> volume (x, y, <span class='qk'>q</span>) with <span class='qk'>q = angle &theta;</span>. The frame reconstructed at each instant is a slice of the volume at a given t or q. To reconstruct the video from the space&ndash;time volume, the slice sweeps at constant speed. To reconstruct it from the space&ndash;state volume, the slice moves non-monotonically along <span class='qk'>q(t)</span> computed by a LNN. Parameterising the Gaussians in the latent space, besides enabling interactive simulation (see the next experiments), is also far more <b>parsimonious</b>."
+       data-fr="Le m&ecirc;me pendule amorti, vu comme un volume <b>espace&ndash;temps</b> (x, y, <span class='tk'>t</span>) ou comme un volume <b>espace&ndash;&eacute;tat</b> (x, y, <span class='qk'>q</span>) avec <span class='qk'>q = angle &theta;</span>. L'image reconstruite &agrave; chaque instant est une coupe du volume &agrave; t ou q donn&eacute;. Pour reconstruire la vid&eacute;o depuis le volume espace&ndash;temps, on parcourt le volume &agrave; vitesse constante. Pour la reconstruire depuis le volume espace&ndash;&eacute;tat, on parcourt le volume de fa&ccedil;on non monotone suivant <span class='qk'>q(t)</span> calcul&eacute; par un LNN. Le param&eacute;trage des gaussiennes en espace latent, en plus de permettre une simulation interactive (cf. exp&eacute;riences suivantes), est beaucoup plus <b>parcimonieux</b>.">
     </p>
 
     <div class="controls">
@@ -244,11 +264,10 @@
         <section class="panel">
           <div class="phead">
             <div class="tag" data-en="input" data-fr="entrée">input</div>
-            <h2 data-en="Input video" data-fr="Vidéo d'entrée">Input video</h2>
-            <div class="sub" data-en="simple damped pendulum, spherical mass" data-fr="pendule simple amorti, masse sphérique">simple damped pendulum, spherical mass</div>
+            <h2 data-en="Filmed video" data-fr="Vidéo filmée">Filmed video</h2>
+            <div class="sub" data-en="planar simple damped pendulum" data-fr="Pendule simple amorti dans le plan">planar simple damped pendulum</div>
           </div>
           <div class="stage"><canvas id="cVideo"></canvas><div class="badge" data-en="current frame" data-fr="image courante">current frame</div></div>
-          <div class="pfoot video" data-en="The observed state — one 2D frame per instant." data-fr="L'état observé — une image 2D par instant.">The observed state — one 2D frame per instant.</div>
         </section>
       </div>
 
@@ -296,13 +315,13 @@
     <hr class="exp-divider">
 
     <div class="exp-head">
-      <p class="exp-tag" data-en="experiment 2 · trained model" data-fr="expérience 2 · modèle entraîné">experiment 2 · trained model</p>
-      <h2 class="exp-title" data-en="From theory to a real clip: a rocking chair" data-fr="De la théorie à un vrai clip : un rocking chair">From theory to a real clip: a rocking chair</h2>
+      <p class="exp-tag" data-en="experiment 2 · real test case" data-fr="expérience 2 · cas test réel">experiment 2 · real test case</p>
+      <h2 class="exp-title" data-en="One-degree-of-freedom test case: an oscillating rocking chair" data-fr="Cas test 1 degré de liberté : un rocking-chair oscillant">One-degree-of-freedom test case: an oscillating rocking chair</h2>
     </div>
 
     <p class="thesis"
-       data-en="Not a diagram this time &mdash; these are the <b>actual Gaussians learned by LaGS</b> from a short clip of a rocking chair, read straight from the trained decoder weights (<span class='qk'>2048</span> ellipsoids in <span class='qk'>(x, y, q)</span>, a single latent state <span class='qk'>q</span>). The chair has one degree of freedom &mdash; its rocking angle &mdash; so the whole motion collapses onto a <b>1-D state axis</b>. Sweep <span class='qk'>q</span> and the right panel shows the model's own reconstruction sliced at that state: the chair rocks because we move along <span class='qk'>q</span>, never along <span class='tk'>t</span>."
-       data-fr="Pas un schéma cette fois &mdash; ce sont les <b>vraies gaussiennes apprises par LaGS</b> sur un court clip de rocking chair, lues directement dans les poids du décodeur entraîné (<span class='qk'>2048</span> ellipsoïdes dans <span class='qk'>(x, y, q)</span>, un unique état latent <span class='qk'>q</span>). La chaise n'a qu'un degré de libert&eacute; &mdash; son angle de bascule &mdash; toute la dynamique s'effondre donc sur un <b>axe d'&eacute;tat 1-D</b>. Balayez <span class='qk'>q</span> et le panneau de droite montre la reconstruction du mod&egrave;le, coup&eacute;e &agrave; cet &eacute;tat : la chaise bascule parce qu'on se d&eacute;place le long de <span class='qk'>q</span>, jamais le long de <span class='tk'>t</span>.">
+       data-en="A rocking chair oscillates along a 1-D trajectory and can therefore be seen as a slice of a 3-D volume, just like the pendulum. A LaGS was trained from a short video of the rocking chair. The Gaussians are parameterised by <span class='qk'>q</span>, a 1-D latent variable learned by self-supervision."
+       data-fr="Un rocking-chair oscille selon une trajectoire 1D et peut donc &ecirc;tre vu comme une tranche d'un volume 3D au m&ecirc;me titre que le pendule. Un LaGS a &eacute;t&eacute; entra&icirc;n&eacute; &agrave; partir d'une courte vid&eacute;o du rocking chair. Les gaussiennes sont param&eacute;tr&eacute;es par <span class='qk'>q</span>, variable latente 1D apprise par auto-supervision.">
     </p>
 
     <div class="rock-controls">
@@ -330,16 +349,12 @@
           <div class="tag" data-en="LaGS · learned gaussians" data-fr="LaGS · gaussiennes apprises">LaGS · learned gaussians</div>
           <h2 data-en="Space–state volume" data-fr="Volume espace–état">Space–state volume</h2>
           <div class="sub"
-               data-en="axes (x, y, <b class='qk'>q</b>) — 2048 real ellipsoids, the plane is the current state"
-               data-fr="axes (x, y, <b class='qk'>q</b>) — 2048 ellipsoïdes réels, le plan = l'état courant">
-            axes (x, y, <b class="qk">q</b>) — 2048 real ellipsoids, the plane is the current state
+               data-en="axes (x, y, <b class='qk'>q</b>) — 2048 gaussians, the plane is the current state"
+               data-fr="axes (x, y, <b class='qk'>q</b>) — 2048 gaussiennes, le plan = l'état courant">
+            axes (x, y, <b class="qk">q</b>) — 2048 gaussians, the plane is the current state
           </div>
         </div>
         <div class="stage rock"><canvas id="cRock3D"></canvas><div class="badge" data-en="drag to rotate" data-fr="glisser pour pivoter">drag to rotate</div></div>
-        <div class="pfoot">
-          <span class="count" id="rCount">2048</span>
-          <span class="count-lbl" data-en="trained Gaussians<br>read from decoder2dpt.pt" data-fr="gaussiennes entraînées<br>lues dans decoder2dpt.pt">trained Gaussians<br>read from decoder2dpt.pt</span>
-        </div>
       </section>
 
       <section class="panel q">
@@ -349,7 +364,7 @@
           <div class="sub" data-en="model's RGB output, sliced at q = current" data-fr="sortie RGB du modèle, coupe q = courante">model's RGB output, sliced at q = current</div>
         </div>
         <div class="stage recon"><canvas id="cRockRecon"></canvas><div class="badge" data-en="grab &amp; drag the object" data-fr="attraper et glisser l'objet">grab &amp; drag the object</div></div>
-        <div class="pfoot video" data-en="Decoded by slicing the Gaussians at state q. Grab the object: the click→cursor drag is an image-space force f on the picked Gaussian, pulled back through the decoder Jacobian ∂μ/∂q to a latent force F=Jᵀf that drives the dynamics. Release it and the learned damped oscillator takes over." data-fr="Décodée en coupant les gaussiennes à l'état q. Attrapez l'objet : le drag clic→curseur est une force image f sur la gaussienne saisie, rapatriée par le jacobien du décodeur ∂μ/∂q en force latente F=Jᵀf qui pilote la dynamique. Relâchez : l'oscillateur amorti appris reprend la main.">Decoded by slicing the Gaussians at state q. Grab the object: the click→cursor drag is an image-space force f on the picked Gaussian, pulled back through the decoder Jacobian ∂μ/∂q to a latent force F=Jᵀf that drives the dynamics. Release it and the learned damped oscillator takes over.</div>
+        <div class="pfoot video" data-en="Grab the object: the click→cursor drag applies a force on the image, converted into a force in the latent space through the decoder and added to the right-hand side of the LNN equation." data-fr="Attrapez l'objet : le drag clic→curseur applique une force sur l'image, convertie en force dans l'espace latent grâce au décodeur et appliquée au second membre dans l'équation du LNN.">Grab the object: the click→cursor drag applies a force on the image, converted into a force in the latent space through the decoder and added to the right-hand side of the LNN equation.</div>
       </section>
     </div>
 
@@ -357,13 +372,13 @@
     <hr class="exp-divider">
 
     <div class="exp-head">
-      <p class="exp-tag" data-en="experiment 3 · two degrees of freedom" data-fr="expérience 3 · deux degrés de liberté">experiment 3 · two degrees of freedom</p>
-      <h2 class="exp-title" data-en="A soft actuator with a 2-D state" data-fr="Un actionneur mou à état 2-D">A soft actuator with a 2-D state</h2>
+      <p class="exp-tag" data-en="experiment 3 · real test case" data-fr="expérience 3 · cas test réel">experiment 3 · real test case</p>
+      <h2 class="exp-title" data-en="Two-degree-of-freedom test case: a bag hanging from its handle" data-fr="Cas test 2 degrés de liberté : un sac pendu par sa poignée">Two-degree-of-freedom test case: a bag hanging from its handle</h2>
     </div>
 
     <p class="thesis"
-       data-en="The rocking chair had a single state <span class='qk'>q</span>. A bending soft actuator needs <b>two</b> &mdash; so the learned state is a point <span class='qk'>q = (q&#8321;, q&#8322;)</span> in a <b>latent plane</b>. There is no time axis to slide along any more: the left panel <b>is</b> that plane (the faint curve is the trajectory the model learned from the clip). <b>Drag the dot</b> anywhere and the right panel shows the model's own reconstruction sliced at that 2-D state; release it and the learned damped oscillator takes over. Right-click the image to push it &mdash; the force is pulled back through the decoder Jacobian <span class='qk'>∂μ/∂q</span> and moves the dot in <i>both</i> latent directions."
-       data-fr="Le rocking chair avait un seul état <span class='qk'>q</span>. Un actionneur mou qui se courbe en demande <b>deux</b> &mdash; l'état appris est donc un point <span class='qk'>q = (q&#8321;, q&#8322;)</span> dans un <b>plan latent</b>. Plus d'axe temporel à balayer : le panneau de gauche <b>est</b> ce plan (la courbe pâle est la trajectoire que le modèle a apprise du clip). <b>Glissez le point</b> n'importe où et le panneau de droite montre la reconstruction du modèle, coupée à cet état 2-D ; relâchez-le et l'oscillateur amorti appris reprend la main. Clic droit sur l'image pour la pousser &mdash; la force est rapatriée par le jacobien du décodeur <span class='qk'>∂μ/∂q</span> et déplace le point dans les <i>deux</i> directions latentes.">
+       data-en="A LaGS was trained from 5 short videos of the bag oscillating. Unlike the simple pendulum and the rocking chair, the bag oscillates in 2 dimensions. The Gaussians are therefore parameterised by <span class='qk'>(x, y, q&#8321;, q&#8322;)</span>, which fundamentally changes little &mdash; except that the 4-D volume defined by the Gaussians can no longer be visualised."
+       data-fr="Un LaGS a &eacute;t&eacute; entra&icirc;n&eacute; &agrave; partir de 5 courtes vid&eacute;os du sac en train d'osciller. Contrairement au pendule simple et au rocking-chair, le sac oscille en 2 dimensions. Les gaussiennes sont donc param&eacute;tr&eacute;es par <span class='qk'>(x, y, q&#8321;, q&#8322;)</span>, ce qui ne change fondamentalement pas grand-chose &mdash; &agrave; part qu'il n'est pas possible de visualiser le volume 4D d&eacute;fini par les gaussiennes.">
     </p>
 
     <div class="rock-controls">
@@ -384,18 +399,15 @@
       <section class="panel q">
         <div class="phead">
           <div class="tag" data-en="LaGS · latent state" data-fr="LaGS · état latent">LaGS · latent state</div>
-          <h2 data-en="Latent plane" data-fr="Plan latent">Latent plane</h2>
+          <h2 data-en="Trajectory in the latent space" data-fr="Trajectoire dans l'espace latent">Trajectory in the latent space</h2>
           <div class="sub"
-               data-en="axes (<b class='qk'>q&#8321;</b>, <b class='qk'>q&#8322;</b>) — the 2-D state; faint curve = learned trajectory"
-               data-fr="axes (<b class='qk'>q&#8321;</b>, <b class='qk'>q&#8322;</b>) — l'état 2-D ; courbe pâle = trajectoire apprise">
-            axes (<b class="qk">q&#8321;</b>, <b class="qk">q&#8322;</b>) — the 2-D state; faint curve = learned trajectory
+               data-en="axes (<b class='qk'>q&#8321;</b>, <b class='qk'>q&#8322;</b>) — the 2-D state of the dynamical system; faint curve = trajectory in the training videos"
+               data-fr="axes (<b class='qk'>q&#8321;</b>, <b class='qk'>q&#8322;</b>) — l'état 2-D du système dynamique ; courbe pâle = trajectoire dans les vidéos d'entraînement">
+            axes (<b class="qk">q&#8321;</b>, <b class="qk">q&#8322;</b>) — the 2-D state of the dynamical system; faint curve = trajectory in the training videos
           </div>
         </div>
         <div class="stage recon"><canvas id="cSacPhase"></canvas><div class="badge" data-en="drag the dot" data-fr="glisser le point">drag the dot</div></div>
-        <div class="pfoot">
-          <span class="count" id="sCount">–</span>
-          <span class="count-lbl" data-en="trained Gaussians<br>in (x, y, q&#8321;, q&#8322;)" data-fr="gaussiennes entraînées<br>dans (x, y, q&#8321;, q&#8322;)">trained Gaussians<br>in (x, y, q&#8321;, q&#8322;)</span>
-        </div>
+        <div class="pfoot video" data-en="See how the dynamical system evolves by sweeping the plane with drag &amp; drop." data-fr="Visualisez comment évolue le système dynamique en parcourant le plan par glissé-déposé.">See how the dynamical system evolves by sweeping the plane with drag &amp; drop.</div>
       </section>
 
       <section class="panel q">
@@ -405,7 +417,7 @@
           <div class="sub" data-en="model's RGB output, sliced at (q&#8321;, q&#8322;) = current" data-fr="sortie RGB du modèle, coupe (q&#8321;, q&#8322;) = courante">model's RGB output, sliced at (q&#8321;, q&#8322;) = current</div>
         </div>
         <div class="stage recon"><canvas id="cSacRecon"></canvas><div class="badge" data-en="grab &amp; drag the object" data-fr="attraper et glisser l'objet">grab &amp; drag the object</div></div>
-        <div class="pfoot video" data-en="Decoded by slicing the 4-D Gaussians at the 2-D state (q&#8321;, q&#8322;). Grab the object: the click→cursor drag is an image-space force f on the picked Gaussian, pulled back through the decoder Jacobian to a latent force F=Jᵀf that drives the dynamics. A Gaussian fixed w.r.t. q (jac≈0) feels no force." data-fr="Décodée en coupant les gaussiennes 4-D à l'état 2-D (q&#8321;, q&#8322;). Attrapez l'objet : le drag clic→curseur est une force image f sur la gaussienne saisie, rapatriée par le jacobien du décodeur en force latente F=Jᵀf qui pilote la dynamique. Une gaussienne fixe par rapport à q (jac≈0) ne subit aucune force.">Decoded by slicing the 4-D Gaussians at the 2-D state (q&#8321;, q&#8322;). Grab the object: the click→cursor drag is an image-space force f on the picked Gaussian, pulled back through the decoder Jacobian to a latent force F=Jᵀf that drives the dynamics. A Gaussian fixed w.r.t. q (jac≈0) feels no force.</div>
+        <div class="pfoot video" data-en="Grab the object: the click→cursor drag applies a force on the image, converted into a force in the latent space through the decoder and added to the right-hand side of the LNN equation." data-fr="Attrapez l'objet : le drag clic→curseur applique une force sur l'image, convertie en force dans l'espace latent grâce au décodeur et appliquée au second membre dans l'équation du LNN.">Grab the object: the click→cursor drag applies a force on the image, converted into a force in the latent space through the decoder and added to the right-hand side of the LNN equation.</div>
       </section>
     </div>
 
@@ -558,10 +570,10 @@ function buildScene(canvas,kind){
   const dist=kind==='time'?4.6:3.8;   // zoomed out a touch
 
   const grid=new THREE.GridHelper(3.2,14,COL.grid,COL.grid);
-  grid.material.transparent=true;grid.material.opacity=0.85;grid.position.set(0,-0.04,target.z);scene.add(grid);
+  grid.material.transparent=true;grid.material.opacity=0.85;grid.position.set(0,-0.39,target.z);scene.add(grid);
 
   const axg=new THREE.Group();
-  const x0=-1.06,y0=-0.04, zmin=kind==='time'?0:-HALF_Z_Q, zmax=kind==='time'?ZSPAN_T:HALF_Z_Q;
+  const x0=-1.06,y0=-0.39, zmin=kind==='time'?0:-HALF_Z_Q, zmax=kind==='time'?ZSPAN_T:HALF_Z_Q;
   const corner=new THREE.Vector3(x0,y0,zmin);
   axg.add(lineSeg(corner,new THREE.Vector3(1.06,y0,zmin),COL.axis,0.9));
   axg.add(lineSeg(corner,new THREE.Vector3(x0,1.0,zmin),COL.axis,0.9));
@@ -574,12 +586,12 @@ function buildScene(canvas,kind){
   const dyn=new THREE.Group();scene.add(dyn);
 
   const slice=new THREE.Group();scene.add(slice);
-  const planeGeo=new THREE.PlaneGeometry(2.5,1.9);
+  const planeGeo=new THREE.PlaneGeometry(2.5,1.7);
   // Dessiné APRÈS le nuage (renderOrder=2) et testé en profondeur (depthWrite:false) → les
   // gaussiennes devant l'occultent. polygonOffset : biaise le plan vers la caméra pour qu'il ne
   // z-fighte pas le corps du pendule (masse + tige) coplanaire à z=z_plan.
-  const plane=new THREE.Mesh(planeGeo,new THREE.MeshBasicMaterial({color:COL.plane,transparent:true,opacity:0.08,side:THREE.DoubleSide,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
-  plane.position.set(0,0.36,0);plane.renderOrder=2;
+  const plane=new THREE.Mesh(planeGeo,new THREE.MeshBasicMaterial({color:COL.plane,transparent:true,opacity:0.22,side:THREE.DoubleSide,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
+  plane.position.set(0,0.46,0);plane.renderOrder=2;
   plane.add(new THREE.LineSegments(new THREE.EdgesGeometry(planeGeo),new THREE.LineBasicMaterial({color:COL.plane,transparent:true,opacity:0.4})));
   slice.add(plane);
   // Plan de clipping : ne garde que la partie des gaussiennes à droite du plan (z <= z_plan).
@@ -667,7 +679,9 @@ function setup2D(cv){
   const w=cv.clientWidth,h=cv.clientHeight,dpr=Math.min(devicePixelRatio||1,2);
   if(cv.width!==w*dpr||cv.height!==h*dpr){cv.width=w*dpr;cv.height=h*dpr;}
   const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);
-  return {x,w,h,cx:w/2,cy:h*0.24,R:Math.min(w,h)*0.30};
+  // pivot placé pour centrer verticalement le pendule (pivot → masse au repos = pivot+R)
+  const R=Math.min(w,h)*0.30;
+  return {x,w,h,cx:w/2,cy:h*0.5-R*0.5,R};
 }
 function hexRgba(s,a){const r=parseInt(s.slice(1,3),16),g=parseInt(s.slice(3,5),16),b=parseInt(s.slice(5,7),16);return `rgba(${r},${g},${b},${a})`;}
 
@@ -771,8 +785,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   const FORCE_CSS = '#ff4444';
   const SPATIAL_SHARP = 2.0;  // sharpness spatiale : exp(-SHARP·quad) au lieu de exp(-0.5·quad)
 
-  const Q = 0x0d8a7e, QCSS = '#0d8a7e';
-  const COL = {axis:0x9aa6b4, grid:0xdbe1ea, accent:Q};
+  const COL = {axis:0x9aa6b4, grid:0xdbe1ea, accent:0x5b8fc7};  // plan de coupe + axe q en bleu (aligné sur le pendule)
   const Q_VIS_SCALE = 0.5;                   // compression visuelle de l'axe q (sans toucher aux données)
   const ZS = D.z_span * Q_VIS_SCALE;        // visual half-extent of the q axis (trained range)
   const ZS_EXT_POS = D.frac_ext_max != null ? (D.frac_ext_max*2-1)*ZS : ZS;
@@ -781,7 +794,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
 
   // ── reconstruction sprite sheet ─────────────────────────────────────────
   const sheet = new Image(); let sheetReady=false;
-  sheet.onload=()=>{sheetReady=true;}; sheet.src = D.sheet;
+  sheet.onload=()=>{sheetReady=true;}; sheet.src = D.sheet + '?v=2';
 
   // ── helpers (local copies; the pendulum script's are out of scope) ───────
   function lineSeg(a,b,color,op){return new THREE.Line(
@@ -818,7 +831,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   scene.add(lineSeg(new THREE.Vector3(x0,y0,ZS),new THREE.Vector3(x0,y0,ZS_EXT_POS),COL.accent,0.3));
   const lx=makeLabel('x',hex(0x5d6b7a));lx.position.set(0.72,y0,-ZS);scene.add(lx);
   const ly=makeLabel('y',hex(0x5d6b7a));ly.position.set(x0,0.68,-ZS);scene.add(ly);
-  const lq=makeLabel('q',QCSS);lq.position.set(x0,y0,ZS_EXT_POS+0.18);scene.add(lq);
+  const lq=makeLabel('q',hex(COL.accent));lq.position.set(x0,y0,ZS_EXT_POS+0.18);scene.add(lq);
 
   // ── instanced ellipsoids = the trained gaussians ─────────────────────────
   const N=D.gaussians.length;
@@ -907,10 +920,10 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
     inst.instanceMatrix.needsUpdate=true;}
 
   // slice plane (current state q)
-  const planeGeo=new THREE.PlaneGeometry(1.3,1.2);
+  const planeGeo=new THREE.PlaneGeometry(1.3,1.0);   // bas du plan (y=-0.5) aligné sur la grille
   // polygonOffset : biaise la profondeur du plan vers la caméra pour qu'il ne z-fighte pas la
   // tranche de coupe (bouchons + bord des gaussiennes, coplanaires à z=zpos) → plus de scintillement.
-  const plane=new THREE.Mesh(planeGeo,new THREE.MeshBasicMaterial({color:COL.accent,transparent:true,opacity:0.12,side:THREE.DoubleSide,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
+  const plane=new THREE.Mesh(planeGeo,new THREE.MeshBasicMaterial({color:COL.accent,transparent:true,opacity:0.22,side:THREE.DoubleSide,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
   plane.renderOrder=2;
   plane.add(new THREE.LineSegments(new THREE.EdgesGeometry(planeGeo),new THREE.LineBasicMaterial({color:COL.accent,transparent:true,opacity:0.6})));
   scene.add(plane);
@@ -1113,7 +1126,6 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   const [[Q1MIN,Q1MAX],[Q2MIN,Q2MAX]] = D.bbox;
   const A=D.osc.A, B=D.osc.B, q0=D.osc.q0;
   const N=D.grid_n, T=D.tile, G=D.gaussians;
-  $('sCount').textContent = D.n_gaussians;
 
   const DOT_CSS='#d23b3b';
   const TRAIL_CSS='#d23b3b';                 // traînée pointillée rouge de la trajectoire vécue
@@ -1137,7 +1149,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
 
   // ── reconstruction sprite sheet (grille N×N) ─────────────────────────────
   const sheet=new Image(); let sheetReady=false;
-  sheet.onload=()=>{sheetReady=true;}; sheet.src=D.sheet;
+  sheet.onload=()=>{sheetReady=true;}; sheet.src=D.sheet + '?v=2';
   // deux canevas hors-écran pour l'interpolation bilinéaire exacte (2 lignes)
   const offA=document.createElement('canvas'), offB=document.createElement('canvas');
   offA.width=offA.height=T; offB.width=offB.height=T;
@@ -1189,7 +1201,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
     x.save();x.translate(L.ox-14,L.oy+L.inner/2);x.rotate(-Math.PI/2);x.fillText('q₂',0,0);x.restore();
     // trajectoire apprise (courbe pâle, segments coupés aux sauts = bornes vidéo)
     if(D.traj && D.traj.length>1){
-      x.strokeStyle='rgba(13,138,126,.30)';x.lineWidth=1.5;x.beginPath();
+      x.strokeStyle='rgba(91,143,199,.30)';x.lineWidth=1.5;x.beginPath();
       let pen=false, prev=null;
       for(const p of D.traj){
         const [cx,cy]=q2px(p[0],p[1],L);
