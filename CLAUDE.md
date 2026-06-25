@@ -137,6 +137,6 @@ Chaque HTML est standalone et lisible. Les poids du réseau de neurones sont cha
 |------|-------|---------------------|--------|
 | `prehenseur.html` | Pneumatic gripper simulé par LEBNN | `prehenseur-weights.js` · `W` (~2,2 Mo) | ✅ **Actif** — lié depuis publications.html + projects.html |
 | `lebnn.html` | LEBNN · poutre cantilever 20-DOF | `lebnn-weights.js` · `LEBNN_RAW` (~2,6 Mo) | ⚠️ **Obsolète** — non lié, archive |
-| `lags_demo.html` | LaGS — Gaussian Splatting indexé par état (3 onglets : pendule synthétique, rocking chair d=1, sac d=2) | rocking chair : `rocking_gaussians.js` · `ROCKING_DATA` (~450 Ko) + `rocking_frames.png` (~3,5 Mo, atlas binaire) · sac : `sac_gaussians.js` · `SAC_DATA` (~400 Ko) + `sac_frames.png` (~10 Mo, atlas binaire) | 🚧 **En finition** — pas encore référencé |
+| `lags_demo.html` | LaGS — Gaussian Splatting indexé par état (3 onglets : pendule synthétique, rocking chair d=1, sac d=2) | rocking chair : `rocking_gaussians.js` · `ROCKING_DATA` (~450 Ko) + `rocking_frames.png` (~3,5 Mo, atlas binaire) · sac : `sac_gaussians.js` · `SAC_DATA` (~400 Ko) + `sac_frames.png` (~10 Mo, atlas binaire) | ✅ **Actif** — lié depuis publications.html (carte « Learning Physics from Video ») |
 
 > ⚠️ **Ne jamais lire** les fichiers de poids ci-dessus ni `rocking_frames.png`, `sac_gaussians.js`, `sac_frames.png` : JSON sur **une seule ligne géante** (centaines de Ko à plusieurs Mo) ou binaire → des dizaines de milliers de tokens pour rien.
