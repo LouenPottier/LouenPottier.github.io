@@ -36,6 +36,17 @@
 #gs-demo .thesis b{color:var(--navy);font-weight:600}
 #gs-demo .qk{font-weight:600}
 
+/* ── figure d'architecture (sous l'intro), identique à la note LaGS ── */
+.lags-arch{max-width:680px;margin:1.6rem 0 2rem;}
+.lags-arch img{
+  display:block;width:100%;height:auto;
+  border:1px solid var(--border);border-radius:var(--radius);
+  background:#fff;padding:14px;box-sizing:border-box;
+}
+.lags-arch figcaption{
+  margin-top:.7rem;font-size:.82rem;line-height:1.55;color:var(--text-muted);
+}
+
 /* ── en-tête d'expérience (sur-titre + titre), identique à la note LaGS ── */
 #gs-demo .exp-head{margin:0 0 1.2rem;}
 #gs-demo .exp-tag{
@@ -115,6 +126,31 @@
 @media(max-width:880px){#gs-demo .stage iframe{height:520px}}
 @media(max-width:720px){#gs-demo .stage iframe{height:440px}}
 
+/* ── données d'entraînement : vidéo source + vues synthétisées ── */
+#gs-demo .train{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;}
+@media(max-width:880px){#gs-demo .train{grid-template-columns:1fr}}
+#gs-demo .train figure{margin:0}
+#gs-demo .train video{
+  display:block;width:100%;height:auto;border:1px solid var(--border);
+  border-radius:var(--radius);background:#111;
+}
+#gs-demo .views{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+#gs-demo .views figure{margin:0;text-align:center}
+#gs-demo .views img{
+  display:block;width:100%;height:auto;border:1px solid var(--border);
+  border-radius:var(--radius);
+}
+/* la vue de référence est la seule image réelle : on la distingue du reste */
+#gs-demo .views .ref img{border-color:var(--navy-light);border-width:2px}
+#gs-demo .views figcaption{
+  font-family:var(--mono);font-size:.55rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text-muted);margin-top:.4rem;line-height:1.3;
+}
+#gs-demo .views .ref figcaption{color:var(--navy)}
+#gs-demo .train .cap{
+  font-size:.82rem;line-height:1.55;color:var(--text-muted);margin:.7rem 0 0;
+}
+
 /* ── notes sous le cadre ── */
 #gs-demo .notes{
   display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:1.5rem;align-items:start;
@@ -163,6 +199,14 @@
      data-fr="Une scène 3D Gaussian Splatting dont les gaussiennes sont paramétrées par un état physique latent. L'équation du mouvement est intégrée dans votre navigateur : poussez l'objet, toute la scène suit.">
     A 3D Gaussian Splatting scene whose gaussians are parameterised by a latent physical state. The equation of motion is integrated in your browser: push the object, and the whole scene follows.
   </p>
+
+  <figure class="lags-arch">
+    <img src="lags_architecture.png" alt="Architecture LaGS : encodeur CNN, réseau lagrangien latent, décodeur Gaussian Splatting, et rappel de la force utilisateur dans l'espace latent par la jacobienne du décodeur"/>
+    <figcaption
+      data-en="The pipeline behind this demo. A CNN encoder maps the first frames to the latent state <b>q</b>; a latent LNN integrates the equation of motion; a GS decoder reconstructs the scene at the new state. The force you apply on the object is pulled back into the latent space by the transposed Jacobian of the decoder, <b>J(q)<sup>⊤</sup>f</b>."
+      data-fr="Le pipeline derrière cette démo. Un encodeur CNN projette les premières images sur l'état latent <b>q</b> ; un LNN latent intègre l'équation du mouvement ; un décodeur GS reconstruit la scène au nouvel état. La force que vous appliquez sur l'objet est ramenée dans l'espace latent par la transposée de la jacobienne du décodeur, <b>J(q)<sup>⊤</sup>f</b>.">
+    </figcaption>
+  </figure>
 
   <div id="gs-demo">
 
@@ -242,6 +286,54 @@
                 title="4DGS interactive viewer"></iframe>
       </div>
     </section>
+
+    <hr class="exp-divider"/>
+
+    <div class="exp-head">
+      <p class="exp-tag" data-en="training data" data-fr="données d'entraînement">training data</p>
+      <h2 class="exp-title" data-en="One video, seen from every angle" data-fr="Une seule vidéo, vue sous tous les angles">One video, seen from every angle</h2>
+    </div>
+
+    <p class="thesis"
+       data-en="Everything above was learned from the single video on the left &mdash; one fixed camera, five seconds. A monocular video sees the object from one side only, which is not enough to fit gaussians in 3D. So the frames are first lifted to 3D with <a href='https://github.com/apple/ml-sharp' target='_blank' rel='noopener'>ml-sharp</a>, and <b>novel views</b> are rendered from virtual cameras placed around the object. The GS decoder is then trained on all of them at once: the reference viewpoint keeps it honest, the synthesised ones tell it what the object looks like from the sides it was never filmed from."
+       data-fr="Tout ce qui précède a été appris à partir de la seule vidéo de gauche &mdash; une caméra fixe, cinq secondes. Une vidéo monoculaire ne voit l'objet que d'un côté, ce qui ne suffit pas pour ajuster des gaussiennes en 3D. Les images sont donc d'abord relevées en 3D par <a href='https://github.com/apple/ml-sharp' target='_blank' rel='noopener'>ml-sharp</a>, puis des <b>vues nouvelles</b> sont rendues depuis des caméras virtuelles réparties autour de l'objet. Le décodeur GS est ensuite entraîné sur l'ensemble : le point de vue de référence le garde honnête, les vues synthétisées lui apprennent à quoi ressemble l'objet des côtés qui n'ont jamais été filmés.">
+    </p>
+
+    <div class="train">
+      <figure>
+        <video autoplay loop muted playsinline preload="metadata"
+               src="../videos/4dgs_training.mp4"></video>
+        <p class="cap"
+           data-en="The training video: a rocking chair released and left to oscillate, filmed by a single fixed camera."
+           data-fr="La vidéo d'entraînement : une chaise à bascule lâchée puis laissée osciller, filmée par une unique caméra fixe."></p>
+      </figure>
+
+      <figure>
+        <div class="views">
+          <figure class="ref">
+            <img src="../img/4dgs/ref.jpg" alt="Image du premier instant vue depuis la caméra réelle" loading="lazy"/>
+            <figcaption data-en="reference" data-fr="référence">reference</figcaption>
+          </figure>
+          <figure>
+            <img src="../img/4dgs/novel_25.jpg" alt="Vue nouvelle du premier instant, caméra virtuelle décalée" loading="lazy"/>
+            <figcaption data-en="synthesised" data-fr="synthétisée">synthesised</figcaption>
+          </figure>
+          <figure>
+            <img src="../img/4dgs/novel_49.jpg" alt="Vue nouvelle du premier instant, caméra virtuelle plus latérale" loading="lazy"/>
+            <figcaption data-en="synthesised" data-fr="synthétisée">synthesised</figcaption>
+          </figure>
+          <figure>
+            <img src="../img/4dgs/novel_58.jpg" alt="Vue nouvelle du premier instant, caméra virtuelle rasante" loading="lazy"/>
+            <figcaption data-en="synthesised" data-fr="synthétisée">synthesised</figcaption>
+          </figure>
+        </div>
+        <p class="cap"
+           data-en="The same instant of the video, seen from the real camera and from three of the sixty-five virtual ones. The further a virtual camera strays from the reference, the more the reconstruction frays &mdash; floaters at the edges, a rug that dissolves. The decoder learns from these views, artefacts included."
+           data-fr="Le même instant de la vidéo, vu depuis la caméra réelle puis depuis trois des soixante-cinq caméras virtuelles. Plus une caméra virtuelle s'écarte de la référence, plus la reconstruction s'effiloche &mdash; des flotteurs sur les bords, un tapis qui se dissout. Le décodeur apprend de ces vues, artefacts compris."></p>
+      </figure>
+    </div>
+
+    <hr class="exp-divider"/>
 
     <div class="notes">
       <div class="note">
