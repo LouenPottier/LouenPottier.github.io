@@ -164,68 +164,11 @@
 				border-radius: 10px;
 				font-size: x-small;
 			}
-			#state {
-				margin-top: 8px;
-				background: rgba(0,0,0,0.55);
-				border-radius: 6px;
-				padding: 6px 8px;
-				font-family: monospace;
-				font-size: 11px;
-				line-height: 1.5;
-				display: inline-block;
-			}
-			#controls-panel {
-				position: absolute;
-				top: 10px;
-				right: 10px;
-				z-index: 200;
-				background: rgba(0,0,0,0.7);
-				border: 1px solid rgba(255,255,255,0.2);
-				border-radius: 8px;
-				padding: 8px 10px;
-				min-width: 220px;
-				font-size: 12px;
-				color: white;
-				user-select: none;
-			}
-			#controls-header {
-				font-weight: bold;
-				cursor: pointer;
-				margin-bottom: 6px;
-				font-size: 13px;
-			}
-			.ctrl-section {
-				font-weight: bold;
-				color: #aad4ff;
-				margin: 4px 0 2px 0;
-				font-size: 11px;
-				text-transform: uppercase;
-				letter-spacing: 0.5px;
-			}
-			.ctrl-label {
-				display: flex;
-				justify-content: space-between;
-				margin: 5px 0 1px 0;
-				color: #ccc;
-			}
-			#controls-panel input[type=range] {
-				width: 100%;
-				height: 4px;
-				cursor: pointer;
-				accent-color: #4a9eff;
-			}
-			.ctrl-btn {
-				flex: 1;
-				background: rgba(255,255,255,0.1);
-				border: 1px solid rgba(255,255,255,0.3);
-				border-radius: 5px;
-				color: white;
-				padding: 5px 4px;
-				cursor: pointer;
-				font-size: 11px;
-			}
-			.ctrl-btn:hover { background: rgba(255,255,255,0.2); }
 			body.nohf .nohf {
+				display: none;
+			}
+			/* embarqué en iframe : titre, crédit et contrôles sont portés par la page hôte */
+			body.embed #info {
 				display: none;
 			}
 			body.nohf #progress, body.nohf .cube-face {
@@ -236,6 +179,7 @@
 	<body>
 		<script>
 			if(location.host.includes('hf.space')) document.body.classList.add('nohf');
+			if(new URLSearchParams(location.search).has('embed')) document.body.classList.add('embed');
 		</script>
 		<div id="info">
 			<h3 class="nohf">4DGS paramétré dans la variable latente — simulation interactive</h3>
@@ -264,10 +208,16 @@ caméra (flèches)
 - i/k et j/l : orbiter
 
 souris
+- clic gauche + glisser : faire tourner la scène autour de son centre
 - clic droit + glisser : regarder autour
-- clic gauche : appliquer / effacer la force au point cliqué
-- molette : zoom
+- clic gauche (sans glisser) : appliquer / effacer la force au point visé
+- molette : zoom (rapproche / éloigne du centre de la scène)
 - shift + molette : pan
+
+tactile
+- glisser à un doigt : faire tourner la scène autour de son centre
+- double-tap : appliquer / effacer la force au point visé
+- pincer à deux doigts : zoom
 
 autre
 - 0-9 : vues caméra pré-chargées
@@ -275,114 +225,10 @@ autre
 - glisser-déposer un .ply pour le charger
 </div>
 		</details>
-
-		<div id="state">
-			z = <span id="st-z">—</span>   v = <span id="st-v">—</span><br>
-			E(z) = <span id="st-e">—</span>   |f_z| = <span id="st-fz">—</span><br>
-			pas = <span id="st-step">0</span>
-		</div>
 		</div>
 
-		<!-- ── Panneau de contrôle flottant ────────────────────────────────── -->
-		<div id="controls-panel">
-			<div id="controls-header" title="Cliquer pour réduire">⚙️ Simulation <span id="controls-toggle">▾</span></div>
-			<div id="controls-body">
-				<div class="ctrl-section">Simulation</div>
-
-				<label class="ctrl-label">Force latente f_ext <span id="val-fext">0.00</span></label>
-				<input type="range" id="sl-fext" min="-2" max="2" step="0.02" value="0">
-
-				<label class="ctrl-label">Frottement γ <span id="val-gamma">—</span></label>
-				<input type="range" id="sl-gamma">
-
-				<label class="ctrl-label">Barrière W <span id="val-W">—</span></label>
-				<input type="range" id="sl-W">
-
-				<label class="ctrl-label">Raideur k <span id="val-k">5.0</span></label>
-				<input type="range" id="sl-k" min="0.1" max="20" step="0.1" value="5">
-
-				<div class="ctrl-section" style="margin-top:10px">Force 3D</div>
-
-				<label class="ctrl-label">Amplitude <span id="val-amp">—</span></label>
-				<input type="range" id="sl-amp">
-
-				<label class="ctrl-label">Azimut ° <span id="val-az">0</span></label>
-				<input type="range" id="sl-az" min="-180" max="180" step="5" value="0">
-
-				<label class="ctrl-label">Élévation ° <span id="val-el">-90</span></label>
-				<input type="range" id="sl-el" min="-90" max="90" step="5" value="-90">
-
-				<div style="display:flex;gap:6px;margin-top:10px">
-					<button class="ctrl-btn" id="btn-clear">✖ Effacer force</button>
-					<button class="ctrl-btn" id="btn-reset">🔄 Reset</button>
-				</div>
-			</div>
-		</div>
-
-		<script>
-		// ── Panneau toggle ────────────────────────────────────────────────
-		document.getElementById('controls-header').addEventListener('click', () => {
-			const body = document.getElementById('controls-body');
-			const tog  = document.getElementById('controls-toggle');
-			const hidden = body.style.display === 'none';
-			body.style.display = hidden ? '' : 'none';
-			tog.textContent = hidden ? '▾' : '▸';
-		});
-
-		// Appelé par viewer.js une fois la scène chargée : les bornes des sliders
-		// viennent de scene_meta.json, comme gradio_sim_3d.py les dérivait de config.
-		window.initControls = function (sim) {
-			const m = sim.meta;
-			const set = (id, min, max, step, value) => {
-				const el = document.getElementById(id);
-				el.min = min; el.max = max; el.step = step; el.value = value;
-				return el;
-			};
-			// step="any" : sans lui, le navigateur aimante la valeur sur un cran et
-			// γ démarrerait à 0.0075 au lieu du γ appris 0.0072912.
-			set('sl-gamma', 0, m.gamma_max, 'any', m.gamma);
-			set('sl-W', 0, m.w_max, 'any', m.w_default);
-			set('sl-k', 0.1, 20, 0.1, m.k_default);
-			set('sl-amp', 0, m.amp_max, 'any', m.amp_default);
-
-			const bind = (id, valId, decimals, onChange) => {
-				const sl = document.getElementById(id);
-				const lbl = document.getElementById(valId);
-				const push = () => {
-					const v = parseFloat(sl.value);
-					lbl.textContent = v.toFixed(decimals);
-					onChange(v);
-				};
-				sl.addEventListener('input', push);
-				push();
-			};
-
-			bind('sl-fext',  'val-fext',  2, (v) => sim.setParams({ f_ext: v }));
-			bind('sl-gamma', 'val-gamma', 4, (v) => sim.setParams({ gamma: v }));
-			bind('sl-W',     'val-W',     3, (v) => sim.setParams({ W: v }));
-			bind('sl-k',     'val-k',     1, (v) => sim.setParams({ k: v }));
-			bind('sl-amp',   'val-amp',   0, (v) => { window._amp = v; });
-			bind('sl-az',    'val-az',    0, (v) => { window._az = v; });
-			bind('sl-el',    'val-el',    0, (v) => { window._el = v; });
-
-			document.getElementById('btn-clear').addEventListener('click', () => sim.clearForce());
-			document.getElementById('btn-reset').addEventListener('click', () => sim.reset());
-
-			// Rafraîchi par viewer.js à chaque pas de physique (10 Hz).
-			const el = {
-				z: document.getElementById('st-z'), v: document.getElementById('st-v'),
-				e: document.getElementById('st-e'), fz: document.getElementById('st-fz'),
-				step: document.getElementById('st-step'),
-			};
-			window.onSimStep = (s) => {
-				el.z.textContent = s.state.z.toFixed(4);
-				el.v.textContent = s.state.v.toFixed(4);
-				el.e.textContent = s.energy(s.state.z).toFixed(4);
-				el.fz.textContent = Math.abs(s.state.f_z).toFixed(4);
-				el.step.textContent = s.state.step;
-			};
-		};
-		</script>
+		<!-- Les sliders et le readout d'état vivent désormais dans la page hôte
+		     (4dgs.html), qui pilote `sim` à travers l'iframe. -->
 
 		<div id="progress"></div>
 
@@ -1541,9 +1387,11 @@ function _extractYawPitchFromView() {
 }
 async function main(sim) {
     let carousel = false;
+    let viewFromHash = false;
     const params = new URLSearchParams(location.search);
     try {
         viewMatrix = JSON.parse(decodeURIComponent(location.hash.slice(1)));
+        viewFromHash = true;
         carousel = false;
     } catch (err) {}
 
@@ -1773,64 +1621,133 @@ async function main(sim) {
         activeKeys = [];
     });
 
-    // ── Arcball / SuperSplat-style orbit controls ────────────────────────────
-    // Helper: get camera position in world from current viewMatrix
-    function getCamPos() {
-        let inv = invert4(viewMatrix);
-        return [inv[12], inv[13], inv[14]];
-    }
-
-    // Estimate pivot = camera pos + forward * orbitRadius
-    // orbitRadius is maintained as a persistent state variable
-    let orbitRadius = 4.0;
-
-    function getPivot() {
-        let inv = invert4(viewMatrix);
-        // Forward vector in world = third column of camToWorld (inv)
-        // In OpenGL convention, camera looks down -Z, so forward = -inv[8..10]
+    // ── Orbite autour du centre de la scène ─────────────────────────────────
+    // Convention de projection (voir getProjectionMatrix) : la caméra regarde
+    // vers +Z et son axe Y descend à l'écran. Le haut du monde est donc la
+    // colonne Y de camToWorld, inversée.
+    const sub3 = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+    const dot3 = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    const cross3 = (a, b) => [
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0],
+    ];
+    const len3 = (a) => Math.hypot(a[0], a[1], a[2]);
+    const norm3 = (a) => { const n = len3(a) || 1; return [a[0]/n, a[1]/n, a[2]/n]; };
+    // Rodrigues : rotation de v autour de l'axe unitaire k, angle a (main droite).
+    const rot3 = (v, k, a) => {
+        const c = Math.cos(a), s = Math.sin(a);
+        const kv = cross3(k, v), d = dot3(k, v) * (1 - c);
         return [
-            inv[12] - inv[8] * orbitRadius,
-            inv[13] - inv[9] * orbitRadius,
-            inv[14] - inv[10] * orbitRadius,
+            v[0]*c + kv[0]*s + k[0]*d,
+            v[1]*c + kv[1]*s + k[1]*d,
+            v[2]*c + kv[2]*s + k[2]*d,
         ];
+    };
+
+    // Centre de la scène + rayon englobant. 90e centile des distances au
+    // barycentre : quelques gaussiennes de fond très éloignées ne doivent pas
+    // faire reculer le cadrage.
+    function sceneBounds(mu, K) {
+        const c = [0, 0, 0];
+        for (let i = 0; i < K; i++) {
+            c[0] += mu[3*i]; c[1] += mu[3*i+1]; c[2] += mu[3*i+2];
+        }
+        c[0] /= K; c[1] /= K; c[2] /= K;
+        const stride = Math.max(1, Math.floor(K / 20000));
+        const d = [];
+        for (let i = 0; i < K; i += stride)
+            d.push(Math.hypot(mu[3*i]-c[0], mu[3*i+1]-c[1], mu[3*i+2]-c[2]));
+        d.sort((a, b) => a - b);
+        return { center: c, radius: d[Math.floor(0.9 * (d.length - 1))] || 1 };
     }
 
-    // Orbit around pivot: rotate viewMatrix such that camera moves on a sphere
+    const bounds = sceneBounds(s.mu_xyz, s.K);
+    const pivot = bounds.center;              // centre de rotation et de zoom
+    const minRadius = 0.05 * bounds.radius;
+    const maxRadius = 30 * bounds.radius;
+    let orbitRadius;                          // distance caméra ↔ pivot
+
+    let worldUp;
+    {
+        const inv0 = invert4(viewMatrix);
+        worldUp = norm3([-inv0[4], -inv0[5], -inv0[6]]);
+    }
+
+    function camToWorld() { return invert4(viewMatrix); }
+    function getCamPos() { const i = camToWorld(); return [i[12], i[13], i[14]]; }
+
+    // Vue reconstruite depuis une position caméra qui vise le pivot.
+    function lookAtPivot(pos) {
+        const f = norm3(sub3(pivot, pos));    // avant   → +Z caméra
+        // Aux pôles f et worldUp sont colinéaires : leur produit vectoriel ne
+        // définit plus de droite. On se rabat sur le haut courant de la caméra,
+        // qui reste perpendiculaire à la visée.
+        const inv = camToWorld();
+        const up = Math.abs(dot3(f, worldUp)) > 0.9995
+            ? [-inv[4], -inv[5], -inv[6]]
+            : worldUp;
+        const r = norm3(cross3(f, up));       // droite  → +X caméra
+        const d = cross3(f, r);               // bas     → +Y caméra
+        viewMatrix = invert4([
+            r[0], r[1], r[2], 0,
+            d[0], d[1], d[2], 0,
+            f[0], f[1], f[2], 0,
+            pos[0], pos[1], pos[2], 1,
+        ]);
+    }
+
+    // Cadrage initial : recule la caméra le long de sa visée jusqu'à ce que la
+    // sphère englobante tienne dans le champ vertical. Le facteur < 1 resserre
+    // un peu le cadre : la queue de gaussiennes au-delà du 90e centile est du
+    // décor, on accepte qu'elle déborde.
+    function frameScene() {
+        const inv = camToWorld();
+        const fwd = norm3([inv[8], inv[9], inv[10]]);
+        const halfFov = Math.atan(innerHeight / (2 * camera.fy));
+        orbitRadius = Math.min(maxRadius, 0.75 * bounds.radius / Math.sin(halfFov));
+        lookAtPivot([
+            pivot[0] - fwd[0] * orbitRadius,
+            pivot[1] - fwd[1] * orbitRadius,
+            pivot[2] - fwd[2] * orbitRadius,
+        ]);
+    }
+    if (viewFromHash) orbitRadius = len3(sub3(getCamPos(), pivot));
+    else frameScene();
+
+    // Glissé → la scène tourne autour de son centre : la caméra se déplace sur
+    // une sphère centrée sur le pivot, sans jamais cesser de le viser.
     function orbitAroundPivot(dx, dy) {
-        let pivot = getPivot();
-        let inv = invert4(viewMatrix);
+        const inv = camToWorld();
+        let off = rot3(sub3([inv[12], inv[13], inv[14]], pivot), worldUp, dx);
+        const right = norm3(rot3([inv[0], inv[1], inv[2]], worldUp, dx));
+        const tilted = rot3(off, right, dy);
+        // Interdit de basculer par-dessus les pôles : worldUp deviendrait
+        // colinéaire à la visée et la droite de la caméra ne serait plus définie.
+        if (Math.abs(dot3(norm3(tilted), worldUp)) < 0.995) off = tilted;
+        lookAtPivot([pivot[0] + off[0], pivot[1] + off[1], pivot[2] + off[2]]);
+    }
 
-        // Translate so pivot is at origin
-        inv = translate4(inv,
-            pivot[0] - inv[12],
-            pivot[1] - inv[13],
-            pivot[2] - inv[14]
-        );
-        // Wait — simpler: work in camera-space pivoting
-        // Translate camera to pivot
-        let cx = inv[12] - pivot[0];
-        let cy = inv[13] - pivot[1];
-        let cz = inv[14] - pivot[2];
-
-        // Rebuild inv with camera at pivot
-        inv[12] = pivot[0];
-        inv[13] = pivot[1];
-        inv[14] = pivot[2];
-
-        // Rotate around world Y (azimuth) and camera X (elevation)
-        inv = rotate4(inv, dx, 0, 1, 0);
-        inv = rotate4(inv, dy, 1, 0, 0);
-
-        // Move back by orbitRadius along the new forward
-        inv[12] += cx;
-        inv[13] += cy;
-        inv[14] += cz;
-        // Reapply the original offset rotated
-        inv[12] = pivot[0] + inv[8] * orbitRadius;
-        inv[13] = pivot[1] + inv[9] * orbitRadius;
-        inv[14] = pivot[2] + inv[10] * orbitRadius;
-
+    // Zoom → homothétie de la position caméra autour du pivot : on se rapproche
+    // ou on s'éloigne de l'objet, sans changer l'orientation.
+    function zoomBy(factor) {
+        const inv = camToWorld();
+        const off = sub3([inv[12], inv[13], inv[14]], pivot);
+        const r = len3(off) || 1e-6;
+        const k = Math.max(minRadius, Math.min(maxRadius, r * factor)) / r;
+        inv[12] = pivot[0] + off[0] * k;
+        inv[13] = pivot[1] + off[1] * k;
+        inv[14] = pivot[2] + off[2] * k;
+        orbitRadius = r * k;
         viewMatrix = invert4(inv);
+    }
+
+    // Pan → la caméra glisse dans son plan image ; le pivot la suit, sinon
+    // l'orbite se ferait ensuite autour d'un point sorti du cadre.
+    function panBy(tx, ty) {
+        const inv = camToWorld();
+        for (let i = 0; i < 3; i++) pivot[i] += inv[i] * tx + inv[4 + i] * ty;
+        viewMatrix = invert4(translate4(inv, tx, ty, 0));
     }
 
     window.addEventListener(
@@ -1838,60 +1755,45 @@ async function main(sim) {
         (e) => {
             carousel = false;
             e.preventDefault();
-            const lineHeight = 10;
             const scale =
-                e.deltaMode == 1
-                    ? lineHeight
-                    : e.deltaMode == 2
-                      ? innerHeight
-                      : 1;
+                e.deltaMode == 1 ? 10 : e.deltaMode == 2 ? innerHeight : 1;
 
             if (e.shiftKey) {
-                // Shift+scroll → pan
-                let inv = invert4(viewMatrix);
-                const panSpeed = orbitRadius * 0.002;
-                inv = translate4(inv,
-                    (e.deltaX * scale * panSpeed) / lineHeight,
-                    (e.deltaY * scale * panSpeed) / lineHeight,
-                    0
-                );
-                viewMatrix = invert4(inv);
-            } else if (e.ctrlKey || e.metaKey) {
-                // Ctrl+scroll → zoom (dolly), same direction as plain scroll
-                const zoomSpeed = orbitRadius * 0.002;
-                let delta = -(e.deltaY * scale * zoomSpeed) / lineHeight;
-                orbitRadius = Math.max(0.5, orbitRadius + delta);
-                let inv = invert4(viewMatrix);
-                inv = translate4(inv, 0, 0, delta);
-                viewMatrix = invert4(inv);
+                const panSpeed = orbitRadius * 0.0002;
+                panBy(e.deltaX * scale * panSpeed, e.deltaY * scale * panSpeed);
             } else {
-                // Plain scroll → dolly zoom
-                const zoomSpeed = orbitRadius * 0.002;
-                let delta = -(e.deltaY * scale * zoomSpeed) / lineHeight;
-                orbitRadius = Math.max(0.5, orbitRadius + delta);
-                let inv = invert4(viewMatrix);
-                inv = translate4(inv, 0, 0, delta);
-                viewMatrix = invert4(inv);
+                // Molette et pincement trackpad (qui arrive en ctrl+wheel, avec
+                // des deltas bien plus petits) → zoom vers le centre de la scène.
+                const speed = e.ctrlKey || e.metaKey ? 0.01 : 0.0015;
+                zoomBy(Math.exp(e.deltaY * scale * speed));
             }
         },
         { passive: false },
     );
 
-    let _leftDragging = false;
     let startX, startY, down;
+    // Un clic gauche sans déplacement applique la force (souris seulement — au
+    // doigt c'est le double-tap, un tap simple étant trop facile à déclencher
+    // en voulant tourner la scène).
+    let downX = 0, downY = 0, dragged = false;
     canvas.addEventListener("mousedown", (e) => {
         carousel = false;
         e.preventDefault();
         startX = e.clientX;
         startY = e.clientY;
+        downX = e.clientX;
+        downY = e.clientY;
+        dragged = false;
         if (e.button === 1) {
             down = 3; // middle → zoom
         } else if (e.button === 2) {
             down = 2; // right → look around
             _extractYawPitchFromView();
         } else if (e.button === 0) {
-            down = 0; // left → force (on click, not drag)
-            _leftDragging = false;
+            // gauche → orbite, comme le glissé à un doigt. La force est sur le
+            // double-clic. (Valeur non nulle : mouseup remet `down` à false, et
+            // `false == 0` est vrai en comparaison lâche.)
+            down = 4;
         }
     });
     canvas.addEventListener("contextmenu", (e) => {
@@ -1900,11 +1802,15 @@ async function main(sim) {
 
     canvas.addEventListener("mousemove", (e) => {
         e.preventDefault();
-        if (down == 0) {
-            // Track if left button dragged (to suppress force on drag)
-            if (Math.abs(e.clientX - startX) > 3 || Math.abs(e.clientY - startY) > 3) {
-                _leftDragging = true;
-            }
+        if (down && Math.hypot(e.clientX - downX, e.clientY - downY) > 4) dragged = true;
+        if (down == 4) {
+            // Left drag → orbit around the pivot
+            const orbitSpeed = 3.0;
+            let dx = (orbitSpeed * (e.clientX - startX)) / innerWidth;
+            let dy = (orbitSpeed * (e.clientY - startY)) / innerHeight;
+            orbitAroundPivot(-dx, -dy);
+            startX = e.clientX;
+            startY = e.clientY;
         } else if (down == 2) {
             // Right drag → look around using explicit yaw/pitch (no gimbal)
             const lookSpeed = 3.0;
@@ -1916,16 +1822,15 @@ async function main(sim) {
             startX = e.clientX;
             startY = e.clientY;
         } else if (down == 3) {
-            // Dolly zoom (middle mouse)
-            const zoomSpeed = orbitRadius * 3.0;
-            let delta = (zoomSpeed * (e.clientY - startY)) / innerHeight;
-            orbitRadius = Math.max(0.5, orbitRadius + delta);
-            let inv = invert4(viewMatrix);
-            inv = translate4(inv, 0, 0, delta);
-            viewMatrix = invert4(inv);
+            // Zoom au clic milieu
+            zoomBy(Math.exp((e.clientY - startY) * 0.005));
             startX = e.clientX;
             startY = e.clientY;
         }
+    });
+    canvas.addEventListener("mouseup", (e) => {
+        if (IS_MOUSE && e.button === 0 && !dragged && window._toggleForceAt)
+            window._toggleForceAt(e.clientX, e.clientY);
     });
     window.addEventListener("mouseup", (e) => {
         down = false;
@@ -1935,6 +1840,13 @@ async function main(sim) {
 
     let altX = 0,
         altY = 0;
+
+    // Détection du double-tap : un tap est un contact à un doigt, bref et
+    // quasi immobile (sinon c'est un drag d'orbite). Deux taps rapprochés dans
+    // le temps et dans l'espace basculent la force, comme le double-clic.
+    const TAP_MOVE_PX = 12, TAP_MAX_MS = 300, DBLTAP_MAX_MS = 350, DBLTAP_MAX_PX = 40;
+    let _tapStartT = 0, _tapMoved = true, _tapDist = 0, _lastTap = null;
+
     canvas.addEventListener(
         "touchstart",
         (e) => {
@@ -1944,7 +1856,11 @@ async function main(sim) {
                 startX = e.touches[0].clientX;
                 startY = e.touches[0].clientY;
                 down = 1;
+                _tapStartT = performance.now();
+                _tapMoved = false;
+                _tapDist = 0;
             } else if (e.touches.length === 2) {
+                _tapMoved = true;   // geste à deux doigts : jamais un tap
                 carousel = false;
                 startX = e.touches[0].clientX;
                 altX = e.touches[1].clientX;
@@ -1960,6 +1876,13 @@ async function main(sim) {
         (e) => {
             e.preventDefault();
             if (e.touches.length === 1 && down) {
+                // startX/startY sont re-basés à chaque move : on cumule le
+                // chemin parcouru plutôt que de comparer au point de départ.
+                _tapDist += Math.hypot(
+                    e.touches[0].clientX - startX,
+                    e.touches[0].clientY - startY,
+                );
+                if (_tapDist > TAP_MOVE_PX) _tapMoved = true;
                 // One finger → orbit
                 const orbitSpeed = 3.0;
                 let dx = (orbitSpeed * (e.touches[0].clientX - startX)) / innerWidth;
@@ -1968,41 +1891,16 @@ async function main(sim) {
                 startX = e.touches[0].clientX;
                 startY = e.touches[0].clientY;
             } else if (e.touches.length === 2) {
-                const dtheta =
-                    Math.atan2(startY - altY, startX - altX) -
-                    Math.atan2(
-                        e.touches[0].clientY - e.touches[1].clientY,
-                        e.touches[0].clientX - e.touches[1].clientX,
-                    );
+                _tapMoved = true;
+                // Pincement → zoom. Le rapport des écartements est directement
+                // le facteur d'homothétie : écarter les doigts rapproche.
                 const dscale =
                     Math.hypot(startX - altX, startY - altY) /
                     Math.hypot(
                         e.touches[0].clientX - e.touches[1].clientX,
                         e.touches[0].clientY - e.touches[1].clientY,
                     );
-                const dx =
-                    (e.touches[0].clientX + e.touches[1].clientX - (startX + altX)) / 2;
-                const dy =
-                    (e.touches[0].clientY + e.touches[1].clientY - (startY + altY)) / 2;
-
-                // Two finger pan
-                let inv = invert4(viewMatrix);
-                const panSpeed = orbitRadius * 1.0;
-                inv = translate4(inv,
-                    -dx * panSpeed / innerWidth,
-                    -dy * panSpeed / innerHeight,
-                    0
-                );
-                // Roll
-                inv = rotate4(inv, dtheta, 0, 0, 1);
-                viewMatrix = invert4(inv);
-
-                // Pinch → dolly
-                const zoomDelta = orbitRadius * 3 * (1 - dscale);
-                orbitRadius = Math.max(0.5, orbitRadius + zoomDelta);
-                inv = invert4(viewMatrix);
-                inv = translate4(inv, 0, 0, zoomDelta);
-                viewMatrix = invert4(inv);
+                if (isFinite(dscale) && dscale > 0) zoomBy(dscale);
 
                 startX = e.touches[0].clientX;
                 altX = e.touches[1].clientX;
@@ -2019,6 +1917,22 @@ async function main(sim) {
             down = false;
             startX = 0;
             startY = 0;
+
+            const now = performance.now();
+            const isTap = !_tapMoved && now - _tapStartT < TAP_MAX_MS
+                && e.touches.length === 0 && e.changedTouches.length === 1;
+            _tapMoved = true;   // le prochain geste doit repartir d'un touchstart
+            if (!isTap) { _lastTap = null; return; }
+
+            const t = e.changedTouches[0];
+            const x = t.clientX, y = t.clientY;
+            if (_lastTap && now - _lastTap.t < DBLTAP_MAX_MS
+                && Math.hypot(x - _lastTap.x, y - _lastTap.y) < DBLTAP_MAX_PX) {
+                _lastTap = null;
+                if (window._toggleForceAt) window._toggleForceAt(x, y);
+            } else {
+                _lastTap = { x: x, y: y, t: now };
+            }
         },
         { passive: false },
     );
@@ -2211,7 +2125,7 @@ async function main(sim) {
         // _physics_loop : pas RK4 à cadence fixe, découplée du refresh écran.
         if (sim.tick(lastFrame ? (now - lastFrame) / 1000 : 0)) {
             worker.postMessage({ z: sim.state.z });
-            if (window.onSimStep) window.onSimStep(sim);
+            window._postSimStep(sim);
         }
 
         const currentFps = 1000 / (now - lastFrame) || 0;
@@ -2313,9 +2227,11 @@ async function main(sim) {
 // Le splat est recalculé localement à chaque pas de physique (worker, message {z}),
 // et la position de la flèche est relue depuis sim : plus rien à poller.
 
-// ── Force : clic gauche ─────────────────────────────────────────────────────
-window._az = 0; window._el = -90; window._amp = 5;   // ecrases par initControls
-let _leftDragging = false;
+// ── Force : clic (souris) ou double-tap (tactile) ───────────────────────────
+// « Vrai » pointeur : souris ou trackpad, par opposition au doigt. Sur un écran
+// tactile hybride le pointeur fin existe aussi, et le clic simple reste correct.
+const IS_MOUSE = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+window._az = 0; window._el = -90; window._amp = 5;   // écrasés par la page hôte
 let _forceOn = false;
 // ── Overlay 2D pour afficher la flèche de force ─────────────────────────────
 var _overlay = document.getElementById('overlay');
@@ -2363,12 +2279,12 @@ function _drawOverlay() {
         -Math.sin(el),
         Math.cos(el)*Math.sin(az)
     ];
-    // Longueur fixe en monde (0.5 unité) → projeter pour avoir la tête de flèche
-    var len3 = 0.5;
+    // Longueur fixe en monde → projeter pour avoir la tête de flèche
+    var arrowLen = 0.3;
     var tip3 = [
-        _forceHit3D[0] + dir3[0]*len3,
-        _forceHit3D[1] + dir3[1]*len3,
-        _forceHit3D[2] + dir3[2]*len3
+        _forceHit3D[0] + dir3[0]*arrowLen,
+        _forceHit3D[1] + dir3[1]*arrowLen,
+        _forceHit3D[2] + dir3[2]*arrowLen
     ];
     var p2tip = _project3D(tip3);
     if (!p2tip) return;
@@ -2378,25 +2294,23 @@ function _drawOverlay() {
 
     _ctx.strokeStyle = 'rgba(255, 80, 80, 0.9)';
     _ctx.fillStyle   = 'rgba(255, 80, 80, 0.9)';
-    _ctx.lineWidth   = 3;
+    _ctx.lineWidth   = 4;
     _ctx.beginPath();
     _ctx.moveTo(cx, cy);
     _ctx.lineTo(ex, ey);
     _ctx.stroke();
     var angle = Math.atan2(ey - cy, ex - cx);
-    var headLen = 14;
+    // Tête large et courte : l'angle d'ouverture donne la largeur, headLen la longueur.
+    var headLen = 16, headSpread = 0.85;
     _ctx.beginPath();
     _ctx.moveTo(ex, ey);
-    _ctx.lineTo(ex - headLen*Math.cos(angle-0.4), ey - headLen*Math.sin(angle-0.4));
-    _ctx.lineTo(ex - headLen*Math.cos(angle+0.4), ey - headLen*Math.sin(angle+0.4));
+    _ctx.lineTo(ex - headLen*Math.cos(angle-headSpread), ey - headLen*Math.sin(angle-headSpread));
+    _ctx.lineTo(ex - headLen*Math.cos(angle+headSpread), ey - headLen*Math.sin(angle+headSpread));
     _ctx.closePath();
     _ctx.fill();
     _ctx.beginPath();
     _ctx.arc(cx, cy, 6, 0, 2*Math.PI);
     _ctx.fill();
-    _ctx.fillStyle = 'white';
-    _ctx.font = '13px monospace';
-    _ctx.fillText('F', ex + 8, ey - 8);
 }
 
 function _clearOverlay() {
@@ -2404,6 +2318,14 @@ function _clearOverlay() {
     _forceDir = null;
     _ctx.clearRect(0, 0, _overlay.width, _overlay.height);
 }
+
+// Efface la force et la flèche. Idempotent — appelé par la page hôte après
+// « Effacer force » et après « Reset » (sim.reset() ne touche pas l'overlay).
+window._clearForceUI = function () {
+    if (window.sim) window.sim.clearForce();
+    _forceOn = false;
+    _clearOverlay();
+};
 
 // Redessine l'overlay à chaque frame (suit caméra et z)
 (function _overlayLoop() {
@@ -2415,10 +2337,9 @@ function _clearOverlay() {
     _drawOverlay();
 })();
 
-document.getElementById('canvas').addEventListener('mouseup', function(e) {
-    if (e.button !== 0) return;
-    if (_leftDragging) return; // ignore si drag
-    e.preventDefault();
+// Bascule la force au point écran (clientX, clientY) : le premier appel
+// l'applique, le suivant l'efface. Partagé par le clic et le double-tap.
+window._toggleForceAt = function (clientX, clientY) {
     const sim = window.sim;
     if (!sim) return;
     if (_forceOn) {
@@ -2427,8 +2348,8 @@ document.getElementById('canvas').addEventListener('mouseup', function(e) {
         _clearOverlay();
         return;
     }
-    _forceClickX = e.clientX;
-    _forceClickY = e.clientY;
+    _forceClickX = clientX;
+    _forceClickY = clientY;
 
     // Extraire rayon depuis viewMatrix (world-to-cam, column-major)
     var vm = viewMatrix;
@@ -2437,8 +2358,8 @@ document.getElementById('canvas').addEventListener('mouseup', function(e) {
     var ro = [inv[12], inv[13], inv[14]];
     // Direction du rayon dans le monde
     var W = window.innerWidth, H = window.innerHeight;
-    var nx = ((e.clientX / W) - 0.5) * 2;
-    var ny = -((e.clientY / H) - 0.5) * 2;
+    var nx = ((clientX / W) - 0.5) * 2;
+    var ny = -((clientY / H) - 0.5) * 2;
     // fx/fy sont en pixels pour la résolution originale
     // nx,ny sont en [-1,1] pour la fenêtre courante W×H
     // direction caméra : (pixel - center) / focal
@@ -2456,12 +2377,50 @@ document.getElementById('canvas').addEventListener('mouseup', function(e) {
     var az = window._az !== undefined ? window._az : 0;
     var el = window._el !== undefined ? window._el : -90;
 
-    const r = sim.applyForceFromRay(ro, rd, az, el, window._amp || 5.0);
+    // `|| 5` traiterait une amplitude nulle (borne basse du curseur) comme 5.
+    var amp = typeof window._amp === 'number' ? window._amp : 5.0;
+    const r = sim.applyForceFromRay(ro, rd, az, el, amp);
     if (!r) return;
     _forceOn = true;
     _forceHit3D = r.hit;
     _forceDir = [az, el];
     console.log('Force appliquée : gaussienne', r.idx, '|f_z| =', Math.abs(r.fz).toFixed(4));
+};
+
+// ── Pont avec la page hôte (4dgs.html) ─────────────────────────────────
+// En file:// une iframe est d'origine opaque : la page hôte ne peut pas lire
+// `frame.contentWindow.sim`. On passe donc par postMessage, qui marche partout.
+const _post = (msg) => {
+    if (window.parent !== window)
+        window.parent.postMessage(Object.assign({ source: 'gs4d' }, msg), '*');
+};
+window._postSimStep = function (sim) {
+    _post({
+        type: 'step',
+        z: sim.state.z, v: sim.state.v, fz: sim.state.f_z,
+        E: sim.energy(sim.state.z), step: sim.state.step,
+    });
+};
+function _postReady() {
+    if (window.sim) _post({ type: 'ready', meta: window.sim.meta });
+}
+window.addEventListener('message', (e) => {
+    const d = e.data;
+    if (!d || d.source !== 'gs4d-host') return;
+    switch (d.type) {
+        case 'hello':  _postReady(); break;
+        case 'params': if (window.sim) window.sim.setParams(d.params); break;
+        case 'force':
+            if (d.amp !== undefined) window._amp = d.amp;
+            if (d.az  !== undefined) window._az  = d.az;
+            if (d.el  !== undefined) window._el  = d.el;
+            break;
+        case 'clear': window._clearForceUI(); break;
+        case 'reset':
+            if (window.sim) window.sim.reset();
+            window._clearForceUI();   // sim.reset() ne touche pas la flèche
+            break;
+    }
 });
 
 // ── Chargement de la scène : inlinée (build.py) ou fichiers voisins ──────────
@@ -2479,12 +2438,19 @@ async function loadScene() {
     return { meta, buf };
 }
 
+// Réglages de départ de la démo. Ils écrasent ceux de scene_meta.json (γ appris
+// = 0.0073, W = 0.6) : la scène est plus lisible avec un peu plus de frottement
+// et une barrière un cran plus haute. Les curseurs partent de là, et « Reset »
+// y revient.
+const DEMO_DEFAULTS = { gamma: 0.0644, w_default: 0.711, k_default: 2.0 };
+
 async function boot() {
     const { meta, buf } = await loadScene();
+    Object.assign(meta, DEMO_DEFAULTS);
     const sim = createSim(meta, decodeScene(buf, meta));
     window.sim = sim;
-    if (window.initControls) window.initControls(sim);
     await main(sim);
+    _postReady();
 }
 
 boot().catch((err) => {

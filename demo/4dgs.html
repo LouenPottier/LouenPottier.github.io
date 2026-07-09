@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FLKK795BKL"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    analytics_storage: 'denied', ad_storage: 'denied',
+    ad_user_data: 'denied', ad_personalization: 'denied', wait_for_update: 0
+  });
+  gtag('js', new Date());
+  gtag('config', 'G-FLKK795BKL');
+</script>
+<meta charset="utf-8"/>
+<meta name="description" content="An interactive 3D Gaussian Splatting scene parameterised by a latent physical state: the physics is integrated in the browser, and the gaussians follow. From Louen Pottier's work on Lagrangian Gaussian Splatting."/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Louen Pottier — 4DGS: an interactive scene driven by latent physics</title>
+<link rel="stylesheet" href="../style.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&amp;family=Source+Sans+3:wght@300;400;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+
+<style>
+/* ── 4DGS interactive note — scoped to #gs-demo, harmonised with the site theme ── */
+#gs-demo{
+  --q:#5b8fc7;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  margin-top:.5rem;
+}
+#gs-demo .thesis{
+  font-family:'Lora',Georgia,serif;
+  font-size:1.02rem;line-height:1.75;color:var(--text-mid);
+  max-width:96ch;margin:0 0 1.75rem;
+}
+#gs-demo .thesis b{color:var(--navy);font-weight:600}
+#gs-demo .qk{font-weight:600}
+
+/* ── en-tête d'expérience (sur-titre + titre), identique à la note LaGS ── */
+#gs-demo .exp-head{margin:0 0 1.2rem;}
+#gs-demo .exp-tag{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--navy-light);margin:0 0 .5rem;
+}
+#gs-demo .exp-title{
+  font-family:'Lora',Georgia,serif;font-weight:600;font-size:1.4rem;line-height:1.2;
+  color:var(--navy);margin:0;
+}
+#gs-demo .exp-divider{border:none;border-top:2px solid var(--navy);margin:2.75rem 0 1.6rem;}
+
+/* ── barre de contrôles (mêmes tokens que la note LaGS) ── */
+#gs-demo .ctl-group{margin:0 0 1.35rem;}
+#gs-demo .ctl-group-title{
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--navy-light);margin:0 0 .7rem;
+}
+#gs-demo .controls{
+  display:flex;flex-wrap:wrap;gap:14px 26px;align-items:flex-end;
+}
+#gs-demo .ctl{display:flex;flex-direction:column;gap:6px;}
+#gs-demo .ctl label{
+  font-family:var(--mono);font-size:.62rem;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--text-muted);
+}
+#gs-demo .ctl .val{color:var(--navy);font-weight:600}
+#gs-demo input[type=range]{
+  -webkit-appearance:none;appearance:none;width:138px;height:3px;border-radius:3px;
+  background:var(--border);outline:none;cursor:pointer;
+}
+#gs-demo input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  background:var(--navy);border:2px solid #fff;box-shadow:0 0 0 1px var(--border);
+}
+#gs-demo input[type=range]::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;background:var(--navy);border:2px solid #fff;
+}
+#gs-demo .btn{
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;
+  color:#fff;background:var(--navy);border:none;border-radius:var(--radius);
+  padding:9px 13px;cursor:pointer;line-height:1;
+}
+#gs-demo .btn:hover{background:var(--navy-mid)}
+#gs-demo .btn.ghost{background:none;color:var(--text-muted);border:1px solid var(--border);}
+#gs-demo .btn.ghost:hover{color:var(--navy);border-color:var(--navy-light);background:none}
+
+#gs-demo .bridge-note{
+  font-size:.8rem;line-height:1.5;color:var(--text-muted);
+  border-left:2px solid var(--border);padding-left:11px;margin:0 0 1.35rem;display:none;
+}
+#gs-demo.bridge-failed .bridge-note{display:block}
+#gs-demo.bridge-failed .ctl-group{display:none}
+
+/* ── le cadre du viewer ── */
+#gs-demo .panel{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--card-shadow);
+}
+#gs-demo .panel.q{border-top:3px solid var(--q)}
+#gs-demo .phead{padding:12px 15px 11px;border-bottom:1px solid var(--border-soft);
+  display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+#gs-demo .phead .tag{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--q);}
+#gs-demo .phead h2{font-family:'Lora',Georgia,serif;font-weight:600;font-size:1.02rem;
+  color:var(--navy);margin:3px 0 2px;}
+#gs-demo .phead .sub{font-size:.78rem;color:var(--text-muted);line-height:1.4}
+#gs-demo .phead .fs{
+  font-family:var(--mono);font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text-muted);text-decoration:none;white-space:nowrap;
+  border:1px solid var(--border);border-radius:var(--radius);padding:5px 9px;
+}
+#gs-demo .phead .fs:hover{color:var(--navy);border-color:var(--navy-light)}
+
+#gs-demo .stage{position:relative;width:100%;background:#111;line-height:0;}
+#gs-demo .stage iframe{display:block;width:100%;height:660px;border:0;}
+@media(max-width:880px){#gs-demo .stage iframe{height:520px}}
+@media(max-width:720px){#gs-demo .stage iframe{height:440px}}
+
+/* ── notes sous le cadre ── */
+#gs-demo .notes{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:1.5rem;align-items:start;
+}
+@media(max-width:880px){#gs-demo .notes{grid-template-columns:1fr}}
+#gs-demo .note{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:15px 16px 17px;box-shadow:var(--card-shadow);
+}
+#gs-demo .note h3{
+  font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--text-muted);font-weight:500;margin:0 0 .55rem;
+}
+#gs-demo .note p{font-size:.85rem;line-height:1.6;color:var(--text-mid);margin:0}
+#gs-demo .note b{color:var(--navy);font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="lang-bar">
+  <button class="lang-btn active" onclick="setLang('en')">EN</button>
+  <span class="lang-sep">·</span>
+  <button class="lang-btn" onclick="setLang('fr')">FR</button>
+</div>
+
+<nav>
+  <a class="nav-name" href="../index.html">Louen Pottier</a>
+  <ul>
+    <li><a href="../index.html" data-en="CV" data-fr="CV">CV</a></li>
+    <li><a href="../publications.html" data-en="Publications" data-fr="Publications">Publications</a></li>
+    <li><a href="../projects.html" class="active" data-en="Projects" data-fr="Projets">Projects</a></li>
+    <li><a href="../teaching.html" data-en="Teaching" data-fr="Enseignement">Teaching</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <h1 class="page-title"
+      data-en="4DGS — a 3D scene driven by latent physics"
+      data-fr="4DGS — une scène 3D pilotée par la physique latente">
+    4DGS — a 3D scene driven by latent physics
+  </h1>
+
+  <p class="page-intro" style="max-width:680px"
+     data-en="A 3D Gaussian Splatting scene whose gaussians are parameterised by a latent physical state. The equation of motion is integrated in your browser: push the object, and the whole scene follows."
+     data-fr="Une scène 3D Gaussian Splatting dont les gaussiennes sont paramétrées par un état physique latent. L'équation du mouvement est intégrée dans votre navigateur : poussez l'objet, toute la scène suit.">
+    A 3D Gaussian Splatting scene whose gaussians are parameterised by a latent physical state. The equation of motion is integrated in your browser: push the object, and the whole scene follows.
+  </p>
+
+  <div id="gs-demo">
+
+    <div class="exp-head">
+      <p class="exp-tag" data-en="interactive · runs in your browser" data-fr="interactif · s'exécute dans votre navigateur">interactive · runs in your browser</p>
+      <h2 class="exp-title" data-en="Simulating the scene, not replaying it" data-fr="Simuler la scène, plutôt que la rejouer">Simulating the scene, not replaying it</h2>
+    </div>
+
+    <p class="thesis"
+       data-en="A conventional 4D Gaussian Splatting scene is indexed by <b>time</b>: it can only replay what was filmed. Here the gaussians are indexed by a <b>latent state</b> <span class='qk'>q</span>, one single degree of freedom that summarises the configuration of the object. A learned Lagrangian gives its energy <span class='qk'>E(q)</span>, and the equation of motion is integrated step by step. Applying a force &mdash; with the slider, or by clicking directly on the object &mdash; changes <span class='qk'>q</span>, and every gaussian is re-evaluated at the new state. Nothing is pre-recorded: what you see is a <b>simulation</b>, computed at each frame, with no server and no dedicated GPU."
+       data-fr="Une scène 4D Gaussian Splatting classique est indexée par le <b>temps</b> : elle ne peut que rejouer ce qui a été filmé. Ici les gaussiennes sont indexées par un <b>état latent</b> <span class='qk'>q</span>, un unique degré de liberté qui résume la configuration de l'objet. Un lagrangien appris donne son énergie <span class='qk'>E(q)</span>, et l'équation du mouvement est intégrée pas à pas. Appliquer une force &mdash; avec le curseur, ou en cliquant directement sur l'objet &mdash; modifie <span class='qk'>q</span>, et chaque gaussienne est réévaluée au nouvel état. Rien n'est pré-enregistré : ce que vous voyez est une <b>simulation</b>, calculée à chaque image, sans serveur ni GPU dédié.">
+    </p>
+
+    <p class="bridge-note"
+       data-en="The controls never got an answer from the viewer &mdash; it probably failed to load its scene. The viewer below may still work on its own."
+       data-fr="Les contrôles n'ont reçu aucune réponse du viewer &mdash; sa scène ne s'est probablement pas chargée. Le viewer ci-dessous peut malgré tout fonctionner seul."></p>
+
+    <div class="ctl-group">
+      <p class="ctl-group-title" data-en="Latent physics" data-fr="Physique latente">Latent physics</p>
+      <div class="controls">
+        <div class="ctl">
+          <label><span class="lbl" data-en="Latent force f_ext" data-fr="Force latente f_ext">Latent force f_ext</span> <span class="val" id="v-fext">0.00</span></label>
+          <input id="sl-fext" type="range" min="-2" max="2" step="0.02" value="0">
+        </div>
+        <div class="ctl">
+          <label><span class="lbl" data-en="Damping γ" data-fr="Frottement γ">Damping γ</span> <span class="val" id="v-gamma">—</span></label>
+          <input id="sl-gamma" type="range">
+        </div>
+        <div class="ctl">
+          <label><span class="lbl" data-en="Barrier W" data-fr="Barrière W">Barrier W</span> <span class="val" id="v-W">—</span></label>
+          <input id="sl-W" type="range">
+        </div>
+        <div class="ctl">
+          <label><span class="lbl" data-en="Stiffness k" data-fr="Raideur k">Stiffness k</span> <span class="val" id="v-k">—</span></label>
+          <input id="sl-k" type="range">
+        </div>
+      </div>
+    </div>
+
+    <div class="ctl-group">
+      <p class="ctl-group-title" data-en="3D force applied on click" data-fr="Force 3D appliquée au clic">3D force applied on click</p>
+      <div class="controls">
+        <div class="ctl">
+          <label><span class="lbl" data-en="Amplitude" data-fr="Amplitude">Amplitude</span> <span class="val" id="v-amp">—</span></label>
+          <input id="sl-amp" type="range">
+        </div>
+        <div class="ctl">
+          <label><span class="lbl" data-en="Azimuth °" data-fr="Azimut °">Azimuth °</span> <span class="val" id="v-az">0</span></label>
+          <input id="sl-az" type="range" min="-180" max="180" step="5" value="0">
+        </div>
+        <div class="ctl">
+          <label><span class="lbl" data-en="Elevation °" data-fr="Élévation °">Elevation °</span> <span class="val" id="v-el">-90</span></label>
+          <input id="sl-el" type="range" min="-90" max="90" step="5" value="-90">
+        </div>
+        <button class="btn ghost" id="btn-clear" data-en="✖ Clear force" data-fr="✖ Effacer force">✖ Clear force</button>
+        <button class="btn" id="btn-reset" data-en="↺ Reset" data-fr="↺ Reset">↺ Reset</button>
+      </div>
+    </div>
+
+    <section class="panel q">
+      <div class="phead">
+        <div>
+          <div class="tag" data-en="4DGS · latent state" data-fr="4DGS · état latent">4DGS · latent state</div>
+          <h2 data-en="Interactive viewer" data-fr="Viewer interactif">Interactive viewer</h2>
+          <div class="sub"
+               data-en="click the object to push it, click again to release · drag to rotate the scene around its centre · scroll to zoom in and out · on touch: drag to rotate, pinch to zoom, double-tap to push"
+               data-fr="cliquer sur l'objet pour le pousser, cliquer à nouveau pour relâcher · glisser pour faire tourner la scène autour de son centre · molette pour zoomer · au doigt : glisser pour tourner, pincer pour zoomer, double-tap pour pousser">
+            click the object to push it, click again to release · drag to rotate the scene around its centre · scroll to zoom in and out · on touch: drag to rotate, pinch to zoom, double-tap to push
+          </div>
+        </div>
+        <a class="fs" href="3d.html" target="_blank" rel="noopener"
+           data-en="↗ Full screen" data-fr="↗ Plein écran">↗ Full screen</a>
+      </div>
+
+      <div class="stage">
+        <iframe id="viewer" src="3d.html?embed=1" allowfullscreen
+                title="4DGS interactive viewer"></iframe>
+      </div>
+    </section>
+
+    <div class="notes">
+      <div class="note">
+        <h3 data-en="The latent state" data-fr="L'état latent">The latent state</h3>
+        <p data-en="One scalar <b>q</b> encodes the whole configuration of the object. Its dynamics come from a learned Lagrangian: a potential <b>E(q)</b> with a barrier of height <b>W</b>, a stiffness <b>k</b>, and viscous damping <b>&gamma;</b>."
+           data-fr="Un scalaire <b>q</b> encode toute la configuration de l'objet. Sa dynamique vient d'un lagrangien appris : un potentiel <b>E(q)</b> avec une barrière de hauteur <b>W</b>, une raideur <b>k</b> et un frottement visqueux <b>&gamma;</b>."></p>
+      </div>
+      <div class="note">
+        <h3 data-en="From 3D force to latent force" data-fr="De la force 3D à la force latente">From 3D force to latent force</h3>
+        <p data-en="Clicking on the object applies a force in 3D space. It is projected onto the latent direction through the decoder's Jacobian, which turns it into a scalar force <b>f_q</b> added to the right-hand side of the equation of motion."
+           data-fr="Cliquer sur l'objet applique une force dans l'espace 3D. Elle est projetée sur la direction latente via la jacobienne du décodeur, ce qui la transforme en une force scalaire <b>f_q</b> ajoutée au second membre de l'équation du mouvement."></p>
+      </div>
+      <div class="note">
+        <h3 data-en="Everything client-side" data-fr="Tout côté client">Everything client-side</h3>
+        <p data-en="The gaussians, the network weights and the integrator all live in this page. The physics runs at <b>10&nbsp;Hz</b>, the renderer at screen rate &mdash; no server call, no dedicated GPU."
+           data-fr="Les gaussiennes, les poids du réseau et l'intégrateur vivent tous dans cette page. La physique tourne à <b>10&nbsp;Hz</b>, le rendu à la fréquence de l'écran &mdash; aucun appel serveur, aucun GPU dédié."></p>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<footer><p data-en="Lovingly vibe-coded in html/css/js · Last updated July 2026" data-fr="Vibe-codé avec amour en html/css/js · Dernière màj juillet 2026">Vibe-codé avec amour en html/css/js · Dernière màj juillet 2026</p></footer>
+
+<script>
+"use strict";
+// ── Pont page hôte ↔ viewer ────────────────────────────────────────────────
+// Tout passe par postMessage : ouverte en file://, l'iframe a une origine
+// opaque et `frame.contentWindow.sim` lèverait une SecurityError. Le viewer
+// annonce `ready` avec les bornes de scene_meta.json.
+(function () {
+  const demo  = document.getElementById('gs-demo');
+  const frame = document.getElementById('viewer');
+  let bound = false;
+
+  const send = (msg) => {
+    msg.source = 'gs4d-host';
+    if (frame.contentWindow) frame.contentWindow.postMessage(msg, '*');
+  };
+
+  // Le viewer décode plusieurs Mo de gaussiennes avant d'être prêt.
+  const giveUp = setTimeout(() => {
+    if (!bound) demo.classList.add('bridge-failed');
+  }, 30000);
+
+  window.addEventListener('message', (e) => {
+    const d = e.data;
+    if (!d || d.source !== 'gs4d' || e.source !== frame.contentWindow) return;
+    if (d.type === 'ready' && !bound) {
+      bound = true;
+      clearTimeout(giveUp);
+      bind(d.meta);
+    }
+  });
+
+  // Le viewer peut être prêt avant nous (cache) ou après : on demande, il
+  // répond ; et s'il n'était pas encore né, son propre `ready` nous trouvera.
+  frame.addEventListener('load', () => send({ type: 'hello' }));
+  send({ type: 'hello' });
+
+  function bind(m) {
+    // Bornes issues de scene_meta.json. step="any" : sinon le navigateur aimante
+    // la valeur sur un cran et γ démarrerait à 0.0075 au lieu du γ appris.
+    const range = (id, min, max, step, value) => {
+      const el = document.getElementById(id);
+      el.min = min; el.max = max; el.step = step; el.value = value;
+    };
+    range('sl-gamma', 0, m.gamma_max, 'any', m.gamma);
+    range('sl-W', 0, m.w_max, 'any', m.w_default);
+    range('sl-k', 0.1, 20, 0.1, m.k_default);
+    range('sl-amp', 0, m.amp_max, 'any', m.amp_default);
+
+    const pushers = [];
+    const bindSlider = (id, valId, decimals, onChange) => {
+      const sl = document.getElementById(id);
+      const lbl = document.getElementById(valId);
+      const push = () => {
+        const v = parseFloat(sl.value);
+        lbl.textContent = v.toFixed(decimals);
+        onChange(v);
+      };
+      sl.addEventListener('input', push);
+      pushers.push(push);
+      push();
+    };
+
+    bindSlider('sl-fext',  'v-fext',  2, (v) => send({ type: 'params', params: { f_ext: v } }));
+    bindSlider('sl-gamma', 'v-gamma', 4, (v) => send({ type: 'params', params: { gamma: v } }));
+    bindSlider('sl-W',     'v-W',     3, (v) => send({ type: 'params', params: { W: v } }));
+    bindSlider('sl-k',     'v-k',     1, (v) => send({ type: 'params', params: { k: v } }));
+    bindSlider('sl-amp',   'v-amp',   0, (v) => send({ type: 'force', amp: v }));
+    bindSlider('sl-az',    'v-az',    0, (v) => send({ type: 'force', az: v }));
+    bindSlider('sl-el',    'v-el',    0, (v) => send({ type: 'force', el: v }));
+
+    document.getElementById('btn-clear')
+      .addEventListener('click', () => send({ type: 'clear' }));
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      send({ type: 'reset' });   // remet z, v et efface la flèche de force
+      document.getElementById('sl-fext').value = 0;
+      document.getElementById('sl-gamma').value = m.gamma;
+      document.getElementById('sl-W').value = m.w_default;
+      document.getElementById('sl-k').value = m.k_default;
+      pushers.forEach((p) => p());   // resynchronise labels et viewer sur les curseurs
+    });
+  }
+})();
+</script>
+
+<script src="../lang.js"></script>
+</body>
+</html>
