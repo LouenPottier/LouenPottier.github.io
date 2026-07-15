@@ -2553,15 +2553,15 @@ async function loadScene() {
     return { meta, buf };
 }
 
-// Réglages de départ de la démo. Ils écrasent ceux de scene_meta.json (γ appris
-// = 0.0073, W = 0.6) : la scène est plus lisible avec un peu plus de frottement
-// et une barrière un cran plus haute. Les curseurs partent de là, et « Reset »
-// y revient.
-// time_scale_default : à caler pour que l'oscillation de la scène ait la même
-// période que celle de la vidéo d'entraînement.
+// Réglages de départ de la démo. Les curseurs partent de là, et « Reset » y revient.
+//   gamma : frottement APPRIS par le LNN (0.0073), pour reproduire fidèlement la
+//           dynamique de la vidéo (mêmes valeurs que la validation RK4 de viz.py).
+//   w_default = 0 : barrière désactivée pour l'instant (oscillation libre).
+//   time_scale_default = 2.5 : la vidéo est à 25 fps, la démo avance à 10·time_scale
+//           frames/s (physics_dt = 0.1) → 2.5 pour caler la période sur la vidéo.
 const DEMO_DEFAULTS = {
-    gamma: 0.0644, w_default: 0.711, k_default: 2.0,
-    time_scale_default: 1.0, time_scale_max: 4.0,
+    gamma: 0.0072911991737782955, w_default: 0.0, k_default: 2.0,
+    time_scale_default: 2.5, time_scale_max: 4.0,
     // Vitesse latente initiale : v0 = z_enc[1] − z_enc[0] (différence avant, dt = 1
     // frame), comme la validation RK4 de viz.py. La scène ne part PAS au repos —
     // au premier instant l'objet descend encore (v0 < 0). Recalculé en ré-encodant
