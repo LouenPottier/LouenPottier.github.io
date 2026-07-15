@@ -385,6 +385,37 @@ function createSim(meta, scene) {
         acc: 0,            // accumulateur temps réel
     };
 
+    // ── Plafond d'énergie ─────────────────────────────────────────────────────
+    // L'énergie mécanique E_mech(z,v) = E(z) + ½v² (potentielle + cinétique) est
+    // maximale à t=0, au point de départ (z0, v0). En oscillation libre le frottement
+    // ne fait que la dissiper : elle ne repasse jamais au-dessus de ce seuil, et la
+    // scène reste donc dans [z_min, z_max] (les points de rebroussement de t=0).
+    //
+    // Un effort extérieur f = f_ext + f_z, lui, peut injecter de l'énergie : sa
+    // puissance est exactement P = f·v (car dE_mech/dt = f·v − frottement·v²). Pour
+    // qu'il ne puisse pas dépasser le seuil, on applique f* = α·f, avec α = 1 quand
+    // l'effort dissipe (P<0) ou que l'énergie est sous le plafond, et α → 0 quand
+    // l'effort ajoute de l'énergie (P>0) alors que le plafond est atteint. L'effort
+    // reste ainsi pleinement réactif partout, sauf pour ce qui ferait dépasser le seuil.
+    // Contrairement à la barrière W/k, ce plafond ne modifie pas la dynamique libre,
+    // donc pas la fréquence propre de l'oscillation.
+    const E_MAX = energy(meta.z0) + 0.5 * (meta.v0 ?? 0) * (meta.v0 ?? 0);
+    // Largeurs de lissage (transitions douces, sans sous-échantillonnage) :
+    //   E_GATE — bande d'énergie autour du plafond (fraction du seuil). Large exprès :
+    //            le plafond agit en douceur et tolère un léger dépassement, plutôt que
+    //            de couper l'effort net comme un mur.
+    //   V_GATE — bande de vitesse autour de P=0, pour distinguer en douceur un effort
+    //            qui dissipe d'un effort qui ajoute (indépendant de l'amplitude de f).
+    const E_GATE = 0.15 * E_MAX + 1e-6;
+    const V_GATE = 0.05;
+    function effortGate(z, v, f) {
+        if (f === 0) return 1;                       // pas d'effort : rien à limiter
+        const Emech = energy(z) + 0.5 * v * v;
+        const gE = 0.5 * (1 + Math.tanh((Emech - E_MAX) / E_GATE));   // 1 si plafond atteint
+        const sP = 0.5 * (1 + Math.tanh((f * v / Math.abs(f)) / V_GATE)); // 1 si l'effort ajoute
+        return 1 - gE * sP;
+    }
+
     // _accel de gradio_sim_3d.py:375 — sans Minv, Gamma, Beta matriciels ni contact
     // (absents de config.py), et sans autograd puisque dE/dz est analytique.
     function accel(z, v, gammaScale) {
@@ -392,8 +423,9 @@ function createSim(meta, scene) {
         a -= GAMMA_LEARNED * gammaScale * v;
         const vNorm = Math.max(Math.abs(v), 1e-6);
         a -= BETA_LEARNED * gammaScale * v / vNorm;
-        a += st.f_ext;
-        a += st.f_z;
+        // Effort extérieur plafonné en énergie : f* = α·(f_ext + f_z).
+        const f = st.f_ext + st.f_z;
+        a += effortGate(z, v, f) * f;
         return a;
     }
 
