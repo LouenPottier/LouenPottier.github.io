@@ -1358,9 +1358,10 @@ void main () {
 
 // ── Réglages de netteté (tweakables à chaud depuis la console : window._SHARP) ──
 //   ssaa       : #1 supersampling — rend à ×ssaa la résolution native puis downscale
-//   splatScale : #2 taille linéaire de chaque splat (1 = neutre, <1 = plus net, trous si trop bas)
+//   splatScale : #2 taille linéaire de chaque splat (1 = neutre ; >1 comble les trous, <1 resserre)
 //   sharpen    : #3 intensité de l'unsharp mask post-process (0 = désactivé)
-const SHARP = { ssaa: 1.5, splatScale: 0.85, sharpen: 0.35 };
+// Réglage retenu : splats légèrement élargis (1.1) rattrapés par un sharpening fort (1.2).
+const SHARP = { ssaa: 1.5, splatScale: 1.1, sharpen: 1.2 };
 window._SHARP = SHARP;
 
 // Passe plein écran : triangle couvrant généré depuis gl_VertexID (aucun attribut).
