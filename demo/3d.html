@@ -1285,6 +1285,7 @@ uniform highp usampler2D u_texture;
 uniform mat4 projection, view;
 uniform vec2 focal;
 uniform vec2 viewport;
+uniform float u_splatScale;   // #2 netteté : resserre la covariance de chaque splat (1.0 = neutre)
 
 in vec2 position;
 in int index;
@@ -1305,7 +1306,7 @@ void main () {
 
     uvec4 cov = texelFetch(u_texture, ivec2(((uint(index) & 0x3ffu) << 1) | 1u, uint(index) >> 10), 0);
     vec2 u1 = unpackHalf2x16(cov.x), u2 = unpackHalf2x16(cov.y), u3 = unpackHalf2x16(cov.z);
-    mat3 Vrk = mat3(u1.x, u1.y, u2.x, u1.y, u2.y, u3.x, u2.x, u3.x, u3.y);
+    mat3 Vrk = mat3(u1.x, u1.y, u2.x, u1.y, u2.y, u3.x, u2.x, u3.x, u3.y) * (u_splatScale * u_splatScale);
 
     mat3 J = mat3(
         focal.x / cam.z, 0., -(focal.x * cam.x) / (cam.z * cam.z),
@@ -1355,6 +1356,46 @@ void main () {
 
 `.trim();
 
+// ── Réglages de netteté (tweakables à chaud depuis la console : window._SHARP) ──
+//   ssaa       : #1 supersampling — rend à ×ssaa la résolution native puis downscale
+//   splatScale : #2 taille linéaire de chaque splat (1 = neutre, <1 = plus net, trous si trop bas)
+//   sharpen    : #3 intensité de l'unsharp mask post-process (0 = désactivé)
+const SHARP = { ssaa: 1.5, splatScale: 0.85, sharpen: 0.35 };
+window._SHARP = SHARP;
+
+// Passe plein écran : triangle couvrant généré depuis gl_VertexID (aucun attribut).
+const sharpenVertSource = `#version 300 es
+precision highp float;
+out vec2 vUv;
+void main() {
+    vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2));
+    vUv = p;
+    gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0);
+}
+`.trim();
+
+// Unsharp mask 5 taps : rehausse les hautes fréquences (contours des splats).
+const sharpenFragSource = `#version 300 es
+precision highp float;
+uniform sampler2D u_scene;
+uniform vec2 u_texel;      // 1/largeur, 1/hauteur du framebuffer
+uniform float u_amount;    // intensité du sharpening
+in vec2 vUv;
+out vec4 fragColor;
+void main() {
+    vec3 c = texture(u_scene, vUv).rgb;
+    if (u_amount <= 0.0) { fragColor = vec4(c, 1.0); return; }
+    vec3 blur = (
+        texture(u_scene, vUv + vec2( u_texel.x, 0.0)).rgb +
+        texture(u_scene, vUv + vec2(-u_texel.x, 0.0)).rgb +
+        texture(u_scene, vUv + vec2(0.0,  u_texel.y)).rgb +
+        texture(u_scene, vUv + vec2(0.0, -u_texel.y)).rgb
+    ) * 0.25;
+    vec3 sharp = c + u_amount * (c - blur);
+    fragColor = vec4(clamp(sharp, 0.0, 1.0), 1.0);
+}
+`.trim();
+
 let defaultViewMatrix = [
     1, 0, 0, 0,  0, 1, 0, 0,  0, 0, 1, 0,  0, 0, 0, 1,
 ];
@@ -1401,7 +1442,8 @@ async function main(sim) {
 
     const rowLength = 3 * 4 + 3 * 4 + 4 + 4;
     let splatData = new Uint8Array(rowLength * sim.scene.K);
-    const downsample = sim.scene.K > 500000 ? 1 : 1 / devicePixelRatio;
+    // #1 SSAA : on rend à ×SHARP.ssaa la résolution native, le canvas downscale ensuite.
+    const downsample = (sim.scene.K > 500000 ? 1 : 1 / devicePixelRatio) / SHARP.ssaa;
 
     const worker = new Worker(
         URL.createObjectURL(
@@ -1459,6 +1501,63 @@ async function main(sim) {
     if (!gl.getProgramParameter(program, gl.LINK_STATUS))
         console.error(gl.getProgramInfoLog(program));
 
+    const u_splatScale = gl.getUniformLocation(program, "u_splatScale");
+
+    // ── Post-process : programme de sharpening + framebuffer hors écran ──
+    const compileShader = (type, src) => {
+        const sh = gl.createShader(type);
+        gl.shaderSource(sh, src);
+        gl.compileShader(sh);
+        if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS))
+            console.error(gl.getShaderInfoLog(sh));
+        return sh;
+    };
+    const sharpenProgram = gl.createProgram();
+    gl.attachShader(sharpenProgram, compileShader(gl.VERTEX_SHADER, sharpenVertSource));
+    gl.attachShader(sharpenProgram, compileShader(gl.FRAGMENT_SHADER, sharpenFragSource));
+    gl.linkProgram(sharpenProgram);
+    if (!gl.getProgramParameter(sharpenProgram, gl.LINK_STATUS))
+        console.error(gl.getProgramInfoLog(sharpenProgram));
+    const u_scene   = gl.getUniformLocation(sharpenProgram, "u_scene");
+    const u_texel   = gl.getUniformLocation(sharpenProgram, "u_texel");
+    const u_amount  = gl.getUniformLocation(sharpenProgram, "u_amount");
+    const sharpenVAO = gl.createVertexArray();   // VAO vide isolé pour la passe plein écran
+
+    const sceneTex = gl.createTexture();
+    const sceneFBO = gl.createFramebuffer();
+    const allocFBO = (w, h) => {
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, sceneTex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFBO);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, sceneTex, 0);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.activeTexture(gl.TEXTURE0);   // rendre l'unité 0 (usampler des splats) active à nouveau
+    };
+
+    // Passe finale : lit sceneTex, applique l'unsharp mask, écrit à l'écran.
+    const drawSharpen = () => {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.useProgram(sharpenProgram);
+        gl.disable(gl.BLEND);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, sceneTex);
+        gl.uniform1i(u_scene, 1);
+        gl.uniform2f(u_texel, 1 / gl.canvas.width, 1 / gl.canvas.height);
+        gl.uniform1f(u_amount, SHARP.sharpen);
+        gl.bindVertexArray(sharpenVAO);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.bindVertexArray(null);
+        // restaurer l'état attendu par la passe splats de la frame suivante
+        gl.useProgram(program);
+        gl.enable(gl.BLEND);
+        gl.activeTexture(gl.TEXTURE0);
+    };
+
     gl.disable(gl.DEPTH_TEST); // Disable depth testing
 
     // Enable blending
@@ -1515,6 +1614,7 @@ async function main(sim) {
         gl.canvas.width = Math.round(innerWidth / downsample);
         gl.canvas.height = Math.round(innerHeight / downsample);
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        allocFBO(gl.canvas.width, gl.canvas.height);   // FBO du post-process à la même taille
 
         gl.uniformMatrix4fv(u_projection, false, projectionMatrix);
     };
@@ -2138,10 +2238,17 @@ async function main(sim) {
         if (vertexCount > 0) {
             document.getElementById("spinner").style.display = "none";
             gl.uniformMatrix4fv(u_view, false, actualViewMatrix);
+            // Passe 1 : splats rendus dans le FBO hors écran.
+            gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFBO);
+            gl.uniform1f(u_splatScale, SHARP.splatScale);
             gl.clear(gl.COLOR_BUFFER_BIT);
             gl.drawArraysInstanced(gl.TRIANGLE_FAN, 0, 4, vertexCount);
+            // Passe 2 : sharpening du FBO vers l'écran.
+            drawSharpen();
         } else {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFBO);
             gl.clear(gl.COLOR_BUFFER_BIT);
+            drawSharpen();
             // document.getElementById("spinner").style.display = "";  // disabled
             start = Date.now() + 2000;
         }
