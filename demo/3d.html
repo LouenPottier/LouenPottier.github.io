@@ -376,7 +376,7 @@ function createSim(meta, scene) {
     }
 
     const st = {
-        z: meta.z0, v: 0, step: 0,
+        z: meta.z0, v: meta.v0 ?? 0, step: 0,
         f_ext: 0, gamma: GAMMA_LEARNED, W: meta.w_default, k: meta.k_default,
         timeScale: meta.time_scale_default,   // secondes simulées par seconde réelle
         f_z: 0,            // force latente issue du clic 3D, persistante
@@ -501,7 +501,7 @@ function createSim(meta, scene) {
     function clearForce() { st.f_z = 0; st.hitWeights = null; st.hitIdx = -1; }
 
     function reset() {
-        st.z = meta.z0; st.v = 0; st.step = 0; st.acc = 0;
+        st.z = meta.z0; st.v = meta.v0 ?? 0; st.step = 0; st.acc = 0;
         clearForce();
     }
 
@@ -528,8 +528,11 @@ function createSim(meta, scene) {
             if (p.time_scale !== undefined) st.timeScale = p.time_scale;
         },
         // Rejoue N pas depuis z0 — utilisé par check_parity.py.
+        // v = 0 en dur : parity_ref.json a été généré depuis le repos, indépendamment
+        // de la vitesse initiale v0 de la démo.
         parity(steps, params) {
             reset();
+            st.v = 0;
             this.setParams(params);
             const out = [];
             for (let i = 0; i < steps; i++) { rk4Step(); out.push(st.z); }
@@ -2559,6 +2562,11 @@ async function loadScene() {
 const DEMO_DEFAULTS = {
     gamma: 0.0644, w_default: 0.711, k_default: 2.0,
     time_scale_default: 1.0, time_scale_max: 4.0,
+    // Vitesse latente initiale : v0 = z_enc[1] − z_enc[0] (différence avant, dt = 1
+    // frame), comme la validation RK4 de viz.py. La scène ne part PAS au repos —
+    // au premier instant l'objet descend encore (v0 < 0). Recalculé en ré-encodant
+    // rainbow1.mp4 avec encoder_finetuned.pt (z0 = -1.6598 → z1 = -1.9015).
+    v0: -0.24168360233306885,
 };
 
 async function boot() {
