@@ -305,7 +305,7 @@
 
     <div class="train">
       <figure>
-        <video autoplay loop muted playsinline preload="metadata"
+        <video id="train-video" autoplay loop muted playsinline preload="metadata"
                src="../videos/4dgs_training.mp4"></video>
         <p class="cap"
            data-en="The training video: a rocking chair released and left to oscillate, filmed by a single fixed camera."
@@ -439,8 +439,14 @@
     // Remet l'état latent (q, v) à son point de départ et efface la flèche de
     // force. Les curseurs ne bougent pas : les paramètres du modèle sont un
     // réglage de l'utilisateur, pas une partie de l'état simulé.
+    // Relance aussi la vidéo de référence depuis le début, pour que la scène
+    // simulée et la vidéo repartent synchronisées.
     document.getElementById('btn-reset')
-      .addEventListener('click', () => send({ type: 'reset' }));
+      .addEventListener('click', () => {
+        send({ type: 'reset' });
+        const video = document.getElementById('train-video');
+        if (video) { video.currentTime = 0; video.play().catch(() => {}); }
+      });
   }
 })();
 </script>
