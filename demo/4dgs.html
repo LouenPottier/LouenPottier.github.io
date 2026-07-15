@@ -243,6 +243,10 @@
           <label><span class="lbl" data-en="Stiffness k" data-fr="Raideur k">Stiffness k</span> <span class="val" id="v-k">—</span></label>
           <input id="sl-k" type="range">
         </div>
+        <div class="ctl">
+          <label><span class="lbl" data-en="Time scale" data-fr="Échelle de temps">Time scale</span> <span class="val" id="v-ts">—</span></label>
+          <input id="sl-ts" type="range">
+        </div>
       </div>
     </div>
 
@@ -406,8 +410,8 @@
     range('sl-W', 0, m.w_max, 'any', m.w_default);
     range('sl-k', 0.1, 20, 0.1, m.k_default);
     range('sl-amp', 0, m.amp_max, 'any', m.amp_default);
+    range('sl-ts', 0.1, m.time_scale_max, 0.01, m.time_scale_default);
 
-    const pushers = [];
     const bindSlider = (id, valId, decimals, onChange) => {
       const sl = document.getElementById(id);
       const lbl = document.getElementById(valId);
@@ -417,7 +421,6 @@
         onChange(v);
       };
       sl.addEventListener('input', push);
-      pushers.push(push);
       push();
     };
 
@@ -425,6 +428,7 @@
     bindSlider('sl-gamma', 'v-gamma', 4, (v) => send({ type: 'params', params: { gamma: v } }));
     bindSlider('sl-W',     'v-W',     3, (v) => send({ type: 'params', params: { W: v } }));
     bindSlider('sl-k',     'v-k',     1, (v) => send({ type: 'params', params: { k: v } }));
+    bindSlider('sl-ts',    'v-ts',    2, (v) => send({ type: 'params', params: { time_scale: v } }));
     bindSlider('sl-amp',   'v-amp',   0, (v) => send({ type: 'force', amp: v }));
     bindSlider('sl-az',    'v-az',    0, (v) => send({ type: 'force', az: v }));
     bindSlider('sl-el',    'v-el',    0, (v) => send({ type: 'force', el: v }));
@@ -432,14 +436,11 @@
     document.getElementById('btn-clear')
       .addEventListener('click', () => send({ type: 'clear' }));
 
-    document.getElementById('btn-reset').addEventListener('click', () => {
-      send({ type: 'reset' });   // remet z, v et efface la flèche de force
-      document.getElementById('sl-fext').value = 0;
-      document.getElementById('sl-gamma').value = m.gamma;
-      document.getElementById('sl-W').value = m.w_default;
-      document.getElementById('sl-k').value = m.k_default;
-      pushers.forEach((p) => p());   // resynchronise labels et viewer sur les curseurs
-    });
+    // Remet l'état latent (q, v) à son point de départ et efface la flèche de
+    // force. Les curseurs ne bougent pas : les paramètres du modèle sont un
+    // réglage de l'utilisateur, pas une partie de l'état simulé.
+    document.getElementById('btn-reset')
+      .addEventListener('click', () => send({ type: 'reset' }));
   }
 })();
 </script>

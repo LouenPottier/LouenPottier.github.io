@@ -378,6 +378,7 @@ function createSim(meta, scene) {
     const st = {
         z: meta.z0, v: 0, step: 0,
         f_ext: 0, gamma: GAMMA_LEARNED, W: meta.w_default, k: meta.k_default,
+        timeScale: meta.time_scale_default,   // secondes simulées par seconde réelle
         f_z: 0,            // force latente issue du clic 3D, persistante
         hitWeights: null,  // Float32Array (K,) — poids normalisés au moment du clic
         hitIdx: -1,
@@ -505,8 +506,10 @@ function createSim(meta, scene) {
     }
 
     // Cadence fixe : PHYSICS_DT = 1/10 s par pas RK4, quel que soit le refresh écran.
+    // timeScale étire ou comprime le temps simulé, pour caler l'oscillation de la
+    // scène sur celle de la vidéo d'entraînement.
     function tick(dtWall) {
-        st.acc += Math.min(dtWall, 0.25);   // pas de rattrapage explosif après un freeze
+        st.acc += Math.min(dtWall * st.timeScale, 0.25);   // pas de rattrapage explosif après un freeze
         let n = 0;
         while (st.acc >= meta.physics_dt && n < 5) { rk4Step(); st.acc -= meta.physics_dt; n++; }
         return n;
@@ -522,6 +525,7 @@ function createSim(meta, scene) {
             if (p.gamma !== undefined) st.gamma = p.gamma;
             if (p.W !== undefined) st.W = p.W;
             if (p.k !== undefined) st.k = p.k;
+            if (p.time_scale !== undefined) st.timeScale = p.time_scale;
         },
         // Rejoue N pas depuis z0 — utilisé par check_parity.py.
         parity(steps, params) {
@@ -2442,7 +2446,12 @@ async function loadScene() {
 // = 0.0073, W = 0.6) : la scène est plus lisible avec un peu plus de frottement
 // et une barrière un cran plus haute. Les curseurs partent de là, et « Reset »
 // y revient.
-const DEMO_DEFAULTS = { gamma: 0.0644, w_default: 0.711, k_default: 2.0 };
+// time_scale_default : à caler pour que l'oscillation de la scène ait la même
+// période que celle de la vidéo d'entraînement.
+const DEMO_DEFAULTS = {
+    gamma: 0.0644, w_default: 0.711, k_default: 2.0,
+    time_scale_default: 1.0, time_scale_max: 4.0,
+};
 
 async function boot() {
     const { meta, buf } = await loadScene();
