@@ -1852,8 +1852,27 @@ async function main(sim) {
             pivot[2] - fwd[2] * orbitRadius,
         ]);
     }
+    // Vue initiale = exactement la vue par défaut (viewMatrix identity), qui
+    // correspond à la caméra réelle : la scène est exprimée dans son repère,
+    // donc identity reproduit le cadrage de la vidéo de référence. On la recule
+    // simplement le long de son propre axe optique pour dézoomer, sans toucher
+    // à l'orientation : la perspective reste rigoureusement identique à la
+    // vidéo, seul le champ s'élargit. (L'ancien frameScene() réorientait la
+    // caméra vers le barycentre — lookAtPivot — et déviait donc du cadrage réel.)
+    // ZOOM_OUT = fraction de la distance actuelle dont on recule
+    // (0.6 → objet ~1.6× plus petit).
+    function dollyOutFromReference(ZOOM_OUT) {
+        const inv = camToWorld();
+        const fwd = norm3([inv[8], inv[9], inv[10]]);   // +Z caméra = avant
+        const pull = len3(sub3([inv[12], inv[13], inv[14]], pivot)) * ZOOM_OUT;
+        inv[12] -= fwd[0] * pull;
+        inv[13] -= fwd[1] * pull;
+        inv[14] -= fwd[2] * pull;
+        viewMatrix = invert4(inv);
+        orbitRadius = len3(sub3(getCamPos(), pivot));
+    }
     if (viewFromHash) orbitRadius = len3(sub3(getCamPos(), pivot));
-    else frameScene();
+    else dollyOutFromReference(1.2);
 
     // Glissé → la scène tourne autour de son centre : la caméra se déplace sur
     // une sphère centrée sur le pivot, sans jamais cesser de le viser.
