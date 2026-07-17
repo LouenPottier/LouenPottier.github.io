@@ -179,7 +179,9 @@
 	<body>
 		<script>
 			if(location.host.includes('hf.space')) document.body.classList.add('nohf');
-			if(new URLSearchParams(location.search).has('embed')) document.body.classList.add('embed');
+			// Embarquée dans lags_demo.html : la scène démarre EN PAUSE (physique gelée) ;
+			// la page hôte la relance via le bouton play/pause ou « Reset & sync ».
+			if(new URLSearchParams(location.search).has('embed')){ document.body.classList.add('embed'); window._paused = true; }
 		</script>
 		<div id="info">
 			<h3 class="nohf">4DGS paramétré dans la variable latente — simulation interactive</h3>
@@ -1469,6 +1471,7 @@ let viewMatrix = defaultViewMatrix;
 let _yaw = 0, _pitch = 0, _roll = 0;
 
 function _buildViewFromYawPitch() {
+    if (window._paused) return;   // viewer figé : caméra verrouillée
     let inv = invert4(viewMatrix);
     let px = inv[12], py = inv[13], pz = inv[14];
     // camToWorld = Ry(yaw) * Rx(pitch) * Rz(roll), column-major
@@ -1905,6 +1908,7 @@ async function main(sim) {
     // Glissé → la scène tourne autour de son centre : la caméra se déplace sur
     // une sphère centrée sur le pivot, sans jamais cesser de le viser.
     function orbitAroundPivot(dx, dy) {
+        if (window._paused) return;   // viewer figé : caméra verrouillée (pas de saut au play)
         const inv = camToWorld();
         let off = rot3(sub3([inv[12], inv[13], inv[14]], pivot), worldUp, dx);
         const right = norm3(rot3([inv[0], inv[1], inv[2]], worldUp, dx));
@@ -1918,6 +1922,7 @@ async function main(sim) {
     // Zoom → homothétie de la position caméra autour du pivot : on se rapproche
     // ou on s'éloigne de l'objet, sans changer l'orientation.
     function zoomBy(factor) {
+        if (window._paused) return;   // viewer figé : caméra verrouillée
         const inv = camToWorld();
         const off = sub3([inv[12], inv[13], inv[14]], pivot);
         const r = len3(off) || 1e-6;
@@ -1932,6 +1937,7 @@ async function main(sim) {
     // Pan → la caméra glisse dans son plan image ; le pivot la suit, sinon
     // l'orbite se ferait ensuite autour d'un point sorti du cadre.
     function panBy(tx, ty) {
+        if (window._paused) return;   // viewer figé : caméra verrouillée
         const inv = camToWorld();
         for (let i = 0; i < 3; i++) pivot[i] += inv[i] * tx + inv[4 + i] * ty;
         viewMatrix = invert4(translate4(inv, tx, ty, 0));
@@ -2310,7 +2316,9 @@ async function main(sim) {
         worker.postMessage({ view: viewProj });
 
         // _physics_loop : pas RK4 à cadence fixe, découplée du refresh écran.
-        if (sim.tick(lastFrame ? (now - lastFrame) / 1000 : 0)) {
+        // En pause (piloté par la page hôte), on gèle la physique ; la boucle de rendu
+        // elle-même s'arrête une fois la scène figée (cf. bas de frame()) → GPU au repos.
+        if (!window._paused && sim.tick(lastFrame ? (now - lastFrame) / 1000 : 0)) {
             worker.postMessage({ z: sim.state.z });
             window._postSimStep(sim);
         }
@@ -2346,10 +2354,18 @@ async function main(sim) {
             camid.innerText = "";
         }
         lastFrame = now;
-        requestAnimationFrame(frame);
+        // Viewer figé (pause pilotée par la page hôte) : une fois la scène entièrement
+        // chargée et rendue, on ARRÊTE la boucle → GPU au repos, la dernière image reste
+        // affichée (= « screenshot » de la scène). On continue tant que la scène n'est pas
+        // prête (progress < 100) pour ne jamais geler sur une image vide.
+        if (window._paused && progress >= 100) { _rafId = 0; return; }
+        _rafId = requestAnimationFrame(frame);
     };
 
-    frame();
+    let _rafId = 0;
+    // Relance la boucle de rendu (appelée par la page hôte quand on repasse en lecture).
+    window._resumeRender = () => { if (!_rafId) { lastFrame = 0; _rafId = requestAnimationFrame(frame); } };
+    _rafId = requestAnimationFrame(frame);
 
     const isPly = (splatData) =>
         splatData[0] == 112 &&
@@ -2524,6 +2540,7 @@ window._clearForceUI = function () {
 // Redessine l'overlay à chaque frame (suit caméra et z)
 (function _overlayLoop() {
     requestAnimationFrame(_overlayLoop);
+    if (window._paused) return;   // viewer figé : pas de redraw de l'overlay
     if (window._editRender) { window._editRender(); return; }
     if (_forceOn && window.sim) {
         const h = window.sim.hitPos();
@@ -2537,6 +2554,7 @@ window._clearForceUI = function () {
 window._toggleForceAt = function (clientX, clientY) {
     const sim = window.sim;
     if (!sim) return;
+    if (window._paused) return;   // viewer figé : pas d'interaction force
     if (window._editPick) { window._editPick(clientX, clientY); return; }
     if (_forceOn) {
         sim.clearForce();
@@ -2969,6 +2987,10 @@ window.addEventListener('message', (e) => {
             if (d.el  !== undefined) window._el  = d.el;
             break;
         case 'clear': window._clearForceUI(); break;
+        case 'pause':
+            window._paused = !!d.paused;
+            if (!window._paused && window._resumeRender) window._resumeRender();
+            break;
         case 'reset':
             if (window.sim) window.sim.reset();
             window._clearForceUI();   // sim.reset() ne touche pas la flèche
