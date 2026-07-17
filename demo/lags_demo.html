@@ -162,6 +162,67 @@
    conflit geste/scroll sur mobile (issue #1). cVideo (affichage) reste scrollable. */
 #lags-demo .stage.recon canvas,
 #lags-demo #cTime, #lags-demo #cLat, #lags-demo #cRock3D{touch-action:none;}
+
+/* ── fusion : petit texte de liaison entre les figures ── */
+#lags-demo .link-text{
+  font-family:'Lora',Georgia,serif;font-size:1.02rem;line-height:1.75;color:var(--text-mid);
+  max-width:96ch;margin:0 0 1.5rem;
+}
+#lags-demo .link-text b{color:var(--navy);font-weight:600}
+
+/* ── fusion : barres de contrôle du viewer 3D ── */
+#lags-demo .ctl-group{margin:0 0 1.35rem;}
+#lags-demo .ctl-group-title{
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--navy-light);margin:0 0 .7rem;
+}
+#lags-demo .btn{
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;
+  color:#fff;background:var(--navy);border:none;border-radius:var(--radius);
+  padding:9px 13px;cursor:pointer;line-height:1;
+}
+#lags-demo .btn:hover{background:var(--navy-mid)}
+#lags-demo .btn.ghost{background:none;color:var(--text-muted);border:1px solid var(--border);}
+#lags-demo .btn.ghost:hover{color:var(--navy);border-color:var(--navy-light);background:none}
+/* pont hôte↔viewer : repli si le viewer ne répond pas */
+#lags-demo .bridge-note{
+  font-size:.8rem;line-height:1.5;color:var(--text-muted);
+  border-left:2px solid var(--border);padding-left:11px;margin:0 0 1.35rem;display:none;
+}
+#lags-demo .gs3d.bridge-failed .bridge-note{display:block}
+#lags-demo .gs3d.bridge-failed .ctl-group{display:none}
+/* bouton reset maître */
+#lags-demo .reset-row{display:flex;align-items:center;gap:14px;margin:0 0 1.6rem;flex-wrap:wrap;}
+#lags-demo .reset-row .hint{font-size:.8rem;color:var(--text-muted);line-height:1.5;max-width:52ch;}
+
+/* ── fusion : mise en page 3D — colonne média [vidéo + grille de novel views] | viewer ── */
+/* Le viewer (colonne droite) s'étire à la hauteur de la colonne média (align-items:stretch),
+   donc « 3D = hauteur vidéo + grille » sans hauteur d'iframe codée en dur. La vidéo (456×256)
+   et les vignettes (256²) sont sous-échantillonnées à ~300 px → nettes, jamais géantes. */
+#lags-demo .rock3d-layout{display:grid;grid-template-columns:300px 1fr;gap:14px;align-items:stretch;margin:0 0 1.6rem;}
+@media(max-width:880px){#lags-demo .rock3d-layout{grid-template-columns:1fr;align-items:start;}}
+#lags-demo .rock3d-media{display:flex;flex-direction:column;gap:12px;min-width:0;}
+@media(max-width:880px){#lags-demo .rock3d-media{max-width:340px}}
+#lags-demo .rock3d-media figure{margin:0}
+#lags-demo .rock3d-media video{width:100%;height:auto;display:block;border:1px solid var(--border);border-radius:var(--radius);background:#111;}
+#lags-demo .rock3d-novels{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+#lags-demo .rock3d-novels img{width:100%;height:auto;display:block;border:1px solid var(--border);border-radius:var(--radius);background:#111;}
+#lags-demo .rock3d-novels img.ref{border-color:var(--navy-light);border-width:2px;}
+#lags-demo .rock3d-cap{font-family:var(--mono);font-size:.55rem;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);margin:.4rem 0 0;line-height:1.35;}
+/* colonne droite = le viewer (.panel), remplit la hauteur de la ligne (= colonne média) */
+#lags-demo .rock3d-viewer{height:100%;min-width:0;}
+#lags-demo .rock3d-viewer .stage{flex:1 1 auto;min-height:340px;}
+#lags-demo .rock3d-viewer iframe{display:block;width:100%;height:100%;min-height:340px;border:0;}
+@media(max-width:880px){#lags-demo .rock3d-viewer{height:auto}#lags-demo .rock3d-viewer .stage,#lags-demo .rock3d-viewer iframe{height:440px;min-height:440px;}}
+/* cadre du viewer 3D */
+#lags-demo .phead.with-fs{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+#lags-demo .phead .fs{
+  font-family:var(--mono);font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text-muted);text-decoration:none;white-space:nowrap;
+  border:1px solid var(--border);border-radius:var(--radius);padding:5px 9px;
+}
+#lags-demo .phead .fs:hover{color:var(--navy);border-color:var(--navy-light)}
+#lags-demo .stage.viewer{background:#111;line-height:0;}
 </style>
 </head>
 <body>
@@ -336,8 +397,8 @@
         <input id="rSpeed" type="range" min="10" max="200" value="105">
       </div>
       <div class="ctl">
-        <label><span class="lbl" data-en="Dissipation" data-fr="Dissipation">Dissipation</span> <span class="val" id="rVd">–</span></label>
-        <input id="rDiss" type="range" min="0" max="100" value="14">
+        <label><span class="lbl" data-en="Damping γ" data-fr="Frottement γ">Damping γ</span> <span class="val" id="rVd">–</span></label>
+        <input id="rDiss" type="range" min="0" max="100" value="7">
       </div>
       <label class="toggle"><input id="rDrag" type="checkbox" checked> <span class="lbl" data-en="auto-rock" data-fr="bascule auto">auto-rock</span></label>
       <label class="toggle"><input id="rShowBg" type="checkbox" checked> <span class="lbl" data-en="background" data-fr="fond">background</span></label>
@@ -366,6 +427,80 @@
         <div class="stage recon"><canvas id="cRockRecon"></canvas><div class="badge" data-en="grab &amp; drag the object" data-fr="attraper et glisser l'objet">grab &amp; drag the object</div></div>
         <div class="pfoot video" data-en="Grab the object: the click→cursor drag applies a force on the image, converted into a force in the latent space through the decoder and added to the right-hand side of the LNN equation." data-fr="Attrapez l'objet : le drag clic→curseur applique une force sur l'image, convertie en force dans l'espace latent grâce au décodeur et appliquée au second membre dans l'équation du LNN.">Grab the object: the click→cursor drag applies a force on the image, converted into a force in the latent space through the decoder and added to the right-hand side of the LNN equation.</div>
       </section>
+    </div>
+
+    <p class="link-text"
+       data-en="The <b>same learned dynamics</b> &mdash; its own independent copy of the equation of motion &mdash; also drives a full interactive 3-D reconstruction. On the left, the original video and several synthesised novel views the decoder was trained on; on the right, the live 3-D scene you can orbit and push. Press <b>Reset &amp; sync</b> below to replay the video and the scene from the same state."
+       data-fr="La <b>même dynamique apprise</b> &mdash; sa propre copie indépendante de l'équation du mouvement &mdash; pilote aussi une reconstruction 3D interactive complète. À gauche, la vidéo originale et plusieurs vues nouvelles synthétisées sur lesquelles le décodeur a été entraîné ; à droite, la scène 3D en direct, qu'on peut faire tourner et pousser. Le bouton <b>Reset &amp; sync</b> ci-dessous rejoue la vidéo et la scène depuis le même état.">
+    </p>
+
+    <!-- reconstruction 3D interactive : instance INDÉPENDANTE de la même équation apprise -->
+    <div class="gs3d" id="rock3d">
+      <p class="bridge-note"
+         data-en="The controls never got an answer from the viewer &mdash; it probably failed to load its scene. The viewer below may still work on its own."
+         data-fr="Les contrôles n'ont reçu aucune réponse du viewer &mdash; sa scène ne s'est probablement pas chargée. Le viewer ci-dessous peut malgré tout fonctionner seul."></p>
+
+      <div class="ctl-group">
+        <p class="ctl-group-title" data-en="Latent physics" data-fr="Physique latente">Latent physics</p>
+        <div class="controls">
+          <div class="ctl">
+            <label><span class="lbl" data-en="Damping γ" data-fr="Frottement γ">Damping γ</span> <span class="val" id="v-gamma">—</span></label>
+            <input id="sl-gamma" type="range">
+          </div>
+        </div>
+      </div>
+
+      <div class="ctl-group">
+        <p class="ctl-group-title" data-en="3D force applied on click" data-fr="Force 3D appliquée au clic">3D force applied on click</p>
+        <div class="controls">
+          <div class="ctl"><label><span class="lbl" data-en="Amplitude" data-fr="Amplitude">Amplitude</span> <span class="val" id="v-amp">—</span></label><input id="sl-amp" type="range" min="0" max="4" step="0.1" value="2"></div>
+          <div class="ctl"><label><span class="lbl" data-en="Azimuth °" data-fr="Azimut °">Azimuth °</span> <span class="val" id="v-az">0</span></label><input id="sl-az" type="range" min="-180" max="180" step="5" value="0"></div>
+          <div class="ctl"><label><span class="lbl" data-en="Elevation °" data-fr="Élévation °">Elevation °</span> <span class="val" id="v-el">-90</span></label><input id="sl-el" type="range" min="-90" max="90" step="5" value="-90"></div>
+          <button class="btn ghost" id="btn-clear" data-en="✖ Clear force" data-fr="✖ Effacer force">✖ Clear force</button>
+        </div>
+      </div>
+
+      <!-- [vidéo originale + grille de vues nouvelles] | [scène 3D] · le viewer prend la hauteur de la colonne média -->
+      <div class="rock3d-layout">
+        <div class="rock3d-media">
+          <figure>
+            <video id="rockVideo" autoplay loop muted playsinline preload="metadata" src="../videos/4dgs_training.mp4"></video>
+            <figcaption class="rock3d-cap" data-en="original video · one fixed camera" data-fr="vidéo originale · une caméra fixe">original video · one fixed camera</figcaption>
+          </figure>
+          <figure>
+            <div class="rock3d-novels">
+              <img class="ref" src="../img/4dgs/ref.jpg" alt="Vue de référence (caméra réelle)" loading="lazy"/>
+              <img src="../img/4dgs/novel_25.jpg" alt="Vue nouvelle synthétisée, caméra virtuelle" loading="lazy"/>
+              <img src="../img/4dgs/novel_49.jpg" alt="Vue nouvelle synthétisée, caméra virtuelle" loading="lazy"/>
+              <img src="../img/4dgs/novel_58.jpg" alt="Vue nouvelle synthétisée, caméra virtuelle" loading="lazy"/>
+            </div>
+            <figcaption class="rock3d-cap" data-en="reference view (outlined) + synthesised novel views" data-fr="vue de référence (encadrée) + vues nouvelles synthétisées">reference view (outlined) + synthesised novel views</figcaption>
+          </figure>
+        </div>
+
+        <section class="panel q rock3d-viewer">
+          <div class="phead with-fs">
+            <div>
+              <div class="tag" data-en="LaGS · 3D reconstruction" data-fr="LaGS · reconstruction 3D">LaGS · 3D reconstruction</div>
+              <h2 data-en="Interactive 3D scene" data-fr="Scène 3D interactive">Interactive 3D scene</h2>
+              <div class="sub"
+                   data-en="click the object to push it, click again to release · drag to rotate · scroll to zoom"
+                   data-fr="cliquer sur l'objet pour le pousser, cliquer à nouveau pour relâcher · glisser pour tourner · molette pour zoomer">
+                click the object to push it, click again to release · drag to rotate · scroll to zoom
+              </div>
+            </div>
+            <a class="fs" href="3d.html" target="_blank" rel="noopener" data-en="↗ Full screen" data-fr="↗ Plein écran">↗ Full screen</a>
+          </div>
+          <div class="stage viewer">
+            <iframe id="viewer3d" src="3d.html?embed=1" allowfullscreen title="LaGS 4DGS interactive viewer"></iframe>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="reset-row">
+      <button class="btn" id="rockReset" data-en="↺ Reset &amp; sync" data-fr="↺ Reset &amp; sync">↺ Reset &amp; sync</button>
+      <span class="hint" data-en="Restarts the original video and both reconstructions at the same state and velocity — the three then play in step until you interact with one." data-fr="Relance la vidéo originale et les deux reconstructions au même état et à la même vitesse — les trois avancent alors de concert jusqu'à ce que vous interagissiez avec l'une d'elles."></span>
     </div>
 
     <!-- ── Third demo: 2-DOF soft actuator (latent d=2) ─────────────────── -->
@@ -425,7 +560,7 @@
 
 </main>
 
-<footer><p data-en="Lovingly vibe-coded in html/css/js · Last updated June 2026" data-fr="Vibe-codé avec amour en html/css/js · Dernière màj juin 2026">Vibe-codé avec amour en html/css/js · Dernière màj juin 2026</p></footer>
+<footer><p data-en="Lovingly vibe-coded in html/css/js · Last updated July 2026" data-fr="Vibe-codé avec amour en html/css/js · Dernière màj juillet 2026">Vibe-codé avec amour en html/css/js · Dernière màj juillet 2026</p></footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -759,6 +894,8 @@ function loop(now){
 requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();requestAnimationFrame(loop);});
 </script>
 
+<!-- dynamique lagrangienne apprise (constantes extraites de 3d.html/__SCENE_META, cf. scratchpad/extract_meta.py) -->
+<script src="rocking_dynamics.js"></script>
 <!-- trained rocking-chair gaussians (generated by extract_rocking.py) -->
 <script src="rocking_gaussians.js"></script>
 <script>
@@ -930,15 +1067,28 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
 
   // ── controls / state ──────────────────────────────────────────────────────
   const $=id=>document.getElementById(id);
-  const st={running:true,auto:true,speed:4.20,frac:0.5,diss:0.084,x:0.5,v:0,still:0};
-  const STILL_EPS=0.02, STILL_RESET=2;   // reset auto quand |(x,v)| < EPS pendant STILL_RESET secondes
-  // état de l'oscillateur : x = frac − 0.5 (écart à l'équilibre), v = dx/dτ ; still = temps immobile cumulé (s)
+  // ── dynamique lagrangienne apprise (MÊME équation que le viewer 3D, cf. rocking_dynamics.js) ──
+  const sim=createRockingSim();
+  const Z_REST=sim.meta.phi.z_rest, ZMIN=sim.Z_MIN, ZMAX=sim.Z_MAX, Z_SPAN=ZMAX-ZMIN;
+  const TS_DEFAULT=sim.meta.time_scale_default;   // timeScale calé sur la vidéo (2.5)
+  const GAMMA_RANGE=0.10;        // plage du curseur d'amortissement 2D (γ appris ≈ 0.007)
+  const REMAP_SIGN=1;            // sens du remap latent z→frac (ajusté visuellement)
+  const STILL_EPS=0.015, STILL_EPS_Z=0.05, STILL_RESET=2;  // relance auto une fois amorti à l'équilibre
+  // frac = état VISUEL (∈[0,1]) dérivé du latent physique z. Le remap affine aligne la plage
+  // entraînée 3D [ZMIN,ZMAX] sur la plage entraînée 2D [D.zmin,D.zmax] ≡ [0,1] de l'atlas.
+  const zToFrac=z=>REMAP_SIGN>0?(z-ZMIN)/Z_SPAN:(ZMAX-z)/Z_SPAN;
+  const fracToZ=f=>REMAP_SIGN>0?ZMIN+f*Z_SPAN:ZMAX-f*Z_SPAN;
+  const st={running:true,auto:true,speed:TS_DEFAULT,frac:zToFrac(sim.state.z),still:0};
+  sim.setDamping(sim.meta.gamma);   // amortissement appris par défaut (curseur à 7 %)
   $('rPlay').addEventListener('click',()=>{st.running=!st.running;$('rPlay').textContent=st.running?'⏸':'▶';});
-  $('rSpeed').addEventListener('input',e=>{st.speed=e.target.value/25;$('rVs').textContent='×'+(Math.round(st.speed/4.20*10)/10).toFixed(1);});
-  $('rDiss').addEventListener('input',e=>{st.diss=(e.target.value/100)*0.6;$('rVd').textContent=st.diss.toFixed(2);});
-  $('rDrag').addEventListener('change',e=>{st.auto=e.target.checked;if(st.auto){st.x=st.frac-0.5;st.v=0;st.still=0;}});  // reprend l'intégration depuis l'état courant
-  $('rckQ').addEventListener('input',e=>{st.frac=e.target.value/1000;st.auto=false;$('rDrag').checked=false;});
+  $('rSpeed').addEventListener('input',e=>{st.speed=(e.target.value/105)*TS_DEFAULT;$('rVs').textContent='×'+(st.speed/TS_DEFAULT).toFixed(1);});
+  $('rDiss').addEventListener('input',e=>{const g=(e.target.value/100)*GAMMA_RANGE;sim.setDamping(g);$('rVd').textContent=g.toFixed(3);});
+  $('rDrag').addEventListener('change',e=>{st.auto=e.target.checked;if(st.auto){sim.state.v=0;st.still=0;}});  // reprend l'intégration depuis l'état courant (z inchangé)
+  $('rckQ').addEventListener('input',e=>{st.frac=e.target.value/1000;sim.setZ(fracToZ(st.frac),0);st.auto=false;$('rDrag').checked=false;});
   $('rShowBg').addEventListener('change',e=>{showBg=e.target.checked;refreshInst();});
+  // Reset maître : réexposé pour le bouton « Reset & sync » de la page (câblé par le pont 3D).
+  window.__rockReset2D=()=>{sim.reset();st.auto=true;st.running=true;st.still=0;st.frac=zToFrac(sim.state.z);
+    const rd=$('rDrag');if(rd)rd.checked=true;const rp=$('rPlay');if(rp)rp.textContent='⏸';};
 
   function attachDrag(c){
     c.addEventListener('pointerdown',e=>{orbit.dragging=true;orbit.lx=e.clientX;orbit.ly=e.clientY;c.setPointerCapture(e.pointerId);});
@@ -997,7 +1147,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
       cvR.setPointerCapture(e.pointerId);
       grabStart={sel,mouse:[cx,cy]};
       if(!st.running){st.running=true;$('rPlay').textContent='⏸';}
-      if(!st.auto){st.auto=true;st.x=st.frac-0.5;st.v=0;st.still=0;$('rDrag').checked=true;}
+      if(!st.auto){st.auto=true;sim.setZ(fracToZ(st.frac),0);st.still=0;$('rDrag').checked=true;}
     });
     cvR.addEventListener('pointermove',e=>{if(!grabStart)return;
       const {side,ox,oy}=rockLayout();
@@ -1065,37 +1215,33 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   function loop(now){
     requestAnimationFrame(loop);
     const dt=(now-last)/1000;last=now;acc+=dt;
-    if(acc<1/40)return;const useDt=Math.min(0.05,acc);acc=0;
+    if(acc<1/40)return;const useDt=Math.min(0.2,acc);acc=0;   // cap relevé (0.05→0.2) : garde une vitesse temps-réel jusqu'à ~5 fps (sinon la simulation ralentit sur PC lent → désync avec la vidéo)
 
     if(st.auto&&st.running){
-      const dtau=st.speed*useDt;
-      // EDO linéaire d'ordre 2 intégrée pas à pas (schéma semi-implicite) :  q'' + c1·q' + c0·q = 0,  q = frac − 0.5.
-      // c1 = dissipation (coeff. d'ordre 1, appliqué à CHAQUE instant) ; c0 = 1+(c1/2)² fixe ω_d=1 ⇒ même période et amplitude qu'avant.
-      // Intégrer (au lieu d'évaluer la forme close en τ) rend le plan continu quand on change la dissipation :
-      // seule l'évolution future est affectée, l'état (x,v) reste continu.
-      const c1=st.diss, c0=1+0.25*c1*c1;
-      // force de prise : f = souris − point d'application (suit l'objet), F_lat = J̄ᵀf, plafonnée.
-      // Comme l'ancrage suit l'objet, f se contracte quand il rejoint la souris (ressort).
-      let facc=0;
+      // Force de prise → force latente f_ext (unités z). f = souris − point d'application
+      // (l'ancrage suit l'objet → f se contracte comme un ressort). F_lat = J̄ᵀf est en
+      // unités-q du décodeur 2D ; on la convertit vers l'échelle physique z (×Z_SPAN), plafonnée.
+      let fz=0;
       const gf=grabForce();
       if(gf){
-        facc=computeLatentForce(grabStart.sel,gf.fx,gf.fy)*(D.zmax-D.zmin)*FORCE_SCALE;
-        if(facc>FMAX)facc=FMAX;else if(facc<-FMAX)facc=-FMAX;
+        fz=computeLatentForce(grabStart.sel,gf.fx,gf.fy)*Z_SPAN*FORCE_SCALE*REMAP_SIGN;
+        if(fz>FMAX)fz=FMAX;else if(fz<-FMAX)fz=-FMAX;
       }
-      const acc=-c0*st.x - c1*st.v + facc;
-      st.v+=acc*dtau; st.x+=st.v*dtau;
-      st.frac=0.5+st.x;
-      // relâché du sommet une fois quasi arrêté depuis STILL_RESET s (pas pendant une prise)
-      if(!grabStart&&Math.hypot(st.x,st.v)<STILL_EPS){st.still+=useDt;if(st.still>STILL_RESET){st.still=0;st.x=0.5;st.v=0;}}
-      else st.still=0;
+      sim.setForce(fz);
+      sim.setTimeScale(st.speed);
+      sim.tick(useDt);                 // intègre l'ODE apprise (RK4, pas fixe cadencé par timeScale)
+      st.frac=zToFrac(sim.state.z);
+      // relance l'oscillation une fois amortie à l'équilibre (hors prise)
+      if(!grabStart&&Math.abs(sim.state.v)<STILL_EPS&&Math.abs(sim.state.z-Z_REST)<STILL_EPS_Z){
+        st.still+=useDt;if(st.still>STILL_RESET){st.still=0;sim.reset();}
+      } else st.still=0;
       $('rckQ').value=Math.round(Math.max(0,Math.min(1,st.frac))*1000);
     }
     const zpos=(st.frac*2-1)*ZS;   // non clampé : suit q même hors distribution entraînée
     plane.position.z=zpos;
     clipPlane.constant=zpos;   // coupe les gaussiennes au plan : ne garde que z <= zpos
     applyCaps(capMesh,capData,zpos,capDummy,visFlags);   // comble les coupes
-    const qval=D.zmin+st.frac*(D.zmax-D.zmin);
-    $('rVq').textContent=qval.toFixed(1);
+    $('rVq').textContent=sim.state.z.toFixed(2);
 
     drawRecon(st.frac);   // sprite sheet étendue : st.frac non clampé
 
@@ -1103,7 +1249,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
       target.y+dist*Math.sin(orbit.el),target.z+dist*Math.cos(orbit.el)*Math.cos(orbit.az));
     camera.lookAt(target);renderer.render(scene,camera);
   }
-  requestAnimationFrame(()=>{resize();$('rVs').textContent='×1.0';$('rVd').textContent=st.diss.toFixed(2);last=performance.now();requestAnimationFrame(loop);});
+  requestAnimationFrame(()=>{resize();$('rVs').textContent='×1.0';$('rVd').textContent=sim.meta.gamma.toFixed(3);last=performance.now();requestAnimationFrame(loop);});
 })();
 </script>
 
@@ -1372,7 +1518,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   function loop(now){
     requestAnimationFrame(loop);
     const dt=(now-last)/1000;last=now;acc+=dt;
-    if(acc<1/40)return;const useDt=Math.min(0.05,acc);acc=0;
+    if(acc<1/40)return;const useDt=Math.min(0.2,acc);acc=0;   // cap relevé (0.05→0.2) : garde une vitesse temps-réel jusqu'à ~5 fps (sinon la simulation ralentit sur PC lent → désync avec la vidéo)
 
     try{
     if(st.auto&&st.running&&!st.dragging){
@@ -1419,6 +1565,65 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   }
   requestAnimationFrame(()=>{$('sVs').textContent='×1.0';$('sVd').textContent=st.diss.toFixed(2);
     last=performance.now();requestAnimationFrame(loop);});
+})();
+</script>
+
+<script>
+"use strict";
+// ── Pont page hôte ↔ viewer 3D (3d.html) + Reset maître ─────────────────────
+// Repris de 4dgs.html : ouvert en file://, l'iframe a une origine opaque, tout passe
+// par postMessage. Le viewer annonce `ready` avec les bornes de sa scène (γ appris).
+(function () {
+  const demo  = document.getElementById('rock3d');    // porte la classe .bridge-failed
+  const frame = document.getElementById('viewer3d');
+  if (!frame) return;
+  let bound = false;
+
+  const send = (msg) => {
+    msg.source = 'gs4d-host';
+    if (frame.contentWindow) frame.contentWindow.postMessage(msg, '*');
+  };
+
+  // Le viewer décode plusieurs Mo de gaussiennes avant d'être prêt.
+  const giveUp = setTimeout(() => { if (!bound) demo.classList.add('bridge-failed'); }, 30000);
+
+  window.addEventListener('message', (e) => {
+    const d = e.data;
+    if (!d || d.source !== 'gs4d' || e.source !== frame.contentWindow) return;
+    if (d.type === 'ready' && !bound) { bound = true; clearTimeout(giveUp); bind(d.meta); }
+  });
+
+  frame.addEventListener('load', () => send({ type: 'hello' }));
+  send({ type: 'hello' });
+
+  function bind(m) {
+    // step="any" : sinon le navigateur aimante γ sur un cran et démarrerait à 0.0075.
+    const gEl = document.getElementById('sl-gamma');
+    gEl.min = 0; gEl.max = m.gamma_max; gEl.step = 'any'; gEl.value = m.gamma;
+
+    const bindSlider = (id, valId, decimals, onChange) => {
+      const sl = document.getElementById(id), lbl = document.getElementById(valId);
+      const push = () => { const v = parseFloat(sl.value); lbl.textContent = v.toFixed(decimals); onChange(v); };
+      sl.addEventListener('input', push); push();
+    };
+    bindSlider('sl-gamma', 'v-gamma', 4, (v) => send({ type: 'params', params: { gamma: v } }));
+    bindSlider('sl-amp',   'v-amp',   1, (v) => send({ type: 'force', amp: v }));
+    bindSlider('sl-az',    'v-az',    0, (v) => send({ type: 'force', az: v }));
+    bindSlider('sl-el',    'v-el',    0, (v) => send({ type: 'force', el: v }));
+    document.getElementById('btn-clear').addEventListener('click', () => send({ type: 'clear' }));
+  }
+
+  // ── Reset maître : vidéo + reconstruction 2D + viewer 3D au même état ────────
+  // Les trois partagent la MÊME équation apprise et les mêmes (z0, v0) : après reset
+  // ils repartent synchronisés (la vidéo boucle et l'oscillation s'amortit → la synchro
+  // est garantie AU reset, pas éternelle). Marche même si le pont a échoué (vidéo + 2D).
+  const resetBtn = document.getElementById('rockReset');
+  if (resetBtn) resetBtn.addEventListener('click', () => {
+    const video = document.getElementById('rockVideo');
+    if (video) { video.currentTime = 0; video.play().catch(() => {}); }
+    if (window.__rockReset2D) window.__rockReset2D();
+    send({ type: 'reset' });   // sans effet si le viewer n'est pas prêt
+  });
 })();
 </script>
 
