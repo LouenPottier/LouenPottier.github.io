@@ -17,5 +17,3 @@ Thumbs.db
 # Vidéos lourdes — héberge-les sur un CDN externe si > 50 MB
 # videos/
 
-# venv Python (outillage local, hors prod)
-venv/
