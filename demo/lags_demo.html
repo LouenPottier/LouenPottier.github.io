@@ -268,9 +268,9 @@
 <main>
 
   <h1 class="page-title"
-      data-en="LaGSplat - Latent Lagrangian Gaussian Splatting"
-      data-fr="LaGSplat - Latent Lagrangien Gaussian Splatting">
-    LaGSplat - Latent Lagrangian Gaussian Splatting
+      data-en="LaGSplat: Latent Lagrangian Gaussian Splatting"
+      data-fr="LaGSplat : Latent Lagrangien Gaussian Splatting">
+    LaGSplat: Latent Lagrangian Gaussian Splatting
   </h1>
 
   <p class="page-intro" style="max-width:680px"
@@ -338,9 +338,9 @@
             <div class="tag" data-en="4DGS · parameterised by t" data-fr="4DGS · paramétré par t">4DGS · parameterised by t</div>
             <h2 data-en="Space-time volume" data-fr="Volume espace-temps">Space-time volume</h2>
             <div class="sub"
-                 data-en="axes (x, y, <b class='tk'>t</b>) - the plane always moves to the right"
-                 data-fr="axes (x, y, <b class='tk'>t</b>) - le plan avance toujours vers la droite">
-              axes (x, y, <b class="tk">t</b>) - the plane always moves to the right
+                 data-en="axes (x, y, <b class='tk'>t</b>): the plane always moves to the right"
+                 data-fr="axes (x, y, <b class='tk'>t</b>) : le plan avance toujours vers la droite">
+              axes (x, y, <b class="tk">t</b>): the plane always moves to the right
             </div>
           </div>
           <div class="stage"><canvas id="cTime"></canvas><div class="badge" data-en="drag to rotate" data-fr="glisser pour pivoter">drag to rotate</div></div>
@@ -357,9 +357,9 @@
             <div class="tag" data-en="LaGSplat · parameterised by q" data-fr="LaGSplat · paramétré par q">LaGSplat · parameterised by q</div>
             <h2 data-en="Space-state volume" data-fr="Volume espace-état">Space-state volume</h2>
             <div class="sub"
-                 data-en="axes (x, y, <b class='qk'>q</b>), q = angle θ - a helical manifold, the plane swings"
-                 data-fr="axes (x, y, <b class='qk'>q</b>), q = angle θ - variété hélicoïdale, le plan oscille">
-              axes (x, y, <b class="qk">q</b>), q = angle θ - a helical manifold, the plane swings
+                 data-en="axes (x, y, <b class='qk'>q</b>), q = angle θ: a helical manifold, the plane swings"
+                 data-fr="axes (x, y, <b class='qk'>q</b>), q = angle θ : variété hélicoïdale, le plan oscille">
+              axes (x, y, <b class="qk">q</b>), q = angle θ: a helical manifold, the plane swings
             </div>
           </div>
           <div class="stage"><canvas id="cLat"></canvas><div class="badge" data-en="drag to rotate" data-fr="glisser pour pivoter">drag to rotate</div></div>
@@ -405,9 +405,9 @@
           <div class="tag" data-en="LaGSplat · learned gaussians" data-fr="LaGSplat · gaussiennes apprises">LaGSplat · learned gaussians</div>
           <h2 data-en="Space-state volume" data-fr="Volume espace-état">Space-state volume</h2>
           <div class="sub"
-               data-en="axes (x, y, <b class='qk'>q</b>) - 2048 gaussians, the plane is the current state"
-               data-fr="axes (x, y, <b class='qk'>q</b>) - 2048 gaussiennes, le plan = l'état courant">
-            axes (x, y, <b class="qk">q</b>) - 2048 gaussians, the plane is the current state
+               data-en="axes (x, y, <b class='qk'>q</b>): 2048 gaussians, the plane is the current state"
+               data-fr="axes (x, y, <b class='qk'>q</b>) : 2048 gaussiennes, le plan = l'état courant">
+            axes (x, y, <b class="qk">q</b>): 2048 gaussians, the plane is the current state
           </div>
         </div>
         <div class="stage rock"><canvas id="cRock3D"></canvas><div class="badge" data-en="drag to rotate" data-fr="glisser pour pivoter">drag to rotate</div></div>
@@ -432,8 +432,8 @@
     <!-- reconstruction 3D interactive : instance INDÉPENDANTE de la même équation apprise -->
     <div class="gs3d" id="rock3d">
       <p class="bridge-note"
-         data-en="The controls never got an answer from the viewer - it probably failed to load its scene. The viewer below may still work on its own."
-         data-fr="Les contrôles n'ont reçu aucune réponse du viewer - sa scène ne s'est probablement pas chargée. Le viewer ci-dessous peut malgré tout fonctionner seul."></p>
+         data-en="The controls never got an answer from the viewer. Its scene probably failed to load. The viewer below may still work on its own."
+         data-fr="Les contrôles n'ont reçu aucune réponse du viewer. Sa scène ne s'est probablement pas chargée. Le viewer ci-dessous peut malgré tout fonctionner seul."></p>
 
       <div class="rock-controls">
         <button id="viewerPause" title="play / pause"
@@ -492,7 +492,7 @@
 
     <div class="reset-row">
       <button class="btn" id="rockReset" data-en="↺ Reset &amp; sync" data-fr="↺ Reset &amp; sync">↺ Reset &amp; sync</button>
-      <span class="hint" data-en="Restarts the original video and both reconstructions at the same state and velocity - the three then play in step until you interact with one." data-fr="Relance la vidéo originale et les deux reconstructions au même état et à la même vitesse - les trois avancent alors de concert jusqu'à ce que vous interagissiez avec l'une d'elles."></span>
+      <span class="hint" data-en="Restarts the original video and both reconstructions at the same state and velocity. The three then play in step until you interact with one." data-fr="Relance la vidéo originale et les deux reconstructions au même état et à la même vitesse. Les trois avancent alors de concert jusqu'à ce que vous interagissiez avec l'une d'elles."></span>
     </div>
 
     <!-- ── Third demo: 2-DOF soft actuator (latent d=2) ─────────────────── -->
@@ -504,8 +504,8 @@
     </div>
 
     <p class="thesis"
-       data-en="A LaGSplat was trained from 5 short videos of the bag oscillating. Unlike the simple pendulum and the rocking chair, the bag oscillates in 2 dimensions. The Gaussians are therefore parameterised by <span class='qk'>(x, y, q&#8321;, q&#8322;)</span>, which fundamentally changes little - except that the 4-D volume defined by the Gaussians can no longer be visualised."
-       data-fr="Un LaGSplat a &eacute;t&eacute; entra&icirc;n&eacute; &agrave; partir de 5 courtes vid&eacute;os du sac en train d'osciller. Contrairement au pendule simple et au rocking-chair, le sac oscille en 2 dimensions. Les gaussiennes sont donc param&eacute;tr&eacute;es par <span class='qk'>(x, y, q&#8321;, q&#8322;)</span>, ce qui ne change fondamentalement pas grand-chose - &agrave; part qu'il n'est pas possible de visualiser le volume 4D d&eacute;fini par les gaussiennes.">
+       data-en="A LaGSplat was trained from 5 short videos of the bag oscillating. Unlike the simple pendulum and the rocking chair, the bag oscillates in 2 dimensions. The Gaussians are therefore parameterised by <span class='qk'>(x, y, q&#8321;, q&#8322;)</span>, which fundamentally changes little, except that the 4-D volume defined by the Gaussians can no longer be visualised."
+       data-fr="Un LaGSplat a &eacute;t&eacute; entra&icirc;n&eacute; &agrave; partir de 5 courtes vid&eacute;os du sac en train d'osciller. Contrairement au pendule simple et au rocking-chair, le sac oscille en 2 dimensions. Les gaussiennes sont donc param&eacute;tr&eacute;es par <span class='qk'>(x, y, q&#8321;, q&#8322;)</span>, ce qui ne change fondamentalement pas grand-chose, si ce n'est qu'il n'est plus possible de visualiser le volume 4D d&eacute;fini par les gaussiennes.">
     </p>
 
     <div class="rock-controls">
@@ -527,9 +527,9 @@
           <div class="tag" data-en="LaGSplat · latent state" data-fr="LaGSplat · état latent">LaGSplat · latent state</div>
           <h2 data-en="Trajectory in the latent space" data-fr="Trajectoire dans l'espace latent">Trajectory in the latent space</h2>
           <div class="sub"
-               data-en="axes (<b class='qk'>q&#8321;</b>, <b class='qk'>q&#8322;</b>) - the 2-D state of the dynamical system; faint curve = trajectory in the training videos"
-               data-fr="axes (<b class='qk'>q&#8321;</b>, <b class='qk'>q&#8322;</b>) - l'état 2-D du système dynamique ; courbe pâle = trajectoire dans les vidéos d'entraînement">
-            axes (<b class="qk">q&#8321;</b>, <b class="qk">q&#8322;</b>) - the 2-D state of the dynamical system; faint curve = trajectory in the training videos
+               data-en="axes (<b class='qk'>q&#8321;</b>, <b class='qk'>q&#8322;</b>): the 2-D state of the dynamical system; faint curve = trajectory in the training videos"
+               data-fr="axes (<b class='qk'>q&#8321;</b>, <b class='qk'>q&#8322;</b>) : l'état 2-D du système dynamique ; courbe pâle = trajectoire dans les vidéos d'entraînement">
+            axes (<b class="qk">q&#8321;</b>, <b class="qk">q&#8322;</b>): the 2-D state of the dynamical system; faint curve = trajectory in the training videos
           </div>
         </div>
         <div class="stage recon"><canvas id="cSacPhase"></canvas><div class="badge" data-en="drag the dot" data-fr="glisser le point">drag the dot</div></div>
