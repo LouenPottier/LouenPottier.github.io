@@ -607,164 +607,34 @@ function createSim(meta, scene) {
 
 </script>
 <script>
+// ── Vues caméra pré-réglées ─────────────────────────────────────────────────
+// Directions optiques relevées sur les vues d'entraînement de la scène
+// (rainbow_sharp_views/cameras.npz) : un arc de ±8,9° en lacet et ±6,5° en
+// tangage autour de la vue de référence, toutes visant le centre de la scène.
+// Hors de ce cône la reconstruction n'a jamais été supervisée et se délite.
+// On ne stocke que la direction de visée : la distance vient d'`orbitRadius`,
+// donc changer de vue conserve le cadrage courant au lieu de sauter au loin.
 let cameras = [
-    {
-        id: 0,
-        img_name: "00001",
-        width: 1959,
-        height: 1090,
-        position: [
-            -3.0089893469241797, -0.11086489695181866, -3.7527640949141428,
-        ],
-        rotation: [
-            [0.876134201218856, 0.06925962026449776, 0.47706599800804744],
-            [-0.04747421839895102, 0.9972110940209488, -0.057586739349882114],
-            [-0.4797239414934443, 0.027805376500959853, 0.8769787916452908],
-        ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
-    },
-    {
-        id: 1,
-        img_name: "00009",
-        width: 1959,
-        height: 1090,
-        position: [
-            -2.5199776022057296, -0.09704735754873686, -3.6247725540304545,
-        ],
-        rotation: [
-            [0.9982731285632193, -0.011928707708098955, -0.05751927260507243],
-            [0.0065061360949636325, 0.9955928229282383, -0.09355533724430458],
-            [0.058381769258182864, 0.09301955098900708, 0.9939511719154457],
-        ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
-    },
-    {
-        id: 2,
-        img_name: "00017",
-        width: 1959,
-        height: 1090,
-        position: [
-            -0.7737533667465242, -0.3364271945329695, -2.9358969417573753,
-        ],
-        rotation: [
-            [0.9998813418672372, 0.013742375651625236, -0.0069605529394208224],
-            [-0.014268370388586709, 0.996512943252834, -0.08220929105659476],
-            [0.00580653013657589, 0.08229885200307129, 0.9965907801935302],
-        ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
-    },
-    {
-        id: 3,
-        img_name: "00025",
-        width: 1959,
-        height: 1090,
-        position: [
-            1.2198221749590001, -0.2196687861401182, -2.3183162007028453,
-        ],
-        rotation: [
-            [0.9208648867765482, 0.0012010625395201253, 0.389880004297208],
-            [-0.06298204172269357, 0.987319521752825, 0.14571693239364383],
-            [-0.3847611242348369, -0.1587410451475895, 0.9092635249821667],
-        ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
-    },
-    {
-        id: 4,
-        img_name: "00033",
-        width: 1959,
-        height: 1090,
-        position: [
-            1.742387858893817, -0.13848225198886954, -2.0566370113193146,
-        ],
-        rotation: [
-            [0.24669889292141334, -0.08370189346592856, -0.9654706879349405],
-            [0.11343747891376445, 0.9919082664242816, -0.05700815184573074],
-            [0.9624300466054861, -0.09545671285663988, 0.2541976029815521],
-        ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
-    },
-    {
-        id: 5,
-        img_name: "00041",
-        width: 1959,
-        height: 1090,
-        position: [
-            3.6567309419223935, -0.16470990600750707, -1.3458085590422042,
-        ],
-        rotation: [
-            [0.2341293058324528, -0.02968330457755884, -0.9717522161434825],
-            [0.10270823606832301, 0.99469554638321, -0.005638106875665722],
-            [0.9667649592295676, -0.09848690996657204, 0.2359360976431732],
-        ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
-    },
-    {
-        id: 6,
-        img_name: "00049",
-        width: 1959,
-        height: 1090,
-        position: [
-            3.9013554243203497, -0.2597500978038105, -0.8106154188297828,
-        ],
-        rotation: [
-            [0.6717235545638952, -0.015718162115524837, -0.7406351366386528],
-            [0.055627354673906296, 0.9980224478387622, 0.029270992841185218],
-            [0.7387104058127439, -0.060861588786650656, 0.6712695459756353],
-        ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
-    },
-    {
-        id: 7,
-        img_name: "00057",
-        width: 1959,
-        height: 1090,
-        position: [4.742994605467533, -0.05591660945412069, 0.9500365976084458],
-        rotation: [
-            [-0.17042655709210375, 0.01207080756938, -0.9852964448542146],
-            [0.1165090336695526, 0.9931575292530063, -0.00798543433078162],
-            [0.9784581921120181, -0.1161568667478904, -0.1706667764862097],
-        ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
-    },
-    {
-        id: 8,
-        img_name: "00065",
-        width: 1959,
-        height: 1090,
-        position: [4.34676307626522, 0.08168160516967145, 1.0876221470355405],
-        rotation: [
-            [-0.003575447631888379, -0.044792503246552894, -0.9989899137764799],
-            [0.10770152645126597, 0.9931680875192705, -0.04491693593046672],
-            [0.9941768441149182, -0.10775333677534978, 0.0012732004866391048],
-        ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
-    },
-    {
-        id: 9,
-        img_name: "00073",
-        width: 1959,
-        height: 1090,
-        position: [3.264984351114202, 0.078974937336732, 1.0117200284114904],
-        rotation: [
-            [-0.026919994628162257, -0.1565891128261527, -0.9872968974090509],
-            [0.08444552208239385, 0.983768234577625, -0.1583319754069128],
-            [0.9960643893290491, -0.0876350978794554, -0.013259786205163005],
-        ],
-        fy: 1164.6601287484507,
-        fx: 1159.5880733038064,
-    },
+    { id: 0, name: "reference",   dir: [0, 0, 1] },
+    { id: 1, name: "haut droite", dir: [0.150049, 0.106101, 0.982969] },
+    { id: 2, name: "haut gauche", dir: [-0.150049, 0.106101, 0.982969] },
+    { id: 3, name: "bas droite",  dir: [0.150049, -0.106101, 0.982969] },
+    { id: 4, name: "bas gauche",  dir: [-0.150049, -0.106101, 0.982969] },
+    { id: 5, name: "droite",      dir: [0.153892, 0.016264, 0.987954] },
+    { id: 6, name: "gauche",      dir: [-0.153892, 0.016264, 0.987954] },
+    { id: 7, name: "haut",        dir: [0.025367, 0.113279, 0.993239] },
+    { id: 8, name: "bas",         dir: [0.025367, -0.113279, 0.993239] },
+    { id: 9, name: "trois-quarts",dir: [0.076054, 0.051240, 0.995786] },
 ];
 
-let camera = cameras[0];
+// Intrinsèques du rendu : communes à toutes les vues, pour qu'un changement de
+// caméra ne fasse pas varier le champ.
+let camera = {
+    width: 1959,
+    height: 1090,
+    fy: 1164.6601287484507,
+    fx: 1159.5880733038064,
+};
 
 function getProjectionMatrix(fx, fy, width, height) {
     const znear = 0.2;
@@ -777,22 +647,6 @@ function getProjectionMatrix(fx, fy, width, height) {
     ].flat();
 }
 
-function getViewMatrix(camera) {
-    const R = camera.rotation.flat();
-    const t = camera.position;
-    const camToWorld = [
-        [R[0], R[1], R[2], 0],
-        [R[3], R[4], R[5], 0],
-        [R[6], R[7], R[8], 0],
-        [
-            -t[0] * R[0] - t[1] * R[3] - t[2] * R[6],
-            -t[0] * R[1] - t[1] * R[4] - t[2] * R[7],
-            -t[0] * R[2] - t[1] * R[5] - t[2] * R[8],
-            1,
-        ],
-    ].flat();
-    return camToWorld;
-}
 // function translate4(a, x, y, z) {
 //     return [
 //         ...a.slice(0, 12),
@@ -1756,23 +1610,20 @@ async function main(sim) {
         carousel = false;
         if (!activeKeys.includes(e.code)) activeKeys.push(e.code);
         if (/\d/.test(e.key)) {
-            currentCameraIndex = parseInt(e.key);
-            camera = cameras[currentCameraIndex];
-            viewMatrix = getViewMatrix(camera);
-            _extractYawPitchFromView();
+            currentCameraIndex = parseInt(e.key) % cameras.length;
+            setCameraPreset(currentCameraIndex);
         }
         if (["-", "_"].includes(e.key)) {
             currentCameraIndex =
                 (currentCameraIndex + cameras.length - 1) % cameras.length;
-            viewMatrix = getViewMatrix(cameras[currentCameraIndex]);
-            _extractYawPitchFromView();
+            setCameraPreset(currentCameraIndex);
         }
         if (["+", "="].includes(e.key)) {
             currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
-            viewMatrix = getViewMatrix(cameras[currentCameraIndex]);
-            _extractYawPitchFromView();
+            setCameraPreset(currentCameraIndex);
         }
-        camid.innerText = "cam  " + currentCameraIndex;
+        camid.innerText =
+            "cam  " + currentCameraIndex + "  " + cameras[currentCameraIndex].name;
         if (e.code == "KeyV") {
             location.hash =
                 "#" +
@@ -1866,6 +1717,21 @@ async function main(sim) {
             f[0], f[1], f[2], 0,
             pos[0], pos[1], pos[2], 1,
         ]);
+    }
+
+    // Vue pré-réglée : on ne reprend que la direction de visée, la distance
+    // reste celle du cadrage courant (`orbitRadius`). Les poses brutes des vues
+    // d'entraînement placeraient la caméra à ~2 unités du pivot, soit bien plus
+    // près que le cadrage initial reculé — et un zoom de l'utilisateur serait
+    // perdu à chaque changement de vue.
+    function setCameraPreset(i) {
+        const dir = cameras[i].dir;
+        lookAtPivot([
+            pivot[0] - dir[0] * orbitRadius,
+            pivot[1] - dir[1] * orbitRadius,
+            pivot[2] - dir[2] * orbitRadius,
+        ]);
+        _extractYawPitchFromView();
     }
 
     // Cadrage initial : recule la caméra le long de sa visée jusqu'à ce que la
@@ -2235,18 +2101,17 @@ async function main(sim) {
                 carousel = false;
             }
             if (gamepad.buttons[4].pressed && !leftGamepadTrigger) {
-                camera =
-                    cameras[(cameras.indexOf(camera) + 1) % cameras.length];
-                inv = invert4(getViewMatrix(camera));
+                currentCameraIndex =
+                    (currentCameraIndex + 1) % cameras.length;
+                setCameraPreset(currentCameraIndex);
+                inv = invert4(viewMatrix);
                 carousel = false;
             }
             if (gamepad.buttons[5].pressed && !rightGamepadTrigger) {
-                camera =
-                    cameras[
-                        (cameras.indexOf(camera) + cameras.length - 1) %
-                            cameras.length
-                    ];
-                inv = invert4(getViewMatrix(camera));
+                currentCameraIndex =
+                    (currentCameraIndex + cameras.length - 1) % cameras.length;
+                setCameraPreset(currentCameraIndex);
+                inv = invert4(viewMatrix);
                 carousel = false;
             }
             leftGamepadTrigger = gamepad.buttons[4].pressed;
@@ -2373,41 +2238,28 @@ async function main(sim) {
         splatData[2] == 121 &&
         splatData[3] == 10;
 
+    // Le viewer amont acceptait aussi un cameras.json déposé, au format
+    // position + rotation. Les vues sont désormais propres à cette scène
+    // (directions relevées sur ses vues d'entraînement) : on ne garde que le
+    // dépôt de nuages .ply / .splat.
     const selectFile = (file) => {
         const fr = new FileReader();
-        if (/\.json$/i.test(file.name)) {
-            fr.onload = () => {
-                cameras = JSON.parse(fr.result);
-                viewMatrix = getViewMatrix(cameras[0]);
-                projectionMatrix = getProjectionMatrix(
-                    camera.fx / downsample,
-                    camera.fy / downsample,
-                    canvas.width,
-                    canvas.height,
-                );
-                gl.uniformMatrix4fv(u_projection, false, projectionMatrix);
+        stopLoading = true;
+        fr.onload = () => {
+            splatData = new Uint8Array(fr.result);
+            console.log("Loaded", Math.floor(splatData.length / rowLength));
 
-                console.log("Loaded Cameras");
-            };
-            fr.readAsText(file);
-        } else {
-            stopLoading = true;
-            fr.onload = () => {
-                splatData = new Uint8Array(fr.result);
-                console.log("Loaded", Math.floor(splatData.length / rowLength));
-
-                if (isPly(splatData)) {
-                    // ply file magic header means it should be handled differently
-                    worker.postMessage({ ply: splatData.buffer, save: true });
-                } else {
-                    worker.postMessage({
-                        buffer: splatData.buffer,
-                        vertexCount: Math.floor(splatData.length / rowLength),
-                    });
-                }
-            };
-            fr.readAsArrayBuffer(file);
-        }
+            if (isPly(splatData)) {
+                // ply file magic header means it should be handled differently
+                worker.postMessage({ ply: splatData.buffer, save: true });
+            } else {
+                worker.postMessage({
+                    buffer: splatData.buffer,
+                    vertexCount: Math.floor(splatData.length / rowLength),
+                });
+            }
+        };
+        fr.readAsArrayBuffer(file);
     };
 
     window.addEventListener("hashchange", (e) => {
@@ -2441,7 +2293,10 @@ async function main(sim) {
 // « Vrai » pointeur : souris ou trackpad, par opposition au doigt. Sur un écran
 // tactile hybride le pointeur fin existe aussi, et le clic simple reste correct.
 const IS_MOUSE = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-window._az = 0; window._el = -90; window._amp = 5;   // écrasés par la page hôte
+// Valeurs par défaut du plein écran (3d.html ouvert seul) : la page hôte n'est
+// pas là pour les pousser et rien ne règle la force ici. On aligne l'amplitude
+// sur la valeur par défaut du curseur de 4dgs.html.
+window._az = 0; window._el = -90; window._amp = 2;   // écrasés par la page hôte
 let _forceOn = false;
 // ── Overlay 2D pour afficher la flèche de force ─────────────────────────────
 var _overlay = document.getElementById('overlay');
@@ -2591,8 +2446,8 @@ window._toggleForceAt = function (clientX, clientY) {
     var az = window._az !== undefined ? window._az : 0;
     var el = window._el !== undefined ? window._el : -90;
 
-    // `|| 5` traiterait une amplitude nulle (borne basse du curseur) comme 5.
-    var amp = typeof window._amp === 'number' ? window._amp : 5.0;
+    // `|| 2` traiterait une amplitude nulle (borne basse du curseur) comme 2.
+    var amp = typeof window._amp === 'number' ? window._amp : 2.0;
     const r = sim.applyForceFromRay(ro, rd, az, el, amp);
     if (!r) return;
     _forceOn = true;
