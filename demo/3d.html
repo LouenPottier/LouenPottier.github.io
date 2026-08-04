@@ -1725,6 +1725,7 @@ async function main(sim) {
     // près que le cadrage initial reculé — et un zoom de l'utilisateur serait
     // perdu à chaque changement de vue.
     function setCameraPreset(i) {
+        if (window._paused) return;   // viewer figé : caméra verrouillée
         const dir = cameras[i].dir;
         lookAtPivot([
             pivot[0] - dir[0] * orbitRadius,
