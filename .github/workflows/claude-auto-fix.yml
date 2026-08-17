@@ -1,0 +1,51 @@
+name: Claude auto-fix issues
+
+# Se déclenche quand une issue est ouverte OU taguée.
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  auto-fix:
+    # DOUBLE garde-fou, tous deux obligatoires :
+    #   1. author_association == 'OWNER' → l'issue vient de TOI (le proprio du
+    #      repo). Bloque toute issue ouverte par un tiers (repo public).
+    #   2. label "auto-fix" → tu choisis explicitement quelles de TES issues
+    #      sont traitées automatiquement.
+    if: >
+      github.event.issue.author_association == 'OWNER' &&
+      contains(github.event.issue.labels.*.name, 'auto-fix')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write        # créer une branche + committer
+      pull-requests: write   # ouvrir la PR
+      issues: write          # commenter l'issue
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          # Token OAuth lié à l'abonnement Max (pas de facturation API)
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Une issue GitHub vient d'être ouverte sur ce dépôt (site CV statique,
+            HTML/CSS/JS vanilla — lis CLAUDE.md pour les conventions).
+
+            Titre : ${{ github.event.issue.title }}
+            Numéro : #${{ github.event.issue.number }}
+            Description :
+            ${{ github.event.issue.body }}
+
+            Ta mission :
+            1. Analyse l'issue et détermine si elle est claire et réalisable.
+            2. Si OUI : crée une branche dédiée, implémente le correctif en
+               respectant CLAUDE.md (variables CSS, bilingue data-en/data-fr,
+               pas de framework), puis OUVRE UNE PULL REQUEST vers `main`.
+               Ne pousse JAMAIS directement sur `main`. Référence #${{ github.event.issue.number }}
+               dans la PR pour qu'elle se ferme automatiquement.
+            3. Si l'issue est ambiguë ou trop large : NE CODE RIEN. Laisse
+               plutôt un commentaire sur l'issue en demandant les précisions
+               nécessaires.
+          claude_args: "--max-turns 20"
