@@ -231,10 +231,10 @@ main {
 /* ── HERO STATS ── */
 .hero-stats {
   display: flex;
-  gap: 2rem;
+  flex-wrap: wrap;
+  gap: 0.75rem 2rem;
   margin-bottom: 1.75rem;
-  padding: 1rem 0;
-  border-top: 1px solid var(--border-soft);
+  padding: 0.5rem 0 1rem;
   border-bottom: 1px solid var(--border-soft);
 }
 
@@ -260,6 +260,32 @@ main {
   text-transform: uppercase;
   margin-top: 0.2rem;
 }
+
+/* Chaque chiffre est un lien vers sa page. Meme vocabulaire que
+   .contact-links juste en dessous : bleu + filet sous le libelle, plus
+   une fleche permanente. Pas d'encadre, le bloc garde sa silhouette. */
+a.hero-stat {
+  text-decoration: none;
+  color: inherit;
+}
+a.hero-stat .hero-stat-value {
+  transition: color 0.15s;
+}
+a.hero-stat .hero-stat-label {
+  color: var(--navy-light);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 3px;
+  transition: color 0.15s, border-color 0.15s;
+}
+a.hero-stat .hero-stat-label::after {
+  content: '→';
+  display: inline-block;
+  margin-left: 0.35rem;
+  transition: transform 0.15s;
+}
+a.hero-stat:hover .hero-stat-value { color: var(--navy-light); }
+a.hero-stat:hover .hero-stat-label { color: var(--navy); border-color: var(--navy); }
+a.hero-stat:hover .hero-stat-label::after { transform: translateX(2px); }
 
 /* ── SECTION LABEL ── */
 .section-label {
