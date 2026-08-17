@@ -617,6 +617,19 @@ a.hero-stat:hover .hero-stat-label::after { transform: translateX(2px); }
   border-radius: inherit;
 }
 
+/* Figure sur fond clair (planche d'article) : montrer le cadre entier, pas un recadrage */
+.card-video-figure {
+  background: var(--surface);
+}
+
+.card-video-figure video {
+  object-fit: contain;
+}
+
+.card-video-figure::after {
+  color: var(--text-faint);
+}
+
 /* Subtle "▶ video" badge */
 .card-video::after {
   content: '▶ mp4';
