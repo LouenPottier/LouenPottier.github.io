@@ -191,9 +191,6 @@
 }
 #lags-demo .gs3d.bridge-failed .bridge-note{display:block}
 #lags-demo .gs3d.bridge-failed .ctl-group{display:none}
-/* bouton reset maître */
-#lags-demo .reset-row{display:flex;align-items:center;gap:14px;margin:0 0 1.6rem;flex-wrap:wrap;}
-#lags-demo .reset-row .hint{font-size:.8rem;color:var(--text-muted);line-height:1.5;max-width:52ch;}
 
 /* ── fusion : mise en page 3D - colonne média [vidéo + grille de novel views] | viewer ── */
 /* Le viewer (colonne droite) s'étire à la hauteur de la colonne média (align-items:stretch),
@@ -475,6 +472,9 @@
           <label><span class="lbl" data-en="Amplitude" data-fr="Amplitude">Amplitude</span> <span class="val" id="v-amp">-</span></label>
           <input id="sl-amp" type="range" min="0" max="4" step="0.1" value="2">
         </div>
+        <button class="btn" id="rockReset" style="margin-left:auto"
+          title="Relance la vidéo et les deux reconstructions au même état et à la même vitesse"
+          data-en="↺ Reset &amp; sync" data-fr="↺ Reset &amp; sync">↺ Reset &amp; sync</button>
       </div>
 
       <!-- [vidéo originale + grille de vues nouvelles] | [scène 3D] · le viewer prend la hauteur de la colonne média -->
@@ -519,11 +519,6 @@
       </div>
     </div>
 
-    <div class="reset-row">
-      <button class="btn" id="rockReset" data-en="↺ Reset &amp; sync" data-fr="↺ Reset &amp; sync">↺ Reset &amp; sync</button>
-      <span class="hint" data-en="Restarts the original video and both reconstructions at the same state and velocity. The three then play in step until you interact with one." data-fr="Relance la vidéo originale et les deux reconstructions au même état et à la même vitesse. Les trois avancent alors de concert jusqu'à ce que vous interagissiez avec l'une d'elles."></span>
-    </div>
-
     <!-- ── Third demo: 2-DOF soft actuator (latent d=2) ─────────────────── -->
     <hr class="exp-divider">
 
@@ -554,7 +549,7 @@
       <section class="panel q">
         <div class="phead">
           <div class="tag" data-en="LaGSplat · latent state" data-fr="LaGSplat · état latent">LaGSplat · latent state</div>
-          <h2 data-en="Trajectory in the latent space" data-fr="Trajectoire dans l'espace latent">Trajectory in the latent space</h2>
+          <h2 data-en="Latent space trajectory" data-fr="Trajectoire dans l'espace latent">Latent space trajectory</h2>
           <div class="sub"
                data-en="axes (<b class='qk'>q&#8321;</b>, <b class='qk'>q&#8322;</b>): the 2-D state of the dynamical system; faint curve = trajectory in the training videos"
                data-fr="axes (<b class='qk'>q&#8321;</b>, <b class='qk'>q&#8322;</b>) : l'état 2-D du système dynamique ; courbe pâle = trajectoire dans les vidéos d'entraînement">
@@ -562,17 +557,17 @@
           </div>
         </div>
         <div class="stage recon"><canvas id="cSacPhase"></canvas><div class="badge" data-en="drag the dot" data-fr="glisser le point">drag the dot</div></div>
-        <div class="pfoot video" data-en="See how the dynamical system evolves by sweeping the plane with drag &amp; drop." data-fr="Visualisez comment évolue le système dynamique en parcourant le plan par glissé-déposé.">See how the dynamical system evolves by sweeping the plane with drag &amp; drop.</div>
+        <div class="pfoot video" data-en="<b style='color:#e8380d'>&#10230;</b> latent force <i>J</i>&#7488;<i>f</i>, applied in the LNN equation. Drag the dot to sweep the plane and see how the dynamical system evolves." data-fr="<b style='color:#e8380d'>&#10230;</b> force latente <i>J</i>&#7488;<i>f</i>, appliquée dans l'équation du LNN. Glissez le point pour parcourir le plan et voir comment évolue le système dynamique."><b style='color:#e8380d'>&#10230;</b> latent force <i>J</i>&#7488;<i>f</i>, applied in the LNN equation. Drag the dot to sweep the plane and see how the dynamical system evolves.</div>
       </section>
 
       <section class="panel q">
         <div class="phead">
           <div class="tag" data-en="reconstruction from q" data-fr="reconstruction depuis q">reconstruction from q</div>
-          <h2 data-en="Reconstructed frame" data-fr="Image reconstruite">Reconstructed frame</h2>
+          <h2 data-en="GS decoder output" data-fr="Sortie du décodeur GS">GS decoder output</h2>
           <div class="sub" data-en="model's RGB output, sliced at (q&#8321;, q&#8322;) = current" data-fr="sortie RGB du modèle, coupe (q&#8321;, q&#8322;) = courante">model's RGB output, sliced at (q&#8321;, q&#8322;) = current</div>
         </div>
         <div class="stage recon"><canvas id="cSacRecon"></canvas><div class="badge" data-en="grab &amp; drag the object" data-fr="attraper et glisser l'objet">grab &amp; drag the object</div></div>
-        <div class="pfoot video" data-en="Grab the object: dragging applies a force, mapped through the decoder into the latent space and added to the LNN equation." data-fr="Attrapez l'objet : le glissé applique une force, transférée dans l'espace latent via le décodeur et ajoutée à l'équation du LNN.">Grab the object: dragging applies a force, mapped through the decoder into the latent space and added to the LNN equation.</div>
+        <div class="pfoot video" data-en="<b style='color:#ff7a18'>&#10230;</b> interactive user applied force <i>f</i>, pulled back to the latent space through <i>J</i>&#7488;<i>f</i>. Grab the object to apply it." data-fr="<b style='color:#ff7a18'>&#10230;</b> force <i>f</i> appliquée interactivement par l'utilisateur, rapatriée dans l'espace latent par <i>J</i>&#7488;<i>f</i>. Attrapez l'objet pour l'appliquer."><b style='color:#ff7a18'>&#10230;</b> interactive user applied force <i>f</i>, pulled back to the latent space through <i>J</i>&#7488;<i>f</i>. Grab the object to apply it.</div>
       </section>
     </div>
 
@@ -1314,9 +1309,11 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   const DOT_CSS='#d23b3b';
   const TRAIL_CSS='#d23b3b';                 // traînée pointillée rouge de la trajectoire vécue
   const FORCE_CSS='#ff7a18';                 // flèche de force de prise (point d'application → souris)
+  const LAT_CSS='#e8380d';                   // flèche de force latente Jᵀf dans le plan (q₁,q₂)
   const SPATIAL_SHARP=2.0;
   const FLICK_GAIN=0.25, TRAIL_MAX=1200;     // gain vitesse de lâcher (¼ de la vitesse souris) · longueur max de la traînée
   const trail=[];    // [[q1,q2],…] - trajectoire tracée au fil de la simulation
+  let latF=[0,0];    // dernière force latente Jᵀf appliquée (pour la flèche du plan latent)
 
   // ── calibration de la force de prise F_lat = J̄ᵀf ─────────────────────────
   // Saisir = appliquer à la(les) gaussienne(s) cliquée(s) une force image f (vecteur de drag
@@ -1406,8 +1403,16 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
     const [ex,ey]=q2px(q0[0],q0[1],L);
     x.strokeStyle='rgba(93,107,122,.7)';x.lineWidth=1.5;
     x.beginPath();x.moveTo(ex-5,ey);x.lineTo(ex+5,ey);x.moveTo(ex,ey-5);x.lineTo(ex,ey+5);x.stroke();
-    // état courant
+    // état courant + force latente Jᵀf (rapatriement de la force image par le jacobien)
     const [sx,sy]=q2px(st.q[0],st.q[1],L);
+    if(st.grab && (latF[0]||latF[1])){
+      // longueur = déplacement d'équilibre qu'induirait la force (Δq = F/k_lat), converti en px
+      const k=(L.inner/PHASE_SPAN)/Math.max(STIFF,1e-6);
+      let vx=latF[0]*k, vy=-latF[1]*k;
+      const vm=Math.hypot(vx,vy), VMAX=0.40*L.inner;
+      if(vm>VMAX){vx*=VMAX/vm;vy*=VMAX/vm;}
+      drawForceArrow(x,sx,sy,sx+vx,sy+vy,LAT_CSS);
+    }
     x.beginPath();x.arc(sx,sy,7,0,Math.PI*2);x.fillStyle=DOT_CSS;x.fill();
     x.strokeStyle='#fff';x.lineWidth=2;x.stroke();
   }
@@ -1494,8 +1499,8 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
     return {ax:ap[0],ay:ap[1],fx,fy};
   }
   // flèche de force : du point d'application (sur l'objet) vers la souris, + pastille à l'ancrage.
-  function drawForceArrow(ctx,x0,y0,x1,y1){
-    ctx.save();ctx.strokeStyle=FORCE_CSS;ctx.fillStyle=FORCE_CSS;ctx.lineWidth=3;
+  function drawForceArrow(ctx,x0,y0,x1,y1,color){
+    ctx.save();ctx.strokeStyle=color||FORCE_CSS;ctx.fillStyle=color||FORCE_CSS;ctx.lineWidth=3;
     ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();
     const ang=Math.atan2(y1-y0,x1-x0), L=Math.hypot(x1-x0,y1-y0);
     if(L>6){ctx.beginPath();ctx.moveTo(x1,y1);
@@ -1547,7 +1552,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
     const {side,ox,oy}=reconLayout();
     // position souris (espace image) ; la force f = souris − point_d'application (qui suit l'objet)
     grabStart.mouse=[(e.offsetX-ox)/side,(e.offsetY-oy)/side];});
-  const endGrab=()=>{if(st.grab){st.grab=false;grabStart=null;st.still=0;}};   // force coupée, l'élan reste
+  const endGrab=()=>{if(st.grab){st.grab=false;grabStart=null;latF=[0,0];st.still=0;}};   // force coupée, l'élan reste
   cvRecon.addEventListener('pointerup',endGrab);cvRecon.addEventListener('pointerleave',endGrab);
 
   // ── boucle / intégrateur semi-implicite : q̈ = A(q−q0) + B q̇ − diss·q̇ ──
@@ -1570,6 +1575,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
         fl0=g[0]*FORCE_SCALE; fl1=g[1]*FORCE_SCALE;
         const fmag=Math.hypot(fl0,fl1); if(fmag>FMAX){fl0*=FMAX/fmag; fl1*=FMAX/fmag;}
       }
+      latF=[fl0,fl1];
       const e0=st.q[0]-q0[0], e1=st.q[1]-q0[1];
       const a0=(A[0][0]*e0+A[0][1]*e1 + B[0][0]*st.qd[0]+B[0][1]*st.qd[1] - st.diss*st.qd[0] + fl0)/MASS;
       const a1=(A[1][0]*e0+A[1][1]*e1 + B[1][0]*st.qd[0]+B[1][1]*st.qd[1] - st.diss*st.qd[1] + fl1)/MASS;
