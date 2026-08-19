@@ -245,6 +245,35 @@
 #lags-demo .viewer-play-overlay:hover{background:var(--navy);transform:translate(-50%,-50%) scale(1.07);}
 /* En lecture : l'overlay disparaît pour laisser le viewer interactif (orbite, clic, zoom) */
 #lags-demo .rock3d-viewer.playing .viewer-play-overlay{display:none;}
+/* ── liens vers le preprint (sous l'intro) et bloc de citation (fin de page) ── */
+/* bandeau d'en-tête : ligne meta sous le titre, façon page de garde de preprint */
+.lags-byline{border-top:1px solid var(--border);padding-top:.6rem;margin:.9rem 0 1.4rem;max-width:680px;}
+.lags-meta{
+  font-family:'JetBrains Mono',ui-monospace,monospace;
+  font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-muted);margin:0;line-height:1.9;
+}
+.lags-meta i{font-style:normal;color:var(--text-faint);margin:0 .55em;}
+.lags-meta a{color:var(--navy-light);text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;transition:color .15s,border-color .15s;}
+.lags-meta a:hover{color:var(--navy);border-color:var(--navy);}
+.lags-cite{max-width:680px;margin:2.6rem 0 0;}
+.lags-cite h2{font-family:'Lora',Georgia,serif;font-weight:600;font-size:1.25rem;color:var(--navy);margin:0 0 .5rem;}
+.lags-cite p{font-size:.92rem;color:var(--text-muted);margin:0 0 .9rem;}
+.lags-cite-box{position:relative;}
+.lags-cite-box pre{
+  margin:0;padding:1rem 1.1rem;overflow-x:auto;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.72rem;line-height:1.6;color:var(--text-mid);
+  white-space:pre;
+}
+.lags-cite-copy{
+  position:absolute;top:8px;right:8px;
+  font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text-muted);background:var(--bg);cursor:pointer;
+  border:1px solid var(--border);border-radius:var(--radius);padding:4px 8px;
+  transition:color .15s ease,border-color .15s ease;
+}
+.lags-cite-copy:hover{color:var(--navy);border-color:var(--navy-light);}
 </style>
 </head>
 <body>
@@ -272,6 +301,12 @@
       data-fr="LaGSplat : Latent Lagrangien Gaussian Splatting">
     LaGSplat: Latent Lagrangian Gaussian Splatting
   </h1>
+
+  <div class="lags-byline">
+    <p class="lags-meta">
+      <span data-en="Preprint" data-fr="Preprint">Preprint</span><i>·</i>2026<i>·</i><a href="https://arxiv.org/abs/2608.16324" target="_blank" rel="noopener">arXiv:2608.16324</a><i>·</i><a href="./pdf/LaGSplat_preprint.pdf" target="_blank" rel="noopener">PDF&#8201;↓</a>
+    </p>
+  </div>
 
   <p class="page-intro" style="max-width:680px"
      data-en="From videos of a dynamical system, LaGSplat builds an interactive physics-governed 2D or 3D simulation."
@@ -548,6 +583,27 @@
     </div>
 
   </div>
+
+  <section class="lags-cite">
+    <h2 data-en="Cite this work" data-fr="Citer ce travail">Cite this work</h2>
+    <p data-en="This page illustrates the LaGSplat preprint. If you use this work, please cite it as:"
+       data-fr="Cette page illustre le preprint LaGSplat. Si vous utilisez ce travail, merci de le citer ainsi :">
+      This page illustrates the LaGSplat preprint. If you use this work, please cite it as:
+    </p>
+    <div class="lags-cite-box">
+      <button type="button" class="lags-cite-copy" onclick="copyBibtex(this)"
+              data-en="copy" data-fr="copier">copy</button>
+      <pre id="lags-bibtex">@misc{pottier2026lagsplat,
+  title         = {LaGSplat: Inferring Physics-Governed Interactive Simulation from
+                   Monocular Video Using Latent Lagrangian Gaussian Splatting},
+  author        = {Pottier, Louen},
+  year          = {2026},
+  eprint        = {2608.16324},
+  archivePrefix = {arXiv},
+  url           = {https://arxiv.org/abs/2608.16324}
+}</pre>
+    </div>
+  </section>
 
 </main>
 
@@ -1661,6 +1717,19 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
 })();
 </script>
 
+<script>
+// Bouton « copier » du bloc BibTeX : on remet aussi les data-en/data-fr à jour,
+// sinon un changement de langue pendant le retour visuel écraserait le libellé.
+function copyBibtex(btn){
+  const setLabel = (en, fr) => { btn.dataset.en = en; btn.dataset.fr = fr;
+    let lang = 'en'; try { lang = localStorage.getItem('cv_lang') || 'en'; } catch(e) {}
+    btn.textContent = (lang === 'fr') ? fr : en; };
+  navigator.clipboard.writeText(document.getElementById('lags-bibtex').textContent).then(() => {
+    setLabel('copied', 'copié');
+    setTimeout(() => setLabel('copy', 'copier'), 1600);
+  }).catch(() => setLabel('copy failed', 'échec'));
+}
+</script>
 <script src="./lang.js"></script>
 </body>
 </html>
