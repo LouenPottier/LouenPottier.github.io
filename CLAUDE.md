@@ -281,8 +281,9 @@ coordonnée est mal suivie — même définition et même libellé (« % vis. »
 coordonnées SAUF la plus visible, écartée à 2 (soit ~2 σ, `u` étant blanchi ; bien à
 l'intérieur des percentiles 1–99 de cette coordonnée, −2,5 à +2,6). Un seul degré de liberté
 part hors équilibre, et c'est celui qui porte 92 % du mouvement à l'écran : la relaxation se
-voit sans transitoire parasite sur les trois autres. Vérifié sur 30 s sous les 25 kPa des
-4 chambres : `q₁` oscille 2 → −1,04 → 0,70 → 0,02, `‖u‖` borné à 3,64, tout reste fini.
+voit sans transitoire parasite sur les trois autres. Vérifié sur 30 s sous les 45 kPa des
+4 chambres (`p_init_kpa`, exporté et repris par les curseurs comme par le bouton *Reset
+pressure*) : `q₁` oscille 2 → −1,42 → −0,64 → −0,03, `‖u‖` borné à 3,63, tout reste fini.
 
 **Deux espaces** : le LNN intègre en `u` BLANCHI ; les gaussiennes vivent en `z` BRUT.
 `Krauss2LNN.toZ()` avant tout rendu. ⚠️ `rollout_full_zenc.npy` porte « zenc » dans son
