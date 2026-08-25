@@ -155,13 +155,56 @@
   display:flex;flex-wrap:wrap;gap:14px 26px;align-items:flex-end;
   margin:0 0 1.5rem;
 }
+/* ── quatrième démo : barre des 4 chambres de pression (SCR souple) ── */
+/* ── équation d'Euler-Lagrange latente (expérience 4) ── */
+#lags-demo .lags-eq{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
+  gap:.1em .35em;margin:1.8rem 0 .9rem;
+  font-family:'Lora',Georgia,serif;font-size:1.22rem;color:var(--text);
+}
+#lags-demo .lags-eq .op{padding:0 .12em}
+#lags-demo .lags-eq sup{font-size:.62em;vertical-align:.42em}
+/* fraction empilée : numérateur au-dessus, barre = bordure du dénominateur */
+#lags-demo .lags-eq .frac{
+  display:inline-flex;flex-direction:column;align-items:center;
+  font-size:.88em;line-height:1.2;
+}
+#lags-demo .lags-eq .frac > span:first-child{padding:0 .35em .06em}
+#lags-demo .lags-eq .frac > span:last-child{
+  border-top:1px solid currentColor;padding:.06em .35em 0;
+}
+#lags-demo .eq-legend{
+  font-family:'Lora',Georgia,serif;
+  font-size:.95rem;line-height:1.7;color:var(--text-muted);
+  max-width:96ch;margin:0 0 1.75rem;
+}
+#lags-demo .kr-press{
+  border:1px solid var(--border-soft);border-radius:var(--radius);
+  padding:12px 16px 14px;margin:0 0 1.5rem;
+}
+#lags-demo .kr-press-head{
+  display:flex;justify-content:space-between;align-items:center;gap:14px;margin:0 0 10px;
+}
+#lags-demo .kr-press-title{
+  font-family:var(--mono);font-size:.78rem;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--text-muted);
+}
+#lags-demo .kr-press-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 22px;}
+#lags-demo .kr-sel-count{font-family:var(--mono);font-size:.78rem;color:var(--text-muted);}
+#lags-demo .kr-sel-note{
+  font-size:.86rem;line-height:1.6;color:var(--text-muted);
+  margin:12px 0 0;max-width:100ch;
+}
+#lags-demo .kr-sel-note b{color:var(--text-mid);font-weight:600}
+@media(max-width:720px){#lags-demo .kr-press-grid{grid-template-columns:repeat(2,1fr)}}
 #lags-demo .stage.rock canvas{height:330px;}
 #lags-demo .stage.recon canvas{height:330px;}
 /* plots interactifs (drag d'effort, sélection d'état, rotation caméra 3D) :
    le geste pilote le drag/la rotation, pas le scroll de la page → évite le
    conflit geste/scroll sur mobile (issue #1). cVideo (affichage) reste scrollable. */
 #lags-demo .stage.recon canvas,
-#lags-demo #cTime, #lags-demo #cLat, #lags-demo #cRock3D{touch-action:none;}
+#lags-demo #cTime, #lags-demo #cLat, #lags-demo #cRock3D,
+#lags-demo #cKrRecon{touch-action:none;}
 
 /* ── fusion : petit texte de liaison entre les figures ── */
 #lags-demo .link-text{
@@ -528,8 +571,8 @@
     </div>
 
     <p class="thesis"
-       data-en="A LaGSplat was trained from 5 short videos of the bag oscillating. Unlike the simple pendulum and the rocking chair, the bag oscillates in 2 dimensions. The Gaussians are therefore parameterised by <span class='qk'>(x, y, q&#8321;, q&#8322;)</span>, which fundamentally changes little, except that the 4-D volume defined by the Gaussians can no longer be visualised. The simulation below runs the <b>trained Lagrangian itself</b> — the same network and the same weights as the free-rollout figure of the paper: learned mass <span class='qk'>M(q)</span>, learned invex potential <span class='qk'>V(q)</span> and learned dissipation <span class='qk'>C(q)</span>, integrated in the browser."
-       data-fr="Un LaGSplat a &eacute;t&eacute; entra&icirc;n&eacute; &agrave; partir de 5 courtes vid&eacute;os du sac en train d'osciller. Contrairement au pendule simple et au rocking-chair, le sac oscille en 2 dimensions. Les gaussiennes sont donc param&eacute;tr&eacute;es par <span class='qk'>(x, y, q&#8321;, q&#8322;)</span>, ce qui ne change fondamentalement pas grand-chose, si ce n'est qu'il n'est plus possible de visualiser le volume 4D d&eacute;fini par les gaussiennes. La simulation ci-dessous fait tourner <b>le Lagrangien entra&icirc;n&eacute; lui-m&ecirc;me</b> &mdash; m&ecirc;me r&eacute;seau et m&ecirc;mes poids que la figure de rollout libre de l'article : masse apprise <span class='qk'>M(q)</span>, potentiel invexe appris <span class='qk'>V(q)</span> et dissipation apprise <span class='qk'>C(q)</span>, int&eacute;gr&eacute;s dans le navigateur.">
+       data-en="A LaGSplat was trained from 5 short videos of the bag oscillating. Unlike the simple pendulum and the rocking chair, the bag oscillates in 2 dimensions. The Gaussians are therefore parameterised by <span class='qk'>(x, y, q&#8321;, q&#8322;)</span>, which fundamentally changes little, except that the 4-D volume defined by the Gaussians can no longer be visualised."
+       data-fr="Un LaGSplat a &eacute;t&eacute; entra&icirc;n&eacute; &agrave; partir de 5 courtes vid&eacute;os du sac en train d'osciller. Contrairement au pendule simple et au rocking-chair, le sac oscille en 2 dimensions. Les gaussiennes sont donc param&eacute;tr&eacute;es par <span class='qk'>(x, y, q&#8321;, q&#8322;)</span>, ce qui ne change fondamentalement pas grand-chose, si ce n'est qu'il n'est plus possible de visualiser le volume 4D d&eacute;fini par les gaussiennes.">
     </p>
 
     <div class="rock-controls">
@@ -570,6 +613,144 @@
         </div>
         <div class="stage recon"><canvas id="cSacRecon"></canvas><div class="badge" data-en="grab &amp; drag the object" data-fr="attraper et glisser l'objet">grab &amp; drag the object</div></div>
         <div class="pfoot video"><span data-en="<b style='color:#ff7a18'>&#10230;</b> Interactive user applied force <i>f</i>, pulled back to the latent space through <i>J</i>&#7488;<i>f</i>. Grab the object to apply it." data-fr="<b style='color:#ff7a18'>&#10230;</b> Force <i>f</i> appliquée interactivement par l'utilisateur, rapatriée dans l'espace latent par <i>J</i>&#7488;<i>f</i>. Attrapez l'objet pour l'appliquer."><b style='color:#ff7a18'>&#10230;</b> Interactive user applied force <i>f</i>, pulled back to the latent space through <i>J</i>&#7488;<i>f</i>. Grab the object to apply it.</span></div>
+      </section>
+    </div>
+
+    <!-- ── Fourth demo: pneumatically actuated soft arm (latent d=4) ────── -->
+    <hr class="exp-divider">
+
+    <div class="exp-head">
+      <p class="exp-tag" data-en="experiment 4 · real test case" data-fr="expérience 4 · cas test réel">experiment 4 · real test case</p>
+      <h2 class="exp-title" data-en="Four-degree-of-freedom test case: a pneumatically actuated soft arm" data-fr="Cas test 4 degrés de liberté : un bras souple actionné par pression">Four-degree-of-freedom test case: a pneumatically actuated soft arm</h2>
+    </div>
+
+    <p class="thesis"
+       data-en="A two-segment soft continuum robot, trained on the public dataset of Krauss et al. (2026). The latent space here has four dimensions, so the Gaussians are parameterised by <span class='qk'>(x, y, q&#8321;, q&#8322;, q&#8323;, q&#8324;)</span> and the state no longer fits in a plane. The arm is not only released from an initial condition, it is also driven by the four pneumatic chambers of the real robot. Pressure enters the latent Euler-Lagrange equation on the right-hand side, so the sliders below carry the same input the physical actuator receives."
+       data-fr="Un robot continuum souple &agrave; deux segments, entra&icirc;n&eacute; sur le jeu de donn&eacute;es public de Krauss et al. (2026). L'espace latent est ici de dimension quatre : les gaussiennes sont param&eacute;tr&eacute;es par <span class='qk'>(x, y, q&#8321;, q&#8322;, q&#8323;, q&#8324;)</span> et l'&eacute;tat ne tient plus dans un plan. Le bras n'est pas seulement l&acirc;ch&eacute; depuis une condition initiale, il est aussi actionn&eacute; par les quatre chambres pneumatiques du robot r&eacute;el. La pression entre au second membre de l'&eacute;quation d'Euler-Lagrange latente, si bien que les curseurs ci-dessous portent l'entr&eacute;e m&ecirc;me que re&ccedil;oit l'actionneur physique.">
+      A two-segment soft continuum robot, trained on the public dataset of Krauss et al. (2026). The latent space here has four dimensions, so the Gaussians are parameterised by <span class='qk'>(x, y, q₁, q₂, q₃, q₄)</span> and the state no longer fits in a plane. The arm is not only released from an initial condition, it is also driven by the four pneumatic chambers of the real robot. Pressure enters the latent Euler-Lagrange equation on the right-hand side, so the sliders below carry the same input the physical actuator receives.
+    </p>
+
+
+    <div class="lags-eq" role="math"
+         aria-label="d over dt of partial L over partial q dot, plus partial D over partial q dot, minus partial L over partial q, equals b of q transpose P plus J of q transpose f">
+      <span class="frac"><span><i>d</i></span><span><i>dt</i></span></span>
+      <span class="frac"><span>&part;<i>L</i></span><span>&part;<i>q&#775;</i></span></span>
+      <span class="op">+</span>
+      <span class="frac"><span>&part;<i>D</i></span><span>&part;<i>q&#775;</i></span></span>
+      <span class="op">&minus;</span>
+      <span class="frac"><span>&part;<i>L</i></span><span>&part;<i>q</i></span></span>
+      <span class="op">=</span>
+      <span><i>b</i>(<i>q</i>)<sup>&#8868;</sup><i>P</i></span>
+      <span class="op">+</span>
+      <span><i>J</i>(<i>q</i>)<sup>&#8868;</sup><i>f</i></span>
+    </div>
+    <p class="eq-legend"
+       data-en="<i>L</i> = <i>T</i> &minus; <i>V</i> and <i>D</i> are the learned kinetic, potential and dissipation terms, <i>P</i> the four chamber pressures set by the sliders, and <i>f</i> a force applied by dragging in the image, transported to the latent space by the decoder Jacobian <i>J</i>(<i>q</i>)."
+       data-fr="<i>L</i> = <i>T</i> &minus; <i>V</i> et <i>D</i> sont les termes cin&eacute;tique, potentiel et dissipatif appris, <i>P</i> les quatre pressions de chambre pos&eacute;es par les curseurs, et <i>f</i> une force appliqu&eacute;e en glissant dans l'image, transport&eacute;e dans l'espace latent par la jacobienne du d&eacute;codeur <i>J</i>(<i>q</i>).">
+      <i>L</i> = <i>T</i> &minus; <i>V</i> and <i>D</i> are the learned kinetic, potential and dissipation terms, <i>P</i> the four chamber pressures set by the sliders, and <i>f</i> a force applied by dragging in the image, transported to the latent space by the decoder Jacobian <i>J</i>(<i>q</i>).
+    </p>
+
+    <div class="rock-controls">
+      <button id="kPlay" title="play / pause"
+        style="font-family:var(--mono);font-size:1rem;font-weight:600;color:#fff;background:var(--navy);border:none;border-radius:var(--radius);padding:8px 14px;cursor:pointer;min-width:44px;line-height:1;">⏸</button>
+      <div class="ctl">
+        <label><span class="lbl" data-en="Speed" data-fr="Vitesse">Speed</span> <span class="val" id="kVs">×1.0</span></label>
+        <input id="kSpeed" type="range" min="10" max="200" value="100">
+      </div>
+      <button id="kReset"
+        data-en="Reset state" data-fr="Réinitialiser l'état"
+        style="font-family:var(--mono);font-size:.82rem;color:var(--text-mid);background:transparent;border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;cursor:pointer;line-height:1;">Reset state</button>
+    </div>
+
+    <div class="kr-press">
+      <div class="kr-press-head">
+        <span class="kr-press-title" data-en="Chamber pressure &middot; kPa" data-fr="Pression des chambres &middot; kPa">Chamber pressure · kPa</span>
+        <button id="kVent"
+          data-en="Reset pressure" data-fr="Réinitialiser la pression"
+          style="font-family:var(--mono);font-size:.82rem;color:var(--text-mid);background:transparent;border:1px solid var(--border);border-radius:var(--radius);padding:6px 11px;cursor:pointer;line-height:1;">Reset pressure</button>
+      </div>
+      <div class="kr-press-grid">
+        <div class="ctl">
+          <label><span class="lbl" data-en="p&#8321; &middot; segment 1" data-fr="p&#8321; &middot; segment 1">p₁ · segment 1</span> <span class="val" id="kVp0">-</span></label>
+          <input id="kP0" type="range" min="0" max="95" step="0.5" value="25">
+        </div>
+        <div class="ctl">
+          <label><span class="lbl" data-en="p&#8322; &middot; segment 1" data-fr="p&#8322; &middot; segment 1">p₂ · segment 1</span> <span class="val" id="kVp1">-</span></label>
+          <input id="kP1" type="range" min="0" max="95" step="0.5" value="25">
+        </div>
+        <div class="ctl">
+          <label><span class="lbl" data-en="p&#8323; &middot; segment 2" data-fr="p&#8323; &middot; segment 2">p₃ · segment 2</span> <span class="val" id="kVp2">-</span></label>
+          <input id="kP2" type="range" min="0" max="95" step="0.5" value="25">
+        </div>
+        <div class="ctl">
+          <label><span class="lbl" data-en="p&#8324; &middot; segment 2" data-fr="p&#8324; &middot; segment 2">p₄ · segment 2</span> <span class="val" id="kVp3">-</span></label>
+          <input id="kP3" type="range" min="0" max="95" step="0.5" value="25">
+        </div>
+      </div>
+    </div>
+
+    <!-- Réglages du moyennage de la prise — OUTIL DE DÉVELOPPEMENT, masqué.
+         Les valeurs appliquées sont celles de `selOpt` dans le script plus bas ;
+         le câblage des curseurs tolère leur absence, donc dé-commenter ce bloc
+         suffit à les réactiver, sans rien toucher au JS.
+    <div class="kr-press">
+      <div class="kr-press-head">
+        <span class="kr-press-title" data-en="Grab averaging &middot; which gaussians the force is applied to" data-fr="Moyennage de la prise &middot; sur quelles gaussiennes la force s'applique">Grab averaging · which gaussians the force is applied to</span>
+        <span class="kr-sel-count" id="kVn" data-en="grab the object to see" data-fr="attrapez l'objet pour voir">grab the object to see</span>
+      </div>
+      <div class="kr-press-grid">
+        <div class="ctl">
+          <label><span class="lbl" data-en="Radius" data-fr="Rayon">Radius</span> <span class="val" id="kVselR">-</span></label>
+          <input id="kSelR" type="range" min="1" max="20" value="5">
+        </div>
+        <div class="ctl">
+          <label><span class="lbl" data-en="Falloff" data-fr="Décroissance">Falloff</span> <span class="val" id="kVselS">-</span></label>
+          <input id="kSelS" type="range" min="10" max="80" value="30">
+        </div>
+        <div class="ctl">
+          <label><span class="lbl" data-en="Presence threshold" data-fr="Seuil de présence">Presence threshold</span> <span class="val" id="kVselW">-</span></label>
+          <input id="kSelW" type="range" min="0" max="100" value="27">
+        </div>
+        <div class="ctl">
+          <label><span class="lbl" data-en="Mobility filter" data-fr="Filtre de mobilité">Mobility filter</span> <span class="val" id="kVselJ">-</span></label>
+          <input id="kSelJ" type="range" min="0" max="90" value="0">
+        </div>
+      </div>
+      <p class="kr-sel-note"
+         data-en="<b>Radius</b>: how far around the click gaussians are collected. <b>Falloff</b>: how fast their weight decays with distance to the application point (&sigma; = radius / falloff) &mdash; higher is more local. <b>Presence threshold</b>: minimum <i>w<sub>z</sub></i> for a gaussian to take part at the current state. <b>Mobility filter</b>: drops gaussians whose &part;&mu;/&part;q is below this fraction of the local maximum &mdash; the static background is the majority by count, and without this the application point drifts towards it instead of following the moving matter."
+         data-fr="<b>Rayon</b> : jusqu'où les gaussiennes sont collectées autour du clic. <b>Décroissance</b> : vitesse à laquelle leur poids décroît avec la distance au point d'application (&sigma; = rayon / décroissance) &mdash; plus haut = plus local. <b>Seuil de présence</b> : <i>w<sub>z</sub></i> minimal pour qu'une gaussienne participe à l'état courant. <b>Filtre de mobilité</b> : écarte les gaussiennes dont &part;&mu;/&part;q est sous cette fraction du maximum local &mdash; le fond immobile est majoritaire en nombre, et sans ce filtre le point d'application dérive vers lui au lieu de suivre la matière qui bouge.">
+        Radius: how far around the click gaussians are collected. Falloff: how fast their weight decays with distance to the application point (σ = radius / falloff) — higher is more local. Presence threshold: minimum w<sub>z</sub> for a gaussian to take part at the current state. Mobility filter: drops gaussians whose ∂μ/∂q is below this fraction of the local maximum — the static background is the majority by count, and without this the application point drifts towards it instead of following the moving matter.
+      </p>
+    </div>
+
+    -->
+
+    <div class="rock-grid">
+      <section class="panel q">
+        <div class="phead">
+          <div class="tag" data-en="LaGSplat · latent state" data-fr="LaGSplat · état latent">LaGSplat · latent state</div>
+          <h2 data-en="Four latent coordinates over time" data-fr="Les quatre coordonnées latentes au cours du temps">Four latent coordinates over time</h2>
+          <div class="sub"
+               data-en="the 4-D state cannot be drawn as a plane, so each coordinate is traced separately, ordered by visibility: the share of on-screen motion each one carries. The first two carry 98&thinsp;% of it between them, which is why the render stays right even when the last two drift. Shaded band: the range covered by the training videos."
+               data-fr="l'état 4D ne se dessine pas dans un plan : chaque coordonnée est tracée séparément, classée par visibilité : la part du mouvement à l'écran que chacune porte. Les deux premières en portent 98&thinsp;% à elles deux, ce qui explique que le rendu reste juste même quand les deux dernières dérivent. Bande grisée : l'étendue couverte par les vidéos d'entraînement.">
+            the 4-D state cannot be drawn as a plane, so each coordinate is traced separately, ordered by visibility: the share of on-screen motion each one carries. The first two carry 98 % of it between them, which is why the render stays right even when the last two drift. Shaded band: the range covered by the training videos.
+          </div>
+        </div>
+        <div class="stage recon"><canvas id="cKrState"></canvas><div class="badge" data-en="driven by the sliders" data-fr="piloté par les curseurs">driven by the sliders</div></div>
+      </section>
+
+      <section class="panel q">
+        <div class="phead">
+          <div class="tag" data-en="live GS decoder" data-fr="décodeur GS en direct">live GS decoder</div>
+          <h2 data-en="GS decoder output" data-fr="Sortie du décodeur GS">GS decoder output</h2>
+          <div class="sub" data-en="15&thinsp;000 gaussians conditioned on (q&#8321;, q&#8322;, q&#8323;, q&#8324;) and re-rasterised every frame" data-fr="15&thinsp;000 gaussiennes conditionnées sur (q&#8321;, q&#8322;, q&#8323;, q&#8324;) et re-rasterisées à chaque image">15 000 gaussians conditioned on (q₁, q₂, q₃, q₄) and re-rasterised every frame</div>
+        </div>
+        <div class="stage recon" style="position:relative">
+          <canvas id="cKrRecon" style="background:#000"></canvas>
+          <canvas id="cKrOverlay" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+          <div class="badge" data-en="grab &amp; drag the object" data-fr="attraper et glisser l'objet">grab &amp; drag the object</div>
+        </div>
+        <div class="pfoot video"><span data-en="<b style='color:#ff7a18'>&#10230;</b> Interactive user applied force <i>f</i>, pulled back to the latent space through <i>J</i>&#7488;<i>f</i> &mdash; on top of the pressure the chambers are already applying." data-fr="<b style='color:#ff7a18'>&#10230;</b> Force <i>f</i> appliquée interactivement par l'utilisateur, rapatriée dans l'espace latent par <i>J</i>&#7488;<i>f</i> &mdash; en plus de la pression qu'exercent déjà les chambres."><b style='color:#ff7a18'>&#10230;</b> Interactive user applied force <i>f</i>, pulled back to the latent space through <i>J</i>&#7488;<i>f</i> — on top of the pressure the chambers are already applying.</span></div>
       </section>
     </div>
 
@@ -1723,6 +1904,387 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   }
   requestAnimationFrame(()=>{$('sVs').textContent='×1.0';setDiss(+$('sDiss').value);
     last=performance.now();requestAnimationFrame(loop);});
+})();
+</script>
+
+<!-- SCR souple Krauss 2-seg (d=4) : poids du LNN, portage de la dynamique, décodeur GS live -->
+<script src="./demo/krauss2_meta.js"></script>
+<script src="./demo/krauss2_gaussians.js"></script>
+<script src="./demo/krauss2_lnn.js"></script>
+<script src="./demo/krauss2_lnn_dyn.js"></script>
+<script src="./demo/krauss2_splat.js"></script>
+<script>
+"use strict";
+/* ── Fourth demo: the trained 4-DOF pneumatic soft arm (Krauss 2-segments) ──
+   Deux différences de fond avec l'onglet sac :
+     • la RECONSTRUCTION n'est plus lue dans un atlas de sprites (19⁴ tuiles seraient
+       nécessaires en d=4) : le décodeur GS tourne en direct en WebGL, 15000 gaussiennes
+       re-rasterisées par image (demo/krauss2_splat.js) ;
+     • le système est ACTIONNÉ : les 4 pressions entrent au second membre d'Euler-Lagrange
+       comme force généralisée b(q)ᵀP, en plus de la prise interactive.
+   Aucun torch au runtime ; le portage est vérifié contre PyTorch par
+   demo_Lags/check_krauss2_lnn.py. */
+(function(){
+  const META=window.KRAUSS2_META, P=window.KRAUSS2_LNN, L=window.Krauss2LNN, SP=window.Krauss2Splat;
+  const cvRec=document.getElementById('cKrRecon');
+  const cvOv=document.getElementById('cKrOverlay');
+  const cvSt=document.getElementById('cKrState');
+  if(!META||!P||!L||!SP||!cvRec||!cvOv||!cvSt) return;   // assets absents → onglet inerte
+
+  const $=id=>document.getElementById(id);
+  const D=P.d, NC=P.n_c;
+  const COLS=['#1b3a6b','#d23b3b','#118a6e','#b06f00'];   // q₁ q₂ q₃ q₄ (à l'affichage)
+  const FORCE_CSS='#ff7a18';
+
+  // ── ordre d'affichage et visibilité des coordonnées ───────────────────────
+  // AFFICHAGE UNIQUEMENT : PERM[k] est l'indice, dans la base du MODÈLE, de la k-ième
+  // coordonnée montrée. La base latente est une PCA blanchie dont les valeurs propres
+  // sortent par ordre CROISSANT, donc u₁ est la direction la moins chargée et u₄ la plus :
+  // on inverse pour retrouver l'ordre usuel des composantes principales. C'est le
+  // `--perm 4,3,2,1` de la figure du preprint. Aucune mesure, aucun calcul de physique
+  // n'utilise PERM — st.u reste dans la base du modèle de bout en bout.
+  const PERM=(P.display&&P.display.perm)||[0,1,2,3];
+  // Visibilité = part de la trace de Ḡ = E[(∂I/∂u)ᵀ(∂I/∂u)], soit combien de PIXELS
+  // chaque coordonnée déplace (même source que les étiquettes « % vis. » du preprint).
+  // C'est ce qui explique qu'un rendu reste juste alors qu'une coordonnée est mal suivie :
+  // ici la première porte 92 % du mouvement visible et la dernière 0,6 %.
+  const VIS=(P.display&&P.display.vis)||null;
+  const TSTAT=P.u_traj_stats;
+
+  // État de départ : le repos appris u_eq (le minimum du potentiel, ∇V = 0) sur toutes les
+  // coordonnées SAUF la plus visible, écartée à 2. Un seul degré de liberté est donc hors
+  // équilibre au départ, et c'est celui qui porte 92 % du mouvement à l'écran : la
+  // relaxation se voit, sans transitoire parasite sur les trois autres. u étant blanchi
+  // (écart-type 1 par axe), 2 est un écart de ~2 σ, bien à l'intérieur de l'étendue
+  // d'entraînement de cette coordonnée (percentiles 1–99 : −2.5 à +2.6).
+  const START_Q1=2.0;
+  const START_U=(function(){
+    const u=Float64Array.from(P.energy.u_eq);
+    u[PERM[0]]=START_Q1;
+    return u;
+  })();
+
+  // ── état ──────────────────────────────────────────────────────────────────
+  // st.u / st.ud : l'état du LNN, en espace BLANCHI u, vitesse PAR FRAME (l'unité dans
+  // laquelle le réseau a été entraîné : dt = 1 frame à 59.94 fps, pas des secondes).
+  // Le décodeur, lui, vit en z BRUT — d'où le toZ() à chaque rendu, jamais l'inverse.
+  // Départ AU REPOS (∇V = 0, P = 0) : monter une pression fait fléchir le bras vers son
+  // équilibre chargé, ce qui est précisément ce que la démo veut montrer.
+  const st={running:true, speed:1, u:Float64Array.from(START_U), ud:new Float64Array(D),
+            kpa:P.p_init_kpa.slice(), Fu:null,
+            grab:false, sel:null, anchorImg:null, tipImg:null, pres:1, pres0:1, mouse:[0,0]};
+
+  // ── décodeur GS : décodage des gaussiennes puis rendu WebGL ───────────────
+  // Les 15000 gaussiennes arrivent en base64 dans un <script src> (window.KRAUSS2_GAUSSIANS)
+  // et NON par fetch : la page doit s'ouvrir en file:// comme les autres démos du site,
+  // où toute requête réseau est bloquée. Le surcoût base64 est annulé par gzip.
+  let splat=null, JREF=1;
+  (function(){
+    try{
+      const b64=window.KRAUSS2_GAUSSIANS;
+      if(!b64) throw new Error('krauss2_gaussians.js absent');
+      const bin=atob(b64), buf=new ArrayBuffer(bin.length), u8=new Uint8Array(buf);
+      for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
+      splat=SP.create(cvRec, buf, META);
+      JREF=jacRef(new Float32Array(buf));
+    }catch(err){
+      // WebGL2 indisponible ou asset manquant : on le DIT (une erreur avalée ici ne se
+      // voyait que par un panneau noir, impossible à diagnostiquer) et on laisse tourner
+      // le reste de l'onglet — la physique et le plan d'état n'ont pas besoin du rendu.
+      console.error('[lagsplat/krauss2] décodeur GS indisponible :', err);
+      const x=cvRec.getContext('2d');
+      if(x){
+        x.fillStyle='#000'; x.fillRect(0,0,cvRec.width,cvRec.height);
+        x.fillStyle='#888'; x.font='13px ui-monospace,monospace'; x.textAlign='center';
+        x.fillText('WebGL2 required for the live decoder', cvRec.width/2, cvRec.height/2);
+      }
+    }
+  })();
+
+  /** Échelle de référence des jacobiennes : 85ᵉ percentile de ‖W⁻¹·J_z‖_F sur les
+      gaussiennes présentes (l'avant-plan). Sert UNIQUEMENT à calibrer le gain de la
+      prise pour que le geste ait la même autorité que sur les autres onglets. */
+  function jacRef(data){
+    const Wi=P.whiten.W_inv, out=[];
+    for(let k=0;k<META.K;k+=7){                      // 1 gaussienne sur 7 : le percentile suffit
+      const o=k*META.stride;
+      let s=0;
+      for(let r=0;r<2;r++) for(let i=0;i<D;i++){
+        let m=0;
+        for(let j=0;j<D;j++) m+=Wi[i][j]*data[o+6+r*D+j];
+        s+=m*m;
+      }
+      if(s>0) out.push(Math.sqrt(s));
+    }
+    out.sort((a,b)=>a-b);
+    return out.length? out[Math.floor(0.85*(out.length-1))] : 1;
+  }
+
+  // ── calibration de la prise (jamais de la dynamique) ──────────────────────
+  // Raideur typique du potentiel appris à l'équilibre : diagonale de ∇²V(u_eq) par
+  // différences finies centrées sur le gradient analytique.
+  const STIFF_U=(function(){
+    const e=1e-3, ue=P.energy.u_eq; let s=0;
+    for(let k=0;k<D;k++){
+      const a=ue.slice(), b=ue.slice(); a[k]-=e; b[k]+=e;
+      s+=Math.abs((L.potential(P.energy,b,D).grad[k]-L.potential(P.energy,a,D).grad[k])/(2*e));
+    }
+    return Math.max(s/D, 1e-3);
+  })();
+  const SPAN_U=(function(){
+    let s=0; for(let k=0;k<D;k++) s+=P.u_traj_stats.max[k]-P.u_traj_stats.min[k];
+    return s/D;
+  })();
+  const GRAB_FORCE=0.8;      // un drag plein cadre sur l'avant-plan ≈ décale l'équilibre de 0.8·span
+  const FGRAB_MAX=0.35;      // borne du vecteur image |f| (fraction du cadre)
+  const FMAX=STIFF_U*1.2*SPAN_U;   // garde-fou final sur |F_u| (anti-divergence si J est grand)
+
+  // ── contrôles ─────────────────────────────────────────────────────────────
+  $('kPlay').addEventListener('click',()=>{st.running=!st.running;$('kPlay').textContent=st.running?'⏸':'▶';});
+  $('kSpeed').addEventListener('input',e=>{
+    st.speed=e.target.value/100;
+    $('kVs').textContent='×'+st.speed.toFixed(1);
+  });
+  function setP(i,v){ st.kpa[i]=v; $('kVp'+i).textContent=v.toFixed(1); }
+  for(let i=0;i<NC;i++){
+    const el=$('kP'+i);
+    el.addEventListener('input',e=>setP(i,+e.target.value));
+    setP(i,+el.value);
+  }
+  $('kVent').addEventListener('click',()=>{
+    for(let i=0;i<NC;i++){ const v=P.p_init_kpa[i]; $('kP'+i).value=v; setP(i,v); }
+  });
+  // ── réglages du moyennage de la prise ─────────────────────────────────────
+  // Ils décident SUR QUOI la force s'applique, pas de la physique. À 15000 gaussiennes la
+  // sélection ratisse vite trop large : un clic peut ramasser tout le corps, et le point
+  // d'application devient son barycentre au lieu de suivre le curseur — d'où ces réglages.
+  const selOpt={radius:0.05, sharp:3.0, wzMin:1e-3, jmin:0.0};
+  // Seuil de présence en échelle LOG : la plage utile va de 1e-4 (tout passe) à 0.5
+  // (seules les gaussiennes franchement présentes), soit près de 4 décades — un curseur
+  // linéaire y serait inutilisable sur les trois quarts de sa course.
+  const wzOf=v=>Math.pow(10, -4 + (v/100)*3.7);
+  // Le bloc de curseurs correspondant est MASQUÉ dans le HTML (outil de développement).
+  // Tout le câblage tolère donc leur absence : dé-commenter le bloc suffit à les
+  // réactiver, sans rien changer ici.
+  const setTxt=(id,v)=>{const el=$(id); if(el) el.textContent=v;};
+  const onSlider=(id,fn)=>{const el=$(id); if(el) el.addEventListener('input',fn);};
+  function refreshSel(){
+    setTxt('kVselR', selOpt.radius.toFixed(3));
+    setTxt('kVselS', '×'+selOpt.sharp.toFixed(1));
+    setTxt('kVselW', selOpt.wzMin.toExponential(1));
+    setTxt('kVselJ', selOpt.jmin.toFixed(2));
+    // Pas de re-sélection ici : updateGrab resélectionne à chaque frame au point fixe,
+    // donc un curseur déplacé pendant la prise se voit immédiatement.
+    showCount();
+  }
+  function showCount(){
+    const el=$('kVn');
+    if(!el) return;
+    if(!st.sel){ el.textContent=(document.documentElement.lang==='fr')
+      ? "attrapez l'objet pour voir" : 'grab the object to see'; return; }
+    el.textContent=st.sel.idx.length+' gaussians';
+  }
+  onSlider('kSelR',e=>{selOpt.radius=+e.target.value/100;refreshSel();});
+  onSlider('kSelS',e=>{selOpt.sharp=+e.target.value/10;refreshSel();});
+  onSlider('kSelW',e=>{selOpt.wzMin=wzOf(+e.target.value);refreshSel();});
+  onSlider('kSelJ',e=>{selOpt.jmin=+e.target.value/100;refreshSel();});
+
+  $('kReset').addEventListener('click',()=>{
+    st.u=Float64Array.from(START_U); st.ud=new Float64Array(D);
+    st.Fu=null; st.grab=false; hist.length=0;
+  });
+
+  // ── prise interactive : f (image) → Jᵀf (covecteur en z) → W⁻¹(Jᵀf) (en u) ──
+  // Le point d'application est FIXE dans l'image : celui du clic. À chaque frame on
+  // resélectionne les gaussiennes qui passent à cet endroit de l'écran, et c'est leur
+  // jacobien moyen qui transporte la force. La flèche reste donc plantée où on a cliqué,
+  // et ce qu'on tire est « la matière qui se trouve là maintenant ».
+  //
+  // (La variante à ancrage MATÉRIEL — figer le paquet de gaussiennes au clic et suivre sa
+  // position — reste disponible dans le module, `Krauss2Splat.pointOf` ; elle n'est pas
+  // câblée ici.)
+  //
+  // J = ∂μ/∂z est CONSTANT par gaussienne (le décodeur est affine en z) ; ce qui varie
+  // d'une frame à l'autre, c'est QUELLES gaussiennes sont là. Attraper le bout du bras ne
+  // tire donc pas comme attraper sa base, sans le moindre seuil ad hoc.
+  function updateGrab(z){
+    if(!st.grab||!splat||!st.anchorImg){ st.Fu=null; return; }
+    // Resélection au point FIXE, à l'état courant.
+    const sel=splat.select(z, st.anchorImg[0], st.anchorImg[1], selOpt);
+    if(!sel){ st.sel=null; st.Fu=null; showCount(); return; }
+    st.sel=sel;
+    // Présence de la matière effectivement présente au point d'application, RAPPORTÉE à
+    // celle du moment de la prise et plafonnée à 1. Elle module l'AMPLITUDE de la force :
+    // on ne tire pas sur ce qui n'est presque plus là.
+    //
+    // Sans ce facteur, l'amplitude ne dépendrait PAS de la présence : J̄ est une moyenne
+    // NORMALISÉE (division par Σw), donc le Σw se simplifie et un filament quasi
+    // transparent tirerait aussi fort que de la matière franche.
+    //
+    // Pourquoi RELATIF et pas absolu : la présence absolue est la moyenne des w_z sur la
+    // sélection, et elle ne vaut jamais ~1 même sur de la matière franche (les gaussiennes
+    // d'un même patch ont des μ_z différents) — mesurée à 0.33 sur une prise typique.
+    // L'utiliser telle quelle diviserait toutes les forces par ~3. Le rapport part de 1 et
+    // ne fait que décroître ; pour une sélection prise À l'état courant, `wsum/kernsum` EST
+    // sa présence, déjà calculée.
+    st.pres=Math.min(1, (sel.wsum/sel.kernsum)/Math.max(st.pres0,1e-9));
+    // `true` : une fois la prise faite, le curseur a le droit de sortir de l'image.
+    const mi=splat.toImage(st.mouse[0], st.mouse[1], true);
+    let fx=mi[0]-st.anchorImg[0], fy=mi[1]-st.anchorImg[1];
+    const n=Math.hypot(fx,fy);
+    if(n>FGRAB_MAX){ fx*=FGRAB_MAX/n; fy*=FGRAB_MAX/n; }
+    st.tipImg=[st.anchorImg[0]+fx, st.anchorImg[1]+fy];   // extrémité de la flèche
+    const J=sel.J;
+    const scale=st.pres*GRAB_FORCE*STIFF_U*SPAN_U/Math.max(JREF,1e-6);
+    const Fz=new Float64Array(D);
+    for(let i=0;i<D;i++) Fz[i]=scale*(J[i]*fx + J[D+i]*fy);
+    const Fu=L.forceToU(P,Fz);
+    let m=0; for(let i=0;i<D;i++) m+=Fu[i]*Fu[i];
+    m=Math.sqrt(m);
+    if(m>FMAX) for(let i=0;i<D;i++) Fu[i]*=FMAX/m;
+    st.Fu=Fu;
+  }
+  const localXY=e=>{
+    const r=cvRec.getBoundingClientRect();
+    return [(e.clientX-r.left)/r.width, (e.clientY-r.top)/r.height];
+  };
+  cvRec.addEventListener('pointerdown',e=>{
+    if(!splat) return;
+    const c=localXY(e), img=splat.toImage(c[0],c[1]);
+    if(!img) return;                                  // clic dans la bande noire : rien à saisir
+    const sel=splat.select(L.toZ(P,st.u), img[0], img[1], selOpt);
+    if(!sel) return;                                  // aucune gaussienne présente ici
+    // Présence de référence : celle de la matière au point cliqué, au moment du clic.
+    st.pres0=sel.wsum/sel.kernsum;
+    st.grab=true; st.sel=sel; st.anchorImg=img; st.mouse=c.slice(); showCount();
+    cvRec.setPointerCapture(e.pointerId);
+    if(!st.running){st.running=true;$('kPlay').textContent='⏸';}
+  });
+  cvRec.addEventListener('pointermove',e=>{ if(st.grab) st.mouse=localXY(e); });
+  const release=()=>{ st.grab=false; st.sel=null; st.Fu=null; st.anchorImg=null;
+                      st.pres=1; st.pres0=1; showCount(); };
+  cvRec.addEventListener('pointerup',release);
+  cvRec.addEventListener('pointercancel',release);
+  cvRec.addEventListener('pointerleave',release);
+
+  // ── historique des coordonnées latentes (panneau de gauche) ───────────────
+  const HIST=720;             // ~12 s à 60 images/s
+  const hist=[];              // [[u₁,u₂,u₃,u₄], …]
+  function pushHist(){
+    hist.push(Array.from(st.u));
+    if(hist.length>HIST) hist.splice(0, hist.length-HIST);
+  }
+
+  function setup2D(cv){
+    const dpr=Math.min(devicePixelRatio||1,2), w=cv.clientWidth, h=cv.clientHeight;
+    if(cv.width!==w*dpr||cv.height!==h*dpr){cv.width=w*dpr;cv.height=h*dpr;}
+    const x=cv.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0,0,w,h);
+    return {x,w,h};
+  }
+
+  // Échelle COMMUNE aux 4 pistes — sinon comparer les amplitudes d'une coordonnée à
+  // l'autre n'aurait aucun sens. Cadrée sur les percentiles 1/99 de la trajectoire
+  // d'entraînement, pas sur ses extrema : le max de q₃ monte à 7.4 pour un écart-type de
+  // 1 (u est blanchi), et cadrer sur cette excursion isolée écraserait les quatre pistes.
+  const BAND=[TSTAT.p01||TSTAT.min, TSTAT.p99||TSTAT.max];
+  const YLIM=(function(){
+    let lo=1/0, hi=-1/0;
+    for(let k=0;k<D;k++){ lo=Math.min(lo,BAND[0][k]); hi=Math.max(hi,BAND[1][k]); }
+    const c=(lo+hi)/2, s=(hi-lo)/2*1.25;
+    return [c-s,c+s];
+  })();
+
+  function drawState(){
+    const {x,w,h}=setup2D(cvSt);
+    const pad=6, lane=(h-2*pad)/D;
+    for(let k=0;k<D;k++){
+      const m=PERM[k];                       // indice de la coordonnée dans la base du modèle
+      const y0=pad+k*lane, y1=y0+lane;
+      const Y=v=>y1-4-(v-YLIM[0])/(YLIM[1]-YLIM[0])*(lane-8);
+      // bande = étendue couverte par les vidéos d'entraînement (percentiles 1–99)
+      x.fillStyle='rgba(27,58,107,0.07)';
+      x.fillRect(0, Y(BAND[1][m]), w, Y(BAND[0][m])-Y(BAND[1][m]));
+      x.strokeStyle='rgba(0,0,0,0.10)'; x.lineWidth=1;
+      x.beginPath(); x.moveTo(0,Y(0)); x.lineTo(w,Y(0)); x.stroke();
+      // trace, découpée à sa piste : une excursion hors cadre se lit comme telle au lieu
+      // de venir se superposer à la coordonnée voisine.
+      if(hist.length>1){
+        x.save(); x.beginPath(); x.rect(0,y0,w,lane); x.clip();
+        x.strokeStyle=COLS[k]; x.lineWidth=1.6; x.beginPath();
+        for(let i=0;i<hist.length;i++){
+          const px=w-(hist.length-1-i)/(HIST-1)*w;
+          const py=Y(hist[i][m]);
+          if(i===0) x.moveTo(px,py); else x.lineTo(px,py);
+        }
+        x.stroke();
+        // point courant
+        x.fillStyle=COLS[k];
+        x.beginPath(); x.arc(w-1, Y(hist[hist.length-1][m]), 2.6, 0, 6.284); x.fill();
+        x.restore();
+      }
+      x.fillStyle=COLS[k]; x.font='600 11px ui-monospace,monospace';
+      x.fillText('q'+String.fromCharCode(0x2080+k+1), 6, y0+13);
+      // part du mouvement VISIBLE portée par cette coordonnée (même libellé que le
+      // preprint) : sans elle, on ne comprend pas qu'une coordonnée mal suivie puisse
+      // laisser le rendu juste.
+      if(VIS){
+        x.fillStyle='rgba(0,0,0,0.42)'; x.font='400 10px ui-monospace,monospace';
+        x.fillText((VIS[m]>=10?VIS[m].toFixed(0):VIS[m].toFixed(1))+'% vis.', 24, y0+13);
+      }
+    }
+  }
+
+  function drawOverlay(){
+    const {x,w,h}=setup2D(cvOv);
+    if(!st.grab||!st.Fu||!splat||!st.anchorImg) return;
+    // La flèche part du point MATÉRIEL (qui a suivi les gaussiennes) et s'arrête au
+    // vecteur déjà borné par updateGrab : elle montre la force réellement appliquée, pas
+    // la position brute du curseur.
+    const A=splat.fromImage(st.anchorImg[0], st.anchorImg[1]);
+    const B=splat.fromImage(st.tipImg[0], st.tipImg[1]);
+    const ax=A[0]*w, ay=A[1]*h, bx=B[0]*w, by=B[1]*h;
+    // La flèche garde une opacité PLEINE quoi qu'il arrive : elle doit rester lisible
+    // même quand la matière saisie s'efface. L'atténuation se lit sur son épaisseur, qui
+    // suit la présence sans jamais descendre sous un trait franc.
+    x.strokeStyle=FORCE_CSS; x.fillStyle=FORCE_CSS;
+    x.lineWidth=1.5+1.4*Math.min(1,st.pres);
+    x.beginPath(); x.moveTo(ax,ay); x.lineTo(bx,by); x.stroke();
+    const a=Math.atan2(by-ay,bx-ax), s=8;
+    x.beginPath(); x.moveTo(bx,by);
+    x.lineTo(bx-s*Math.cos(a-0.4), by-s*Math.sin(a-0.4));
+    x.lineTo(bx-s*Math.cos(a+0.4), by-s*Math.sin(a+0.4));
+    x.closePath(); x.fill();
+    x.beginPath(); x.arc(ax,ay,3.2,0,6.284); x.fill();
+  }
+
+  // ── boucle ────────────────────────────────────────────────────────────────
+  // L'unité de temps du LNN est la FRAME (dt = 1), à P.fps = 60 (59.94) images/s réelles :
+  // à vitesse ×1 la démo tourne donc en temps réel. Les modes propres du checkpoint sont
+  // à 0.70 / 1.03 / 1.51 / 2.79 Hz, largement dans la plage lisible à l'œil.
+  let last=performance.now();
+  function loop(now){
+    const dtms=Math.min(now-last, 100);           // onglet en arrière-plan : pas de rattrapage
+    last=now;
+    let z=L.toZ(P, st.u);
+    updateGrab(z);
+    if(st.running){
+      const opt={p:L.kpaToP(P, st.kpa), F:st.Fu};
+      const nf=dtms/1000*P.fps*st.speed;          // nb de frames LNN à avancer
+      const steps=Math.max(1, Math.min(Math.ceil(nf), 8));
+      const h=nf/steps;
+      for(let i=0;i<steps;i++){
+        const s=L.step(P, st.u, st.ud, opt, h);
+        st.u=s.q; st.ud=s.v;
+      }
+      pushHist();
+      z=L.toZ(P, st.u);
+    }
+    if(splat) splat.render(z);
+    drawState(); drawOverlay();
+    requestAnimationFrame(loop);
+  }
+  refreshSel();
+  requestAnimationFrame(()=>{ last=performance.now(); requestAnimationFrame(loop); });
 })();
 </script>
 
