@@ -189,6 +189,11 @@
 @media(max-width:720px){#lags-demo .kr-press-grid{grid-template-columns:repeat(2,1fr)}}
 #lags-demo .stage.rock canvas{height:330px;}
 #lags-demo .stage.recon canvas{height:330px;}
+/* Le rocking chair rend en 16:9 (ses images d'entrainement sont un 1280x720
+   ecrase dans un 256x256) : on donne ce rapport au CADRE, sinon le viewport
+   s'y centre et laisse des bandes noires en haut et en bas. */
+#lags-demo .stage.recon.rock-recon{aspect-ratio:1280/720;}
+#lags-demo .stage.recon.rock-recon canvas{height:100%;}
 #lags-demo .stage.recon canvas,
 #lags-demo #cTime, #lags-demo #cLat, #lags-demo #cRock3D,
 #lags-demo #cKrRecon{touch-action:none;}
@@ -224,16 +229,7 @@
 #lags-demo .rock3d-media{display:flex;flex-direction:column;gap:12px;min-width:0;}
 @media(max-width:880px){#lags-demo .rock3d-media{max-width:340px}}
 #lags-demo .rock3d-media figure{margin:0}
-/* La video d'entrainement est en 16:9 (456x256), mais TOUT le reste de
-   l'experience est en carre ecrase : les vues SHARP et la reference sont en
-   256x256, et le decodeur 2D rend dans [0,1]^2 — parce que le pipeline a
-   redimensionne le 1280x720 d'origine en 256x256 sans conserver le rapport
-   (verifie : correlation 0.993 contre la source ecrasee, 0.270 contre un
-   recadrage carre). L'afficher a son rapport natif la faisait seule sortir
-   de la convention, et la reconstruction paraissait etiree a cote d'elle.
-   `object-fit:fill` applique donc la meme compression. */
-#lags-demo .rock3d-media video{width:100%;aspect-ratio:1/1;height:auto;object-fit:fill;
-  display:block;border:1px solid var(--border);border-radius:var(--radius);background:#111;}
+#lags-demo .rock3d-media video{width:100%;height:auto;display:block;border:1px solid var(--border);border-radius:var(--radius);background:#111;}
 #lags-demo .video-wrap{position:relative;line-height:0;}
 #lags-demo .video-ended{
   position:absolute;inset:0;display:none;align-items:center;justify-content:center;
@@ -469,7 +465,7 @@
           <h2 data-en="Reconstructed frame" data-fr="Image reconstruite">Reconstructed frame</h2>
           <div class="sub" data-en="model's RGB output, sliced at q = current" data-fr="sortie RGB du modèle, coupe q = courante">model's RGB output, sliced at q = current</div>
         </div>
-        <div class="stage recon" style="position:relative">
+        <div class="stage recon rock-recon" style="position:relative">
           <canvas id="cRockRecon" style="background:#000"></canvas>
           <canvas id="cRockOverlay" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
           <div class="badge" data-en="grab &amp; drag the object" data-fr="attraper et glisser l'objet">grab &amp; drag the object</div>
@@ -991,7 +987,7 @@ function drawVideo(){
   for(let i=0;i<=60;i++){const a=-params.theta0+2*params.theta0*i/60;const px=cx+R*Math.sin(a),py=cy+R*Math.cos(a);i?x.lineTo(px,py):x.moveTo(px,py);}
   x.strokeStyle='rgba(93,107,122,.22)';x.lineWidth=2;x.setLineDash([4,5]);x.stroke();x.setLineDash([]);
   x.beginPath();x.moveTo(cx,cy);x.lineTo(mx,my);x.strokeStyle='#2a4570';x.lineWidth=3;x.stroke();
-  x.beginPath();x.arc(cx,cy,5,0,TAU);x.fillStyle='#ff7a18';x.fill();
+  x.beginPath();x.arc(cx,cy,4,0,TAU);x.fillStyle='#1a2e4a';x.fill();   // point d'attache : --navy, PAS la couleur des fleches d'effort
   x.beginPath();x.arc(mx,my,mr,0,TAU);x.fillStyle=PEND_CSS;x.fill();
   const ra=0.34*R, rodAng=Math.PI/2-th;
   x.beginPath();x.moveTo(cx,cy);x.lineTo(cx,cy+ra);
@@ -1090,7 +1086,11 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
       if(!b64) throw new Error('rocking_splat.js absent');
       const bin=atob(b64), buf=new ArrayBuffer(bin.length), u8=new Uint8Array(buf);
       for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
-      splat=SP.create(cvRecon, buf, RM, {maxSide: 512});
+      // aspect 16/9 : les images d'entrainement sont un 1280x720 ECRASE dans un
+      // 256x256 (mesure : correlation 0.993 contre la source ecrasee, 0.270
+      // contre un recadrage carre). Les rendre carrees conservait l'ecrasement,
+      // et la reconstruction paraissait etiree a cote de la video.
+      splat=SP.create(cvRecon, buf, RM, {maxSide: 512, aspect: 1280/720});
     }catch(err){
       console.error('[lagsplat/rocking] decodeur GS indisponible :', err);
       const x=cvRecon.getContext('2d');
@@ -1122,24 +1122,37 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));
   renderer.localClippingEnabled=true;
   const scene=new THREE.Scene();
+  const VOL_AR = 1280/720;
+  const vol = new THREE.Group(); vol.scale.set(VOL_AR, 1, 1); scene.add(vol);
   const camera=new THREE.PerspectiveCamera(42,1,0.05,100);
   const target=new THREE.Vector3(0,0,0);
   const orbit={az:0.66,el:0.26,dragging:false,lx:0,ly:0};
+  // Recul de la camera. Inchange malgre l'etirement en x du volume : le panneau
+  // est plus large que haut, c'est donc la hauteur qui borne le cadrage, et elle
+  // n'a pas bouge.
   const dist=3.5;
 
   const grid=new THREE.GridHelper(3.0,12,COL.grid,COL.grid);
-  grid.material.transparent=true;grid.material.opacity=0.85;grid.position.set(0,-0.5,0);scene.add(grid);
+  grid.material.transparent=true;grid.material.opacity=0.85;grid.position.set(0,-0.5,0);vol.add(grid);
 
+  /* Les gaussiennes vivent dans le meme [0,1]^2 que le plot 2D, donc dans un
+     16:9 ECRASE : les afficher a echelle isotrope montrait un volume plus etroit
+     que la reconstruction d'a cote. On etire l'axe x du meme rapport.
+     ⚠️ L'etirement porte sur un GROUPE, pas sur `dummy.scale` : Three.js compose
+     en T·R·S, donc une echelle posee sur l'instance agirait le long de l'axe
+     PROPRE de l'ellipsoide, apres quoi une gaussienne inclinee serait deformee
+     de travers. Sur le groupe, elle s'applique en repere MONDE, apres rotation.
+     Les etiquettes restent hors du groupe : elles seraient etirees aussi. */
   const x0=-0.6,y0=-0.5;
   const corner=new THREE.Vector3(x0,y0,-ZS);
-  scene.add(lineSeg(corner,new THREE.Vector3(0.6,y0,-ZS),COL.axis,0.9));
-  scene.add(lineSeg(corner,new THREE.Vector3(x0,0.55,-ZS),COL.axis,0.9));
-  scene.add(lineSeg(new THREE.Vector3(x0,y0,ZS_EXT_NEG),corner,COL.accent,0.3));
-  scene.add(lineSeg(corner,new THREE.Vector3(x0,y0,ZS),COL.accent,0.85));
-  scene.add(lineSeg(new THREE.Vector3(x0,y0,ZS),new THREE.Vector3(x0,y0,ZS_EXT_POS),COL.accent,0.3));
-  const lx=makeLabel('x',hex(0x5d6b7a));lx.position.set(0.72,y0,-ZS);scene.add(lx);
-  const ly=makeLabel('y',hex(0x5d6b7a));ly.position.set(x0,0.68,-ZS);scene.add(ly);
-  const lq=makeLabel('q',hex(COL.accent));lq.position.set(x0,y0,ZS_EXT_POS+0.18);scene.add(lq);
+  vol.add(lineSeg(corner,new THREE.Vector3(0.6,y0,-ZS),COL.axis,0.9));
+  vol.add(lineSeg(corner,new THREE.Vector3(x0,0.55,-ZS),COL.axis,0.9));
+  vol.add(lineSeg(new THREE.Vector3(x0,y0,ZS_EXT_NEG),corner,COL.accent,0.3));
+  vol.add(lineSeg(corner,new THREE.Vector3(x0,y0,ZS),COL.accent,0.85));
+  vol.add(lineSeg(new THREE.Vector3(x0,y0,ZS),new THREE.Vector3(x0,y0,ZS_EXT_POS),COL.accent,0.3));
+  const lx=makeLabel('x',hex(0x5d6b7a));lx.position.set(0.72*VOL_AR,y0,-ZS);scene.add(lx);
+  const ly=makeLabel('y',hex(0x5d6b7a));ly.position.set(x0*VOL_AR,0.68,-ZS);scene.add(ly);
+  const lq=makeLabel('q',hex(COL.accent));lq.position.set(x0*VOL_AR,y0,ZS_EXT_POS+0.18);scene.add(lq);
 
   const N=D.gaussians.length;
   const SIGMA=1.5;
@@ -1158,7 +1171,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
     dummy.updateMatrix();inst.setMatrixAt(i,dummy.matrix);
     col.setRGB(g.c[0]*g.a,g.c[1]*g.a,g.c[2]*g.a);inst.setColorAt(i,col);}
   inst.instanceMatrix.needsUpdate=true;if(inst.instanceColor)inst.instanceColor.needsUpdate=true;
-  scene.add(inst);
+  vol.add(inst);
 
   const CAP_PALETTE=[
     [0,0,0],
@@ -1188,7 +1201,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
     cap.gi=gi; capData.push(cap);
     col.setRGB(g.c[0]*g.a,g.c[1]*g.a,g.c[2]*g.a);capMesh.setColorAt(pos,col);}
   if(capMesh.instanceColor)capMesh.instanceColor.needsUpdate=true;
-  scene.add(capMesh);
+  vol.add(capMesh);
 
   const BG_THR=0.9997;
   const isBg=new Array(N);
@@ -1211,11 +1224,15 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
       visFlags[i]=ok;}
     inst.instanceMatrix.needsUpdate=true;}
 
-  const planeGeo=new THREE.PlaneGeometry(1.3,1.0);
+  // Largeur 1.0 et non 1.3 : le groupe vol multiplie deja x par VOL_AR, donc
+  // la largeur MONDE vaut 1.0 x 16/9 pour 1.0 de haut — le plan est exactement
+  // en 16:9, comme l'image. A 1.3 il faisait 2.31 de large et debordait
+  // symetriquement des deux cotes. La hauteur ne bouge pas.
+  const planeGeo=new THREE.PlaneGeometry(1.0,1.0);
   const plane=new THREE.Mesh(planeGeo,new THREE.MeshBasicMaterial({color:COL.accent,transparent:true,opacity:0.22,side:THREE.DoubleSide,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
   plane.renderOrder=2;
   plane.add(new THREE.LineSegments(new THREE.EdgesGeometry(planeGeo),new THREE.LineBasicMaterial({color:COL.accent,transparent:true,opacity:0.6})));
-  scene.add(plane);
+  vol.add(plane);
 
   const $=id=>document.getElementById(id);
   const sim=createRockingSim();
@@ -1256,8 +1273,13 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   attachDrag(cv3d);
 
   const cvR=document.getElementById('cRockRecon');
-  function rockLayout(){const w=cvR.clientWidth,h=cvR.clientHeight,side=Math.min(w,h);
-    return{side,ox:(w-side)/2,oy:(h-side)/2};}
+  /* Point d'un evenement en coordonnees IMAGE [0,1]^2. `outside` : une fois la
+     prise faite, le curseur a le droit de sortir de l'image. */
+  function imgAt(e, outside){
+    if(!splat) return null;
+    const r=cvR.getBoundingClientRect();
+    return splat.toImage((e.clientX-r.left)/r.width, (e.clientY-r.top)/r.height, outside);
+  }
   function selectAt(cx,cy){
     const q=D.zmin+st.frac*(D.zmax-D.zmin), sel=[];
     for(let k=0;k<rockJac.length;k++){
@@ -1288,8 +1310,11 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   if(cvR){
     cvR.addEventListener('contextmenu',e=>e.preventDefault());
     cvR.addEventListener('pointerdown',e=>{
-      const {side,ox,oy}=rockLayout();
-      const cx=(e.offsetX-ox)/side, cy=(e.offsetY-oy)/side;
+      // toImage defait la bande noire du viewport : depuis que celui-ci est en
+      // 16/9 et non plus carre, les coordonnees du canevas ne sont plus celles de
+      // l'image. Le module est seul a connaitre ce rapport.
+      const im=imgAt(e); if(!im)return;
+      const cx=im[0], cy=im[1];
       const sel=selectAt(cx,cy); if(!sel.length)return;
       cvR.setPointerCapture(e.pointerId);
       grabStart={sel,mouse:[cx,cy]};
@@ -1297,8 +1322,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
       if(!st.auto){st.auto=true;sim.setZ(fracToZ(st.frac),0);st.still=0;}
     });
     cvR.addEventListener('pointermove',e=>{if(!grabStart)return;
-      const {side,ox,oy}=rockLayout();
-      grabStart.mouse=[(e.offsetX-ox)/side,(e.offsetY-oy)/side];});
+      const im=imgAt(e,true); if(im) grabStart.mouse=im;});
     const endGrab=()=>{grabStart=null;st.still=0;};
     cvR.addEventListener('pointerup',endGrab);
     cvR.addEventListener('pointerleave',endGrab);
@@ -1310,9 +1334,13 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
     const dpr=Math.min(devicePixelRatio||1,2),w=cvOv.clientWidth,h=cvOv.clientHeight;if(!w||!h)return;
     if(cvOv.width!==w*dpr||cvOv.height!==h*dpr){cvOv.width=w*dpr;cvOv.height=h*dpr;}
     const x=cvOv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);
-    const side=Math.min(w,h),ox=(w-side)/2,oy=(h-side)/2;
     const gf=grabForce();
-    if(gf)drawForceArrow(x,ox+gf.ax*side,oy+gf.ay*side,ox+(gf.ax+gf.fx)*side,oy+(gf.ay+gf.fy)*side);
+    if(gf&&splat){
+      // fromImage rend une FRACTION du canevas : elle suit le rapport du viewport
+      // sans que cette fonction ait a le connaitre.
+      const A=splat.fromImage(gf.ax,gf.ay), B=splat.fromImage(gf.ax+gf.fx,gf.ay+gf.fy);
+      drawForceArrow(x,A[0]*w,A[1]*h,B[0]*w,B[1]*h);
+    }
   }
 
   function computeLatentForce(sel,fx,fy){

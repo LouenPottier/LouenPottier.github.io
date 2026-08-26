@@ -397,6 +397,13 @@ ${dzL.join('\n')}
 
   function create(canvas, buffer, meta, opts) {
     const MAX_SIDE = (opts && opts.maxSide) || 0;
+    /* Rapport L/H du viewport. 1 (defaut) = le carre historique.
+       Le decodeur rend dans [0,1]^2 : ce rapport dit comment ce carre
+       d'IMAGE s'etale a l'ecran. Il vaut 1 quand la source est carree (sac,
+       SCR souple) et 16/9 pour le rocking chair, dont les images
+       d'entrainement sont un 1280x720 ecrase dans un 256x256 : les afficher
+       carrees conserve l'ecrasement. */
+    const ASPECT = (opts && opts.aspect > 0) ? opts.aspect : 1;
     const gl = canvas.getContext('webgl2', {
       alpha: true, antialias: false, premultipliedAlpha: true,
     });
@@ -527,9 +534,12 @@ ${dzL.join('\n')}
      *  reste du canevas est laissé au noir — la couleur de fond sur laquelle le décodeur
      *  a été entraîné, donc la bande n'introduit aucune discontinuité visible. */
     function box() {
-      const side = Math.min(canvas.width, canvas.height);
-      return { side, x: Math.round((canvas.width - side) / 2),
-               y: Math.round((canvas.height - side) / 2) };
+      // Plus grand rectangle de rapport ASPECT tenant dans le canevas, centre.
+      let w = canvas.width, h = Math.round(w / ASPECT);
+      if (h > canvas.height) { h = canvas.height; w = Math.round(h * ASPECT); }
+      return { w, h, side: Math.min(w, h),
+               x: Math.round((canvas.width - w) / 2),
+               y: Math.round((canvas.height - h) / 2) };
     }
 
     /** Point du canevas en fraction [0,1]² → point de l'IMAGE en [0,1]² (défait la
@@ -537,8 +547,8 @@ ${dzL.join('\n')}
      *  ne saisit rien, mais une fois la prise faite le curseur a le droit d'en sortir. */
     function toImage(cx, cy, outside) {
       const b = box();
-      const x = (cx * canvas.width - b.x) / b.side;
-      const y = (cy * canvas.height - b.y) / b.side;
+      const x = (cx * canvas.width - b.x) / b.w;
+      const y = (cy * canvas.height - b.y) / b.h;
       if (!outside && (x < 0 || x > 1 || y < 0 || y > 1)) return null;
       return [x, y];
     }
@@ -546,7 +556,7 @@ ${dzL.join('\n')}
     /** Inverse de `toImage` : point de l'IMAGE → fraction du canevas (pour dessiner). */
     function fromImage(ix, iy) {
       const b = box();
-      return [(b.x + ix * b.side) / canvas.width, (b.y + iy * b.side) / canvas.height];
+      return [(b.x + ix * b.w) / canvas.width, (b.y + iy * b.h) / canvas.height];
     }
 
     function render(z) {
@@ -554,23 +564,23 @@ ${dzL.join('\n')}
       const b = box();
       // Alpha = 0 au départ : c'est dst.a qui porte 1 − T pendant l'accumulation. Le
       // canevas est posé sur un fond noir en CSS (celui du décodeur entraîné).
-      const off = ensureTarget(b.side, b.side);   // cible 16F, exactement le carré
+      const off = ensureTarget(b.w, b.h);   // cible 16F, exactement le viewport
 
       gl.bindFramebuffer(gl.FRAMEBUFFER, off ? fbo : null);
       gl.clearColor(0, 0, 0, 0);
       if (off) {
-        gl.viewport(0, 0, b.side, b.side);
+        gl.viewport(0, 0, b.w, b.h);
         gl.clear(gl.COLOR_BUFFER_BIT);
       } else {
         gl.viewport(0, 0, canvas.width, canvas.height);
         gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.viewport(b.x, b.y, b.side, b.side);
+        gl.viewport(b.x, b.y, b.w, b.h);
       }
       gl.enable(gl.BLEND);
       gl.useProgram(prog);
       for (let i = 0; i < d; i++) qbuf[i] = z[i];
       gl.uniform1fv(uQ, qbuf);
-      gl.uniform2f(uSize, b.side, b.side);
+      gl.uniform2f(uSize, b.w, b.h);
       gl.bindVertexArray(vao);
       gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, K);
       gl.bindVertexArray(null);
@@ -582,7 +592,7 @@ ${dzL.join('\n')}
       gl.disable(gl.BLEND);
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.viewport(b.x, b.y, b.side, b.side);
+      gl.viewport(b.x, b.y, b.w, b.h);
       gl.useProgram(blit);
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, tex);
