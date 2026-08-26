@@ -558,7 +558,7 @@
       </div>
       <div class="ctl">
         <label><span class="lbl" data-en="Dissipation" data-fr="Dissipation">Dissipation</span> <span class="val" id="sVd">-</span></label>
-        <input id="sDiss" type="range" min="0" max="100" value="62">
+        <input id="sDiss" type="range" min="0" max="100" value="50">
       </div>
     </div>
 
@@ -1515,14 +1515,21 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
 
   $('sPlay').addEventListener('click',()=>{st.running=!st.running;$('sPlay').textContent=st.running?'⏸':'▶';});
   $('sSpeed').addEventListener('input',e=>{st.speed=e.target.value/250;$('sVs').textContent='×'+(Math.round(st.speed/0.4*10)/10).toFixed(1);});
-  const C0MAX=0.04;
+  /* Facteur UNIQUE sur la dissipation TOTALE : × (C(q) appris + c₀·M̃).
+     Les deux termes suivent le même curseur, au lieu de l'ancien découpage en
+     deux régimes où la première moitié mettait C(q) à l'échelle et la seconde
+     n'ajoutait que le plancher. Mi-course (50) = ×1.00 : le C(q) de lnn.pt avec
+     son plancher de référence.
+
+     ⚠️ Le plancher reste indispensable et n'est PAS retiré : le C(q) appris
+     s'effondre sur son plancher SPD dans un îlot centré sur l'équilibre, et sans
+     terme ADDITIF l'oscillation libre stagne indéfiniment (cf. CLAUDE.md). */
+  const C0_REF=0.010;      // plancher à ×1 : extinction en ~27 s
   function setDiss(v){
     const t=v/50;
-    st.dissScale=Math.min(t,1);
-    st.dissFloor=t>1?(t-1)*C0MAX:0;
-    $('sVd').textContent = st.dissFloor > 0
-      ? '×1.00 + c₀ ' + st.dissFloor.toFixed(3)
-      : '×' + st.dissScale.toFixed(2);
+    st.dissScale=t;
+    st.dissFloor=t*C0_REF;
+    $('sVd').textContent = '×' + t.toFixed(2);
   }
   $('sDiss').addEventListener('input',e=>setDiss(+e.target.value));
 

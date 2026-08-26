@@ -1826,13 +1826,39 @@ async function main(sim) {
     function orbitAroundPivot(dx, dy) {
         if (window._paused) return;   // viewer figé : caméra verrouillée (pas de saut au play)
         const inv = camToWorld();
-        let off = rot3(sub3([inv[12], inv[13], inv[14]], pivot), worldUp, dx);
+        const pos = [inv[12], inv[13], inv[14]];
         const right = norm3(rot3([inv[0], inv[1], inv[2]], worldUp, dx));
-        const tilted = rot3(off, right, dy);
+        let off = rot3(sub3(pos, pivot), worldUp, dx);
         // Interdit de basculer par-dessus les pôles : worldUp deviendrait
         // colinéaire à la visée et la droite de la caméra ne serait plus définie.
-        if (Math.abs(dot3(norm3(tilted), worldUp)) < 0.995) off = tilted;
-        lookAtPivot([pivot[0] + off[0], pivot[1] + off[1], pivot[2] + off[2]]);
+        const tilted = rot3(off, right, dy);
+        let useDy = dy;
+        if (Math.abs(dot3(norm3(tilted), worldUp)) < 0.995) off = tilted; else useDy = 0;
+
+        /* ⚠️ ROTATION RIGIDE, pas un `lookAtPivot`.
+         *
+         * L'orbite tourne la caméra AUTOUR du pivot en lui appliquant la même
+         * rotation qu'à sa position — orientation comprise. La réorienter vers
+         * le pivot, comme le faisait `lookAtPivot` ici, la faisait sauter au
+         * PREMIER glissé : le cadrage de référence ne vise justement PAS le
+         * barycentre (cf. le commentaire de dollyOutFromReference, qui a retiré
+         * `frameScene` pour cette raison). L'écart se rattrapait d'un coup, puis
+         * plus jamais — la caméra visant désormais le pivot. Le saut était
+         * d'autant plus visible que la caméra était proche, donc maximal à
+         * `?dolly=0`, le cadrage exact de la vidéo. */
+        const spin = (v) => useDy ? rot3(rot3(v, worldUp, dx), right, useDy)
+                                  : rot3(v, worldUp, dx);
+        const cxv = spin([inv[0], inv[1], inv[2]]);
+        const cyv = spin([inv[4], inv[5], inv[6]]);
+        const czv = spin([inv[8], inv[9], inv[10]]);
+        inv[0] = cxv[0]; inv[1] = cxv[1]; inv[2] = cxv[2];
+        inv[4] = cyv[0]; inv[5] = cyv[1]; inv[6] = cyv[2];
+        inv[8] = czv[0]; inv[9] = czv[1]; inv[10] = czv[2];
+        inv[12] = pivot[0] + off[0];
+        inv[13] = pivot[1] + off[1];
+        inv[14] = pivot[2] + off[2];
+        viewMatrix = invert4(inv);
+        orbitRadius = len3(off);
     }
 
     // Zoom → homothétie de la position caméra autour du pivot : on se rapproche
