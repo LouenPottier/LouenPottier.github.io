@@ -435,7 +435,7 @@
       </div>
       <div class="ctl">
         <label><span class="lbl" data-en="Damping γ" data-fr="Frottement γ">Damping γ</span> <span class="val" id="rVd">-</span></label>
-        <input id="rDiss" type="range" min="0" max="100" value="7">
+        <input id="rDiss" type="range" min="0" max="100" step="0.1" value="7.3">
       </div>
       <label class="toggle"><input id="rShowBg" type="checkbox" checked> <span class="lbl" data-en="background" data-fr="fond">background</span></label>
     </div>
@@ -1213,14 +1213,23 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   const Z_REST=sim.meta.phi.z_rest, ZMIN=sim.Z_MIN, ZMAX=sim.Z_MAX, Z_SPAN=ZMAX-ZMIN;
   const TS_DEFAULT=sim.meta.time_scale_default;
   const GAMMA_RANGE=0.10;
-  const REMAP_SIGN=1;
+  /* Sens du remap z (espace de la dynamique 3D) -> frac (etat visuel du panneau 2D).
+     MESURE, pas ajuste a l oeil : on rend le decodeur a la position de depart et on
+     correle avec la PREMIERE IMAGE de rainbow1.mp4, que z0 est cense encoder.
+       +1 -> frac 0.0988, correlation 0.56
+       -1 -> frac 0.9012, correlation 0.87
+     Les deux espaces latents sont donc d orientation opposee. A +1 le panneau 2D
+     affichait la pose MIROIR de la scene 3D au meme instant, et la prise poussait
+     du mauvais cote (fz est deja multiplie par REMAP_SIGN plus bas). Le meme
+     defaut existait du temps de l atlas : mesure au meme endroit, 0.54 contre 0.91. */
+  const REMAP_SIGN=-1;
   const STILL_EPS=0.015, STILL_EPS_Z=0.05, STILL_RESET=2;
   const zToFrac=z=>REMAP_SIGN>0?(z-ZMIN)/Z_SPAN:(ZMAX-z)/Z_SPAN;
   const fracToZ=f=>REMAP_SIGN>0?ZMIN+f*Z_SPAN:ZMAX-f*Z_SPAN;
   const st={running:true,auto:true,speed:TS_DEFAULT,frac:zToFrac(sim.state.z),still:0};
-  sim.setDamping(sim.meta.gamma);
+  sim.setDamping(sim.meta.gamma);   // amortissement appris
   $('rPlay').addEventListener('click',()=>{st.running=!st.running;$('rPlay').textContent=st.running?'⏸':'▶';});
-  $('rDiss').addEventListener('input',e=>{const g=(e.target.value/100)*GAMMA_RANGE;sim.setDamping(g);$('rVd').textContent=g.toFixed(4);});
+  $('rDiss').addEventListener('input',e=>{const g=(e.target.value/100)*GAMMA_RANGE;sim.setDamping(g);$('rVd').textContent=g.toFixed(5);});
   $('rckQ').addEventListener('input',e=>{st.frac=e.target.value/1000;sim.setZ(fracToZ(st.frac),0);st.auto=false;});
   $('rckQ').addEventListener('change',()=>{sim.setZ(fracToZ(st.frac),0);st.auto=true;st.still=0;});
   $('rShowBg').addEventListener('change',e=>{showBg=e.target.checked;refreshInst();});
@@ -1353,7 +1362,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
       target.y+dist*Math.sin(orbit.el),target.z+dist*Math.cos(orbit.el)*Math.cos(orbit.az));
     camera.lookAt(target);renderer.render(scene,camera);
   }
-  requestAnimationFrame(()=>{resize();$('rVd').textContent=sim.meta.gamma.toFixed(4);last=performance.now();requestAnimationFrame(loop);});
+  requestAnimationFrame(()=>{resize();$('rVd').textContent=sim.meta.gamma.toFixed(5);last=performance.now();requestAnimationFrame(loop);});
 })();
 </script>
 
