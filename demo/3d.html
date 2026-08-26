@@ -673,9 +673,27 @@ let cameras = [
 let camera = {
     width: 1959,
     height: 1090,
-    fy: 1164.6601287484507,
     fx: 1159.5880733038064,
+    fy: 1164.6601287484507,
 };
+
+/* ⚠️ CORRECTION D'ANISOTROPIE — le rendu était aplati verticalement de 1.78.
+ *
+ * Les vues d'entraînement (rainbow_sharp_views/cameras.npz) portent des
+ * intrinsèques fx = fy = 1280 avec un point principal (639.5, 359.5), donc
+ * calibrées pour une image 1280x720 — mais `img_size` y vaut [256, 256] : les
+ * images ont été écrasées d'un 16:9 dans un carré SANS conserver le rapport.
+ * Dans l'image d'entraînement les focales effectives sont donc anisotropes,
+ *     fx' = 1280 x 256/1280 = 256      fy' = 1280 x 256/720 = 455.1
+ * soit fy'/fx' = 1280/720 = 16/9. La géométrie ajustée porte ce rapport.
+ *
+ * Le viewer rendait avec fx ≈ fy (0.4 % d'écart) : la composante verticale
+ * était donc sous-magnifiée de 16/9, ce qui aplatit la scène. On rétablit le
+ * rapport ; `fx` et le champ horizontal ne bougent pas.
+ *
+ * Une seule constante à remettre à 1 pour revenir au comportement précédent. */
+const SRC_ASPECT = 1280 / 720;
+camera.fy = camera.fx * SRC_ASPECT;
 
 function getProjectionMatrix(fx, fy, width, height) {
     const znear = 0.2;
@@ -1810,8 +1828,16 @@ async function main(sim) {
         viewMatrix = invert4(inv);
         orbitRadius = len3(sub3(getCamPos(), pivot));
     }
-    if (viewFromHash) orbitRadius = len3(sub3(getCamPos(), pivot));
-    else dollyOutFromReference(2.6);
+    if (viewFromHash) {
+        orbitRadius = len3(sub3(getCamPos(), pivot));
+    } else {
+        // `?dolly=` regle le recul initial ; 0 = le cadrage EXACT de la vidéo de
+        // référence, l'identité le reproduisant telle quelle. Sert au banc de
+        // tournage (film.html), qui veut partir du point de vue filmé ; la page
+        // publiée garde son recul de 2.6, qui laisse voir la scène entière.
+        const d = parseFloat(new URLSearchParams(location.search).get('dolly'));
+        dollyOutFromReference(Number.isFinite(d) ? d : 2.6);
+    }
 
     // Glissé → la scène tourne autour de son centre : la caméra se déplace sur
     // une sphère centrée sur le pivot, sans jamais cesser de le viser.
