@@ -370,7 +370,33 @@ ${dzL.join('\n')}
     return s ? s.J : null;
   }
 
-  function create(canvas, buffer, meta) {
+  /** @param opts.maxSide  Plafond, en pixels, du COTE du viewport carre.
+   *
+   *  Le decodeur a ete ajuste a `meta.img_size` (256 px) : au-dela, on n'obtient
+   *  aucun detail de plus, on expose la structure des gaussiennes elles-memes.
+   *  L'anticrenelage `eps2d` vaut 0.3 px^2 quelle que soit la resolution, donc
+   *  rendre a 768 px donne aux gaussiennes 3x moins de flou RELATIF que celui
+   *  avec lequel elles ont ete ajustees — d'ou un rendu « trop net », qui a l'air
+   *  d'un defaut de rasterisation alors que c'est une sur-resolution.
+   *  Plafonner le backing store et laisser le CSS agrandir le canevas rend
+   *  exactement la reconstruction entrainee, affichee plus grand.
+   *  Absent ou 0 : aucun plafond (comportement d'origine). */
+  // Recopie de la cible d'accumulation vers le canevas. Aucun melange : la texture
+  // porte deja des couleurs PREMULTIPLIEES, comme le canevas (premultipliedAlpha).
+  const BLIT_VERT = `#version 300 es
+  precision highp float;
+  layout(location=0) in vec2 aCorner;
+  out vec2 vUV;
+  void main(){ vUV = aCorner*0.5 + 0.5; gl_Position = vec4(aCorner, 0.0, 1.0); }`;
+  const BLIT_FRAG = `#version 300 es
+  precision highp float;
+  uniform sampler2D uTex;
+  in vec2 vUV;
+  out vec4 frag;
+  void main(){ frag = texture(uTex, vUV); }`;
+
+  function create(canvas, buffer, meta, opts) {
+    const MAX_SIDE = (opts && opts.maxSide) || 0;
     const gl = canvas.getContext('webgl2', {
       alpha: true, antialias: false, premultipliedAlpha: true,
     });
@@ -426,9 +452,73 @@ ${dzL.join('\n')}
     gl.blendFuncSeparate(gl.ONE_MINUS_DST_ALPHA, gl.ONE,
                          gl.ONE_MINUS_DST_ALPHA, gl.ONE);
 
+    /* ── Cible d'accumulation en flottant 16 bits ────────────────────────────
+     * Le framebuffer par defaut d'un canevas est RGBA8 : en compositing
+     * front-to-back, `dst.rgb` ET `dst.a` sont donc RE-ARRONDIS a 8 bits apres
+     * CHAQUE gaussienne composee. Sur 15 000 gaussiennes dont beaucoup ne
+     * portent qu'une opacite infime — une scene photographique entiere, fond et
+     * tapis compris —, les contributions de poids faible sont arrondies a zero
+     * et la transmittance 1 - dst.a devient grossiere. Resultat : une image plus
+     * dure, aux aplats plus francs, qui se lit comme un defaut de rasterisation.
+     *
+     * Mesure (rocking chair d=1, 256 px, contre une accumulation float64) :
+     *   RGBA8   27.6 dB      <- ce que faisait ce module
+     *   RGBA16F 70.5 dB      <- invisible
+     * et le portage complet mesure dans le navigateur passe de 25.4 dB a la
+     * conformite (cf. demo/_rock_check.html).
+     *
+     * On accumule donc dans une texture RGBA16F, recopiee ensuite sur le
+     * canevas. Sans l'extension de rendu flottant (WebGL2 ancien), on retombe
+     * sur le chemin direct : degrade, pas casse. */
+    const canFloat = gl.getExtension('EXT_color_buffer_half_float')
+                  || gl.getExtension('EXT_color_buffer_float');
+    let fbo = null, tex = null, texW = 0, texH = 0, blit = null, uTex = null;
+    if (canFloat) {
+      blit = gl.createProgram();
+      gl.attachShader(blit, compile(gl, gl.VERTEX_SHADER, BLIT_VERT));
+      gl.attachShader(blit, compile(gl, gl.FRAGMENT_SHADER, BLIT_FRAG));
+      gl.linkProgram(blit);
+      if (!gl.getProgramParameter(blit, gl.LINK_STATUS)) { blit = null; }
+      else {
+        uTex = gl.getUniformLocation(blit, 'uTex');
+        fbo = gl.createFramebuffer();
+        tex = gl.createTexture();
+      }
+    }
+
+    /** (Re)dimensionne la cible d'accumulation. Renvoie false si elle est
+     *  inutilisable — on rend alors directement sur le canevas. */
+    function ensureTarget(w, h) {
+      if (!fbo) return false;
+      if (w === texW && h === texH) return true;
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, w, h, 0, gl.RGBA, gl.HALF_FLOAT, null);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+      const ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      if (!ok) { fbo = null; return false; }
+      texW = w; texH = h;
+      return true;
+    }
+
     function resize() {
-      const w = Math.max(1, Math.round(canvas.clientWidth * (window.devicePixelRatio || 1)));
-      const h = Math.max(1, Math.round(canvas.clientHeight * (window.devicePixelRatio || 1)));
+      let w = Math.max(1, Math.round(canvas.clientWidth * (window.devicePixelRatio || 1)));
+      let h = Math.max(1, Math.round(canvas.clientHeight * (window.devicePixelRatio || 1)));
+      // Plafond homothetique : c'est le COTE du viewport carre (min(w,h)) qui compte,
+      // et le rapport w/h doit survivre sinon la bande noire se decalerait.
+      if (MAX_SIDE > 0) {
+        const m = Math.min(w, h);
+        if (m > MAX_SIDE) {
+          const k = MAX_SIDE / m;
+          w = Math.max(1, Math.round(w * k));
+          h = Math.max(1, Math.round(h * k));
+        }
+      }
       if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
     }
 
@@ -464,16 +554,41 @@ ${dzL.join('\n')}
       const b = box();
       // Alpha = 0 au départ : c'est dst.a qui porte 1 − T pendant l'accumulation. Le
       // canevas est posé sur un fond noir en CSS (celui du décodeur entraîné).
-      gl.viewport(0, 0, canvas.width, canvas.height);
+      const off = ensureTarget(b.side, b.side);   // cible 16F, exactement le carré
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, off ? fbo : null);
       gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.viewport(b.x, b.y, b.side, b.side);
+      if (off) {
+        gl.viewport(0, 0, b.side, b.side);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+      } else {
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.viewport(b.x, b.y, b.side, b.side);
+      }
+      gl.enable(gl.BLEND);
       gl.useProgram(prog);
       for (let i = 0; i < d; i++) qbuf[i] = z[i];
       gl.uniform1fv(uQ, qbuf);
       gl.uniform2f(uSize, b.side, b.side);
       gl.bindVertexArray(vao);
       gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, K);
+      gl.bindVertexArray(null);
+      if (!off) return;
+
+      // Recopie sur le canevas, dans le carré centré. Melange DESACTIVE : la
+      // texture porte le resultat fini, en couleurs premultipliees.
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.disable(gl.BLEND);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.viewport(b.x, b.y, b.side, b.side);
+      gl.useProgram(blit);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.uniform1i(uTex, 0);
+      gl.bindVertexArray(vao);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       gl.bindVertexArray(null);
     }
 

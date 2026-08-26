@@ -190,20 +190,110 @@ py check_krauss2_splat.py --case sac   # recette de rendu vs gsplat + indexation
 puis copier `sac_splat.js`, `sac_splat_meta.js`, `sac_lnn.js` dans `demo/`.
 `extract_sac.py` (atlas) n'est plus utilisé par le site.
 
+## Onglet « rocking chair » de lagsplat.html — d=1, rendu en direct
+
+C'était le dernier onglet sur ATLAS (`rocking_frames.png`, 3,5 Mo, 128 tuiles de 128×128
+mélangées linéairement). Il rasterise maintenant 15 000 gaussiennes à chaque image par
+`demo/gs_splat.js`, comme le sac et le SCR souple. Le flou venait de là : la tuile faisait
+128 px et la page l'étirait jusqu'à ~900.
+
+⚠️ **Deux espaces latents, et c'est le piège propre à cet onglet.** Le décodeur direct est
+`decoder2dpt_15k.pt` du cas `rainbow` (μ_z ∈ [−1,54, +1,58]) ; l'atlas qu'il remplace
+venait d'un autre entraînement, dans un espace où μ_z ∈ [30, 59]. Ce ne sont PAS deux vues
+du même espace. Rien ne casse parce que la page ne transporte jamais un z d'un espace à
+l'autre : `zToFrac`/`fracToZ` réduisent l'état à une fraction NORMALISÉE `frac` de la plage
+entraînée, et `qLive()` la reconvertit dans l'espace du décodeur — seul endroit du fichier
+qui touche à cet espace.
+
+⚠️ **Le SENS de cette conversion (`orient`) est MESURÉ, pas deviné.** Rien ne garantit
+qu'un z croissant penche le fauteuil du même côté d'un entraînement à l'autre, et
+l'inverser ne lèverait aucune erreur : le fauteuil oscillerait simplement en opposition
+de phase avec sa dynamique, et la prise pousserait à l'envers.
+`demo_Lags/check_rocking_live.py` corrèle les deux bouts de plage des deux décodeurs :
+**0,94 dans le sens direct contre 0,53 à l'envers** → `orient = +1`, gravé dans le meta.
+⚠️ Chaque décodeur doit y être rendu sous la recette de SON entraînement — l'atlas sous le
+rasteriseur normalisé de `models_2pt`, le 15k sous la recette gsplat de
+`check_krauss2_splat.render`. Rendre le 15k sous le rasteriseur normalisé donne une
+**bouillie**, et la corrélation tombe à 0,68 / 0,45 : de quoi conclure juste par accident.
+
+**Le décodeur `decoder2dpt_15k.pt` est le meilleur disponible** — vérifié, pas supposé :
+les quatre checkpoints de même architecture du cas (`_15k`, `_all`, `_ae_2048`,
+`decoder2dpt`) rendus au même état sous la même recette, les trois variantes à 2048
+gaussiennes sont nettement plus floues. Les `decoder2dmlp_*` sont d'une autre architecture
+(μ conditionné par un MLP, pas affine en q) : ils ne se conditionnent pas en forme close et
+`gs_splat.js` ne peut pas les rendre. Changer de décodeur n'est donc PAS un levier ici ;
+le levier est `maxSide`.
+
+**La DYNAMIQUE ne change pas.** Elle reste celle de `rocking_dynamics.js` (même équation
+que le viewer 3D `demo/3d.html`), et la **prise** reste calculée sur `ROCKING_DATA`
+(`rockJac`, 2048 gaussiennes) : changer de décodeur ne touche QUE l'image. Les deux
+décodeurs rendent la même scène dans le même `[0,1]²`, donc le point cliqué désigne la
+même matière. `rocking_gaussians.js` sert toujours au panneau 3D « volume espace-état »
+et à la prise ; `rocking_frames.png` n'est plus lu par personne.
+
+⚠️ **Le rendu est PLAFONNÉ (`maxSide = 512`)** via `GSSplat.create(..., {maxSide})` ; le
+CSS agrandit ensuite le canevas. C'est un compromis entre deux défauts opposés : à la
+résolution du canevas (~900) la structure des gaussiennes devient visible, à 256 — la
+résolution d'entraînement — l'image est fidèle mais molle une fois étirée. Rendre au-delà
+de l'entraînement n'ajoute aucun détail : `eps2d` vaut 0,3 px² à TOUTE résolution, donc à 768 px les
+gaussiennes reçoivent 3× moins de flou *relatif* que celui avec lequel elles ont été
+ajustées, et leur structure devient visible. Le rendu paraît alors « trop net » — ce qui se
+lit comme un défaut de rasterisation alors que c'est une sur-résolution. Mettre `eps2d` à
+l'échelle ne suffit pas (mesuré : les deux images sont presque superposables) ; c'est bien
+la résolution de rendu qu'il faut borner. `maxSide` est **optionnel et désactivé par
+défaut** : les onglets sac et SCR souple gardent leur rendu pleine résolution.
+
+La flèche de force est passée sur un canevas d'**overlay** (`#cRockOverlay`) : `#cRockRecon`
+est désormais WebGL2 et ne peut plus donner de contexte 2D. Même montage que le sac et le
+SCR souple.
+
+Régénération, dans le dépôt LaGS (`demo_Lags/`) — l'ordre compte :
+
+```
+py extract_rocking_live.py     # rocking_splat.js + rocking_splat_meta.js (+ .bin)
+py check_rocking_live.py       # mesure `orient` + contrôle l'indexation du .bin
+py extract_rocking_live.py     # re-grave l'orient mesuré dans le meta
+py check_krauss2_splat.py --case rock   # recette de rendu (nécessite gsplat + les
+                                        #   références --ref)
+```
+
+puis copier `rocking_splat.js`, `rocking_splat_meta.js` dans `demo/`.
+`extract_rocking.py` ne sert plus qu'au panneau 3D (`rocking_gaussians.js`).
+
 ## Onglet « SCR souple » de lagsplat.html — d=4, actionné, décodeur en direct
 
 Quatrième expérience : le robot continuum souple 2-segments de Krauss et al. 2026, sur
 leurs NPZ et leur découpe (cas `krauss2026_2seg_npz` du dépôt LaGS). Deux ruptures avec
 les trois onglets précédents.
 
-**1. Pas d'atlas — le décodeur GS tourne dans le navigateur.** Seul l'onglet d=1 (rocking
-chair) lit encore sa reconstruction dans une mosaïque pré-décodée. En d=4 il en faudrait
-19⁴ = 130 321 tuiles : impossible. `demo/gs_splat.js` re-rasterise donc les 15 000
+**1. Pas d'atlas — le décodeur GS tourne dans le navigateur.** Plus aucun onglet ne lit
+sa reconstruction dans une mosaïque pré-décodée : le rocking chair (d=1) a été le dernier
+à basculer. En d=4 il en faudrait de toute façon 19⁴ = 130 321 tuiles : impossible. `demo/gs_splat.js` re-rasterise donc les 15 000
 gaussiennes à chaque image en WebGL2 : conditionner la gaussienne jointe sur `q` est une
 formule fermée valable en toute dimension (moyenne affine, `Σ_cond` indépendante de `q`,
 poids `w_z`) — d'où un module **générique en `d`**, que l'onglet sac (d=2) utilise aussi
 depuis qu'il a laissé tomber son atlas. C'est EXACT et non interpolé, et **plus léger que
 l'atlas** : 1,8 Mo de blocs de Schur contre 11 Mo de PNG.
+
+⚠️ **L'accumulation se fait en RGBA16F, pas dans le framebuffer du canevas.** Celui-ci est
+RGBA8 : en compositing front-to-back, `dst.rgb` et `dst.a` sont ré-arrondis à 8 bits après
+CHAQUE gaussienne. Sur 15 000 gaussiennes dont beaucoup ne portent qu'une opacité infime,
+les contributions faibles sont arrondies à zéro et la transmittance devient grossière —
+image plus dure, aplats plus francs, ce qui se lit comme un défaut de rasterisation.
+Mesuré sur le rocking chair à 256 px contre une accumulation float64 : **27,6 dB en RGBA8
+contre 70,5 en RGBA16F**. `gs_splat.js` accumule donc dans une texture RGBA16F recopiée
+ensuite sur le canevas (repli sur le chemin direct si l'extension de rendu flottant
+manque). Cela vaut pour les TROIS onglets rendus en direct, pas seulement le d=1 : c'est
+simplement invisible sur une scène simple.
+
+⚠️ **Le chemin WebGL a sa propre vérification, `demo/_rock_check.html`** (à servir en HTTP).
+`check_krauss2_splat.py` compare la référence numpy à gsplat — il ne dit RIEN du portage
+WebGL, qui n'avait jamais été mesuré contre quoi que ce soit avant. La page rasterise dans
+le navigateur, charge les références numpy de `demo/_rock_ref/` (regénérables depuis
+`check_krauss2_splat.render` à 256 px) et affiche le PSNR par état plus la carte d'écart.
+⚠️ Le canevas de test doit être DANS le document : `resize()` lit `clientWidth`, nul sur un
+élément détaché — le rendu part alors dans un tampon 1×1 et la colonne « navigateur » reste
+noire, ce qui ressemble à un décodeur muet.
 
 ⚠️ **La recette de rendu est mesurée, pas devinée.** Le décodeur a été entraîné sous
 `gsplat.rasterization` : il ne suffit pas de dessiner « une gaussienne 2D ». Il faut le
@@ -344,6 +434,6 @@ Chaque HTML est standalone et lisible. Les poids du réseau de neurones sont cha
 | `prehenseur.html` | Pneumatic gripper simulé par LEBNN | `prehenseur-weights.js` · `W` (~2,2 Mo) | ✅ **Actif** — lié depuis publications.html + projects.html |
 | `lebnn.html` | LEBNN · poutre cantilever 20-DOF | `lebnn-weights.js` · `LEBNN_RAW` (~2,6 Mo) | ⚠️ **Obsolète** — non lié, archive |
 | `4dgs.html` + `3d.html` | 4DGS — scène Gaussian Splatting pilotée par la physique latente. `4dgs.html` est la page hôte (texte + curseurs), `3d.html` le viewer WebGL embarqué en iframe, pilotable aussi en plein écran. Pont par `postMessage`. | scène inlinée dans `3d.html` : `__SCENE_META` + `__SCENE_BIN_B64` (~3,8 Mo) | ⚠️ **Non liée** — pas encore référencée depuis publications/projects |
-| `../lagsplat.html` (à la **racine**, pas dans `demo/`) | LaGS — Gaussian Splatting indexé par état (4 onglets : pendule synthétique, rocking chair d=1, sac d=2, SCR souple Krauss d=4 actionné en pression). Ses assets restent dans `demo/` (`lags_architecture.png`, `rocking_*`, `sac_*`, `krauss2_*`, `gs_splat.js`, iframe `demo/3d.html`) → chemins préfixés `./demo/`, y compris l'atlas du rocking chair chargé en JS (`sheet.src = './demo/' + D.sheet`). `demo/lags_demo.html` n'est plus qu'une page de redirection vers l'ancienne URL. | **rendu commun** : `gs_splat.js` (décodeur GS en direct, WebGL2, générique en `d` — lisible) · rocking chair : `rocking_gaussians.js` · `ROCKING_DATA` (~450 Ko) + `rocking_frames.png` (~3,5 Mo, atlas binaire — le seul onglet encore sur atlas) · sac : `sac_splat.js` · `SAC_SPLAT` (~1,4 Mo, 15000 gaussiennes float32 en base64) + `sac_splat_meta.js` · `SAC_SPLAT_META` (~43 Ko) + `sac_lnn.js` · `SAC_LNN` (~290 Ko, poids du LNN) + `sac_lnn_dyn.js` (portage lisible) · SCR souple : `krauss2_gaussians.js` · `KRAUSS2_GAUSSIANS` (~2,4 Mo) + `krauss2_meta.js` · `KRAUSS2_META` (~65 Ko) + `krauss2_lnn.js` · `KRAUSS2_LNN` (~380 Ko) + `krauss2_lnn_dyn.js` (portage lisible) | ✅ **Actif** — lié depuis publications.html (carte « Learning Physics from Video ») |
+| `../lagsplat.html` (à la **racine**, pas dans `demo/`) | LaGS — Gaussian Splatting indexé par état (4 onglets : pendule synthétique, rocking chair d=1, sac d=2, SCR souple Krauss d=4 actionné en pression). Ses assets restent dans `demo/` (`lags_architecture.png`, `rocking_*`, `sac_*`, `krauss2_*`, `gs_splat.js`, iframe `demo/3d.html`) → chemins préfixés `./demo/`, y compris l'atlas du rocking chair chargé en JS (`sheet.src = './demo/' + D.sheet`). `demo/lags_demo.html` n'est plus qu'une page de redirection vers l'ancienne URL. | **rendu commun** : `gs_splat.js` (décodeur GS en direct, WebGL2, générique en `d` — lisible) · rocking chair : `rocking_splat.js` · `ROCKING_SPLAT` (~1,0 Mo, 15000 gaussiennes) + `rocking_splat_meta.js` · `ROCKING_SPLAT_META` + `rocking_gaussians.js` · `ROCKING_DATA` (~450 Ko, panneau 3D + prise uniquement) — `rocking_frames.png` (atlas, 3,5 Mo) n'est plus lu, supprimable · sac : `sac_splat.js` · `SAC_SPLAT` (~1,4 Mo, 15000 gaussiennes float32 en base64) + `sac_splat_meta.js` · `SAC_SPLAT_META` (~43 Ko) + `sac_lnn.js` · `SAC_LNN` (~290 Ko, poids du LNN) + `sac_lnn_dyn.js` (portage lisible) · SCR souple : `krauss2_gaussians.js` · `KRAUSS2_GAUSSIANS` (~2,4 Mo) + `krauss2_meta.js` · `KRAUSS2_META` (~65 Ko) + `krauss2_lnn.js` · `KRAUSS2_LNN` (~380 Ko) + `krauss2_lnn_dyn.js` (portage lisible) | ✅ **Actif** — lié depuis publications.html (carte « Learning Physics from Video ») |
 
-> ⚠️ **Ne jamais lire** les fichiers de poids ci-dessus ni `rocking_frames.png`, `sac_splat.js`, `sac_splat_meta.js`, `sac_lnn.js`, `krauss2_lnn.js`, `krauss2_meta.js`, `krauss2_gaussians.js` : JSON sur **une seule ligne géante** (centaines de Ko à plusieurs Mo) ou binaire → des dizaines de milliers de tokens pour rien. Idem pour les **lignes 260–261 de `3d.html`** (`__SCENE_META`, `__SCENE_BIN_B64`) : lire ce fichier par plages de lignes en les évitant.
+> ⚠️ **Ne jamais lire** les fichiers de poids ci-dessus ni `rocking_frames.png`, `rocking_splat.js`, `rocking_splat_meta.js`, `sac_splat.js`, `sac_splat_meta.js`, `sac_lnn.js`, `krauss2_lnn.js`, `krauss2_meta.js`, `krauss2_gaussians.js` : JSON sur **une seule ligne géante** (centaines de Ko à plusieurs Mo) ou binaire → des dizaines de milliers de tokens pour rien. Idem pour les **lignes 260–261 de `3d.html`** (`__SCENE_META`, `__SCENE_BIN_B64`) : lire ce fichier par plages de lignes en les évitant.

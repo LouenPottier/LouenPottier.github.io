@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<title>_rock_check — gs_splat.js vs référence numpy (d=1)</title>
+<meta name="robots" content="noindex,nofollow"/>
+<!--
+  OUTIL DE DÉVELOPPEMENT — comparaison PIXEL À PIXEL entre ce que gs_splat.js
+  rasterise dans le navigateur et la référence numpy validée
+  (check_krauss2_splat.render, la recette mesurée à 46,5 dB contre gsplat).
+
+  C'est le contrôle qui manquait : `check_krauss2_splat.py` compare la référence
+  numpy à gsplat, mais rien ne comparait le PORTAGE WEBGL à cette référence en
+  d=1 — le module n'avait tourné qu'en d=2 et d=4.
+
+  Les références sont rendues à 256 px (la résolution d'ENTRAÎNEMENT du décodeur,
+  celle où `eps2d = 0.3 px²` a le sens qu'il avait pendant l'ajustement), donc le
+  canevas est fixé à 256 lui aussi : comparer à une autre taille mesurerait la
+  différence de résolution, pas la fidélité du portage.
+
+  ⚠️ SERVIR EN HTTP (la lecture des pixels d'une image en file:// salit le canevas
+  et `getImageData` lève une SecurityError) :
+      py -m http.server 8000   →   http://localhost:8000/demo/_rock_check.html
+-->
+<style>
+  body{margin:0;padding:18px 20px 40px;background:#14161a;color:#e6e9ee;
+    font:13px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+  h1{font:600 13px/1.3 ui-monospace,monospace;letter-spacing:.09em;
+    text-transform:uppercase;color:#9aa3af;margin:0 0 4px}
+  p{color:#9aa3af;max-width:80ch;margin:6px 0}
+  b{color:#e6e9ee}
+  #verdict{margin:14px 0 18px;padding:10px 13px;border-radius:3px;
+    font:600 14px ui-monospace,monospace;background:#1c1f25;border:1px solid #2b3038}
+  #verdict.ok{background:#0f2f22;border-color:#2f6b4d;color:#4ade80}
+  #verdict.bad{background:#3a1512;border-color:#7a2a20;color:#ff8b7a}
+  table{border-collapse:collapse;margin-top:10px}
+  td,th{padding:5px 9px;border:1px solid #2b3038;font:12px ui-monospace,monospace;
+    text-align:right}
+  th{color:#9aa3af;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.08em}
+  .row{display:flex;gap:10px;align-items:flex-start;margin:16px 0}
+  figure{margin:0}
+  figcaption{font:11px ui-monospace,monospace;color:#9aa3af;margin-bottom:4px}
+  canvas,img{display:block;width:256px;height:256px;background:#000;
+    border:1px solid #2b3038;image-rendering:pixelated}
+</style>
+</head>
+<body>
+
+<h1>gs_splat.js vs référence numpy — rocking chair (d=1)</h1>
+<p>Le navigateur rasterise les 15 000 gaussiennes à cinq états couvrant la plage
+entraînée ; chaque image est comparée à la référence <b>numpy</b> du même état, celle
+dont la recette est mesurée à 46,5 dB contre gsplat. Tout se joue à
+<b>256 px</b> — la résolution d'entraînement.</p>
+<p>Repère : au-dessus de <b>35 dB</b> le portage est conforme (les deux chemins
+divergent d'un poil d'arrondi). En dessous de <b>25 dB</b>, il y a un vrai écart, et la
+colonne de droite montre où.</p>
+
+<div id="verdict">mesure en cours…</div>
+<div id="out"></div>
+
+<script src="./gs_splat.js"></script>
+<script src="./rocking_splat_meta.js"></script>
+<script src="./rocking_splat.js"></script>
+<script>
+"use strict";
+(async function(){
+  const V = document.getElementById('verdict'), OUT = document.getElementById('out');
+  const fail = m => { V.className='bad'; V.textContent = m; };
+
+  const META = window.ROCKING_SPLAT_META, SP = window.GSSplat;
+  if(!META || !SP || !window.ROCKING_SPLAT) return fail('assets absents');
+
+  let ref;
+  try{ ref = await (await fetch('./_rock_ref/ref.json')).json(); }
+  catch(e){ return fail('références illisibles — servir la page en HTTP : ' + e.message); }
+
+  const S = ref.size;
+  const bin = atob(window.ROCKING_SPLAT), buf = new ArrayBuffer(bin.length);
+  const u8 = new Uint8Array(buf);
+  for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
+
+  // Canevas au format EXACT de la référence : on mesure le portage, pas l'échelle.
+  // ⚠️ Il doit être DANS LE DOCUMENT : `gs_splat.resize()` dimensionne le tampon de
+  // rendu depuis `clientWidth`/`clientHeight`, qui valent 0 sur un élément détaché —
+  // le rendu partait alors dans un tampon de 1×1 px et la colonne « navigateur »
+  // restait noire, ce qui ressemble à un décodeur muet alors que c'est la page de
+  // test qui est en tort.
+  const stage = document.createElement('div');
+  stage.style.cssText = 'position:absolute;left:-9999px;top:0';
+  const cv = document.createElement('canvas');
+  cv.style.width = S+'px'; cv.style.height = S+'px';
+  stage.appendChild(cv); document.body.appendChild(stage);
+  let splat;
+  try{ splat = SP.create(cv, buf, META, {maxSide: S}); }
+  catch(e){ return fail('gs_splat.create a échoué : ' + e.message); }
+  splat.resize();
+  if(Math.min(cv.width, cv.height) < S)
+    return fail(`tampon de rendu ${cv.width}×${cv.height} au lieu de ${S}² — le canevas `
+              + `n'a pas de taille de mise en page`);
+
+  const load = src => new Promise((res,rej)=>{
+    const im = new Image(); im.onload=()=>res(im); im.onerror=()=>rej(new Error(src)); im.src=src;
+  });
+  // Toutes les références d'abord : le rendu WebGL doit être lu dans la MÊME tâche que
+  // `render()` (pas de preserveDrawingBuffer), donc aucun `await` entre les deux.
+  const refs = [];
+  for(let i=0;i<ref.q.length;i++)
+    refs.push(await load('./_rock_ref/ref_'+String(i).padStart(2,'0')+'.png'));
+
+  const tbl = document.createElement('table');
+  tbl.innerHTML = '<tr><th>#</th><th>frac</th><th>q</th><th>PSNR</th><th>écart max</th></tr>';
+  const rows = document.createElement('div');
+  let worst = Infinity;
+
+  for(let i=0;i<ref.q.length;i++){
+    splat.render([ref.q[i]]);
+    // Lecture du canevas WebGL : sur le même canevas, juste après le rendu (pas de
+    // preserveDrawingBuffer, le tampon est valide jusqu'à la fin de la frame).
+    const got = document.createElement('canvas'); got.width=S; got.height=S;
+    got.getContext('2d').drawImage(cv, 0, 0, S, S);
+    const A = got.getContext('2d').getImageData(0,0,S,S).data;
+
+    const im = refs[i];
+    const rc = document.createElement('canvas'); rc.width=S; rc.height=S;
+    rc.getContext('2d').drawImage(im,0,0,S,S);
+    const B = rc.getContext('2d').getImageData(0,0,S,S).data;
+
+    // Diff amplifiée ×4 pour que l'écart se voie.
+    const dc = document.createElement('canvas'); dc.width=S; dc.height=S;
+    const D = dc.getContext('2d').createImageData(S,S);
+    let se=0, n=0, mx=0;
+    for(let p=0;p<A.length;p+=4){
+      for(let c=0;c<3;c++){
+        const e = (A[p+c]-B[p+c])/255;
+        se += e*e; n++; mx = Math.max(mx, Math.abs(e));
+        D.data[p+c] = Math.min(255, Math.abs(A[p+c]-B[p+c])*4);
+      }
+      D.data[p+3]=255;
+    }
+    dc.getContext('2d').putImageData(D,0,0);
+    const psnr = 10*Math.log10(1/Math.max(se/n,1e-12));
+    worst = Math.min(worst, psnr);
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${i}</td><td>${ref.frac[i].toFixed(2)}</td>` +
+      `<td>${ref.q[i].toFixed(3)}</td><td><b>${psnr.toFixed(1)} dB</b></td>` +
+      `<td>${mx.toFixed(3)}</td>`;
+    tbl.appendChild(tr);
+
+    const row = document.createElement('div'); row.className='row';
+    for(const [cap, node] of [['navigateur (gs_splat.js)', got],
+                              ['référence numpy', im],
+                              ['|écart| ×4', dc]]){
+      const f = document.createElement('figure');
+      const c = document.createElement('figcaption'); c.textContent = cap;
+      f.append(c, node); row.appendChild(f);
+    }
+    const lab = document.createElement('div');
+    lab.innerHTML = `<figcaption>frac = ${ref.frac[i].toFixed(2)}<br>${psnr.toFixed(1)} dB</figcaption>`;
+    row.appendChild(lab);
+    rows.appendChild(row);
+  }
+
+  V.className = worst > 35 ? 'ok' : 'bad';
+  V.textContent = worst > 35
+    ? `✓ portage conforme — PSNR minimum ${worst.toFixed(1)} dB sur ${ref.q.length} états`
+    : `✗ écart réel — PSNR minimum ${worst.toFixed(1)} dB : le navigateur ne rend pas la même chose que la référence`;
+  OUT.append(tbl, rows);
+})();
+</script>
+</body>
+</html>
