@@ -224,7 +224,16 @@
 #lags-demo .rock3d-media{display:flex;flex-direction:column;gap:12px;min-width:0;}
 @media(max-width:880px){#lags-demo .rock3d-media{max-width:340px}}
 #lags-demo .rock3d-media figure{margin:0}
-#lags-demo .rock3d-media video{width:100%;height:auto;display:block;border:1px solid var(--border);border-radius:var(--radius);background:#111;}
+/* La video d'entrainement est en 16:9 (456x256), mais TOUT le reste de
+   l'experience est en carre ecrase : les vues SHARP et la reference sont en
+   256x256, et le decodeur 2D rend dans [0,1]^2 — parce que le pipeline a
+   redimensionne le 1280x720 d'origine en 256x256 sans conserver le rapport
+   (verifie : correlation 0.993 contre la source ecrasee, 0.270 contre un
+   recadrage carre). L'afficher a son rapport natif la faisait seule sortir
+   de la convention, et la reconstruction paraissait etiree a cote d'elle.
+   `object-fit:fill` applique donc la meme compression. */
+#lags-demo .rock3d-media video{width:100%;aspect-ratio:1/1;height:auto;object-fit:fill;
+  display:block;border:1px solid var(--border);border-radius:var(--radius);background:#111;}
 #lags-demo .video-wrap{position:relative;line-height:0;}
 #lags-demo .video-ended{
   position:absolute;inset:0;display:none;align-items:center;justify-content:center;
