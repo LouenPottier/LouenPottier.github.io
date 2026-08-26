@@ -62,7 +62,7 @@
 			.cube-face {
 				position: absolute;
 				inset: 0;
-				background: #1a2e4a;
+				background: #ff7a18;
 				border: solid 1px #ffffff;
 			}
 			.cube-face.top {
@@ -129,7 +129,7 @@
 				position: absolute;
 				top: 0;
 				height: 5px;
-				background: #1a2e4a;
+				background: #ff7a18;
 				z-index: 99;
 				transition: width 0.1s ease-in-out;
 			}
@@ -540,6 +540,10 @@ function createSim(meta, scene) {
             w[k] /= wSum;
             fz += w[k] * (J_f[3 * k] * F[0] + J_f[3 * k + 1] * F[1] + J_f[3 * k + 2] * F[2]);
         }
+        // fz est la force latente pour une amplitude UNITAIRE : on la garde pour
+        // pouvoir changer la norme au glisse sans refaire la selection (les poids
+        // gaussiens sont figes au clic, seul le facteur d'echelle bouge).
+        st.f_z_unit = fz;
         st.f_z = fz * amplitude;
         st.hitWeights = w;
         st.hitIdx = idx;
@@ -562,6 +566,46 @@ function createSim(meta, scene) {
 
     function clearForce() { st.f_z = 0; st.hitWeights = null; st.hitIdx = -1; }
 
+    /** Sélectionne la matière sous le rayon SANS appliquer de force : mêmes poids
+     *  gaussiens que `applyForceFromRay`, mais on les garde pour que la force
+     *  puisse ensuite suivre le curseur d'une frame à l'autre. */
+    function pickAt(ro, rd) {
+        const idx = closestGaussianToRay(ro, rd);
+        if (idx < 0) return null;
+        muCond(idx, scene.J_f, _p);
+        const hit = [_p[0], _p[1], _p[2]];
+        const { K, alpha, J_f } = scene;
+        const w = new Float32Array(K);
+        const s2 = 2 * meta.force_sigma * meta.force_sigma;
+        let wSum = 0;
+        for (let k = 0; k < K; k++) {
+            muCond(k, J_f, _p);
+            const dx = _p[0] - hit[0], dy = _p[1] - hit[1], dz = _p[2] - hit[2];
+            const wk = alpha[k] * Math.exp(-(dx * dx + dy * dy + dz * dz) / s2);
+            w[k] = wk; wSum += wk;
+        }
+        wSum = Math.max(wSum, 1e-8);
+        for (let k = 0; k < K; k++) w[k] /= wSum;
+        st.hitWeights = w; st.hitIdx = idx;
+        return { hit, idx };
+    }
+
+    /** f_z = Σ_k ŵ_k J_kᵀ F₃ — même rapatriement que `applyForceFromRay`, mais sur
+     *  un vecteur monde ARBITRAIRE et sans re-sélectionner. C'est ce qui permet à la
+     *  force de suivre le curseur : les poids sont figés au clic, seul F₃ bouge. */
+    function applyForceVec(F) {
+        if (!st.hitWeights) { st.f_z = 0; return 0; }
+        const { K, J_f } = scene;
+        let fz = 0;
+        for (let k = 0; k < K; k++) {
+            const wk = st.hitWeights[k];
+            if (wk < 1e-9) continue;
+            fz += wk * (J_f[3 * k] * F[0] + J_f[3 * k + 1] * F[1] + J_f[3 * k + 2] * F[2]);
+        }
+        st.f_z = fz;
+        return fz;
+    }
+
     function reset() {
         st.z = meta.z0; st.v = meta.v0 ?? 0; st.step = 0; st.acc = 0;
         clearForce();
@@ -581,7 +625,7 @@ function createSim(meta, scene) {
         state: st, scene, meta,
         energy, dEdz, barrierEnergy, barrierGrad,
         tick, rk4Step, reset,
-        applyForceFromRay, clearForce, hitPos,
+        applyForceFromRay, clearForce, pickAt, applyForceVec, hitPos,
         setParams(p) {
             if (p.f_ext !== undefined) st.f_ext = p.f_ext;
             if (p.gamma !== undefined) st.gamma = p.gamma;
@@ -1847,13 +1891,14 @@ async function main(sim) {
         if (e.button === 1) {
             down = 3; // middle → zoom
         } else if (e.button === 2) {
-            down = 2; // right → look around
-            _extractYawPitchFromView();
-        } else if (e.button === 0) {
-            // gauche → orbite, comme le glissé à un doigt. La force est sur le
-            // double-clic. (Valeur non nulle : mouseup remet `down` à false, et
-            // `false == 0` est vrai en comparaison lâche.)
+            // droit → ORBITE. (Le « look around » qui occupait ce bouton est
+            // retiré : la scène n'est supervisée que dans un cône de ±9°.)
             down = 4;
+        } else if (e.button === 0) {
+            // gauche → EFFORT tenu, exactement comme les onglets 2D : on appuie
+            // sur la matière, on tire, on lâche. `down` ne passe à 5 que si la
+            // prise a mordu — appuyer sur le vide ne doit rien faire.
+            down = (window._forceDown && window._forceDown(e.clientX, e.clientY)) ? 5 : false;
         }
     });
     canvas.addEventListener("contextmenu", (e) => {
@@ -1871,16 +1916,9 @@ async function main(sim) {
             orbitAroundPivot(-dx, -dy);
             startX = e.clientX;
             startY = e.clientY;
-        } else if (down == 2) {
-            // Right drag → look around using explicit yaw/pitch (no gimbal)
-            const lookSpeed = 3.0;
-            let dx = (lookSpeed * (e.clientX - startX)) / innerWidth;
-            let dy = (lookSpeed * (e.clientY - startY)) / innerHeight;
-            _yaw   += dx;
-            _pitch = Math.max(-Math.PI/2 + 0.01, Math.min(Math.PI/2 - 0.01, _pitch - dy));
-            _buildViewFromYawPitch();
-            startX = e.clientX;
-            startY = e.clientY;
+        } else if (down == 5) {
+            // Glissé gauche → la force suit le curseur (direction ET norme).
+            if (window._forceMove) window._forceMove(e.clientX, e.clientY);
         } else if (down == 3) {
             // Zoom au clic milieu
             zoomBy(Math.exp((e.clientY - startY) * 0.005));
@@ -1889,10 +1927,10 @@ async function main(sim) {
         }
     });
     canvas.addEventListener("mouseup", (e) => {
-        if (IS_MOUSE && e.button === 0 && !dragged && window._toggleForceAt)
-            window._toggleForceAt(e.clientX, e.clientY);
+        // (l'effort a déjà été appliqué au pressé — rien à faire au relâché)
     });
     window.addEventListener("mouseup", (e) => {
+        if (window._forceUp) window._forceUp();   // lâcher : la force cesse, l'élan reste
         down = false;
         startX = 0;
         startY = 0;
@@ -1901,11 +1939,14 @@ async function main(sim) {
     let altX = 0,
         altY = 0;
 
-    // Détection du double-tap : un tap est un contact à un doigt, bref et
-    // quasi immobile (sinon c'est un drag d'orbite). Deux taps rapprochés dans
-    // le temps et dans l'espace basculent la force, comme le double-clic.
-    const TAP_MOVE_PX = 12, TAP_MAX_MS = 300, DBLTAP_MAX_MS = 350, DBLTAP_MAX_PX = 40;
-    let _tapStartT = 0, _tapMoved = true, _tapDist = 0, _lastTap = null;
+    /* ── Gestes tactiles ──────────────────────────────────────────────────────
+       UN doigt  → EFFORT tenu : on appuie sur la matière, on tire, on lâche —
+       le même geste qu'au clic gauche et que sur les onglets 2D.
+       DEUX doigts → caméra : le déplacement du milieu des deux contacts oriente
+       l'orbite, leur écartement pilote le zoom — les deux en même temps.
+
+       Le double-tap a disparu : le contact simple applique déjà l'effort. */
+    let _touchForce = false;   // le contact courant pilote-t-il l'effort ?
 
     canvas.addEventListener(
         "touchstart",
@@ -1916,11 +1957,13 @@ async function main(sim) {
                 startX = e.touches[0].clientX;
                 startY = e.touches[0].clientY;
                 down = 1;
-                _tapStartT = performance.now();
-                _tapMoved = false;
-                _tapDist = 0;
+                // Un doigt → EFFORT tenu, comme le clic gauche et comme la 2D.
+                _touchForce = !!(window._forceDown
+                    && window._forceDown(e.touches[0].clientX, e.touches[0].clientY));
             } else if (e.touches.length === 2) {
-                _tapMoved = true;   // geste à deux doigts : jamais un tap
+                // Deux doigts → caméra : on abandonne l'effort en cours.
+                if (window._forceUp) window._forceUp();
+                _touchForce = false;
                 carousel = false;
                 startX = e.touches[0].clientX;
                 altX = e.touches[1].clientX;
@@ -1936,23 +1979,18 @@ async function main(sim) {
         (e) => {
             e.preventDefault();
             if (e.touches.length === 1 && down) {
-                // startX/startY sont re-basés à chaque move : on cumule le
-                // chemin parcouru plutôt que de comparer au point de départ.
-                _tapDist += Math.hypot(
-                    e.touches[0].clientX - startX,
-                    e.touches[0].clientY - startY,
-                );
-                if (_tapDist > TAP_MOVE_PX) _tapMoved = true;
-                // One finger → orbit
-                const orbitSpeed = 3.0;
-                let dx = (orbitSpeed * (e.touches[0].clientX - startX)) / innerWidth;
-                let dy = (orbitSpeed * (e.touches[0].clientY - startY)) / innerHeight;
-                orbitAroundPivot(-dx, -dy);
-                startX = e.touches[0].clientX;
-                startY = e.touches[0].clientY;
+                // Un doigt → la force suit le doigt (direction et norme).
+                if (_touchForce && window._forceMove)
+                    window._forceMove(e.touches[0].clientX, e.touches[0].clientY);
             } else if (e.touches.length === 2) {
-                _tapMoved = true;
-                // Pincement → zoom. Le rapport des écartements est directement
+                // Milieu des deux contacts → orbite.
+                const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                const my = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                const pmx = (startX + altX) / 2, pmy = (startY + altY) / 2;
+                const orbitSpeed = 3.0;
+                orbitAroundPivot(-(orbitSpeed * (mx - pmx)) / innerWidth,
+                                 -(orbitSpeed * (my - pmy)) / innerHeight);
+                // Écartement → zoom. Le rapport des écartements est directement
                 // le facteur d'homothétie : écarter les doigts rapproche.
                 const dscale =
                     Math.hypot(startX - altX, startY - altY) /
@@ -1977,22 +2015,10 @@ async function main(sim) {
             down = false;
             startX = 0;
             startY = 0;
-
-            const now = performance.now();
-            const isTap = !_tapMoved && now - _tapStartT < TAP_MAX_MS
-                && e.touches.length === 0 && e.changedTouches.length === 1;
-            _tapMoved = true;   // le prochain geste doit repartir d'un touchstart
-            if (!isTap) { _lastTap = null; return; }
-
-            const t = e.changedTouches[0];
-            const x = t.clientX, y = t.clientY;
-            if (_lastTap && now - _lastTap.t < DBLTAP_MAX_MS
-                && Math.hypot(x - _lastTap.x, y - _lastTap.y) < DBLTAP_MAX_PX) {
-                _lastTap = null;
-                if (window._toggleForceAt) window._toggleForceAt(x, y);
-            } else {
-                _lastTap = { x: x, y: y, t: now };
-            }
+            // Lever le doigt = lâcher : la force cesse, l'élan reste. Même
+            // comportement qu'au relâchement du clic gauche et qu'en 2D.
+            if (window._forceUp) window._forceUp();
+            _touchForce = false;
         },
         { passive: false },
     );
@@ -2297,18 +2323,42 @@ const IS_MOUSE = window.matchMedia('(hover: hover) and (pointer: fine)').matches
 // Valeurs par défaut du plein écran (3d.html ouvert seul) : la page hôte n'est
 // pas là pour les pousser et rien ne règle la force ici. On aligne l'amplitude
 // sur la valeur par défaut du curseur de 4dgs.html.
-window._az = 0; window._el = -90; window._amp = 2;   // écrasés par la page hôte
+window._az = 0; window._el = -90;
+// Gain global de la force de prise. Le curseur qui le pilotait est retiré des
+// pages hôtes : la direction ET la norme viennent maintenant du geste (cf.
+// _forceTick), il ne restait qu'un facteur d'échelle sans intérêt à régler.
+// La page hôte peut toujours l'écraser par postMessage.
+window._amp = 5;
 let _forceOn = false;
 // ── Overlay 2D pour afficher la flèche de force ─────────────────────────────
 var _overlay = document.getElementById('overlay');
 var _ctx = _overlay.getContext('2d');
+/* ⚠️ État de la prise en force — déclaré ICI, en `var`, et non près de
+   `_forceDown` plus bas. La boucle d'overlay est une IIFE : elle s'exécute dès
+   son évaluation et appelle `_forceTick`, qui lit ces variables. Déclarées plus
+   bas en `let`, elles sont alors dans leur zone morte temporelle : ReferenceError
+   à l'évaluation du script, et tout ce qui suit — `window._forceDown` et le
+   reste — n'est jamais défini. La panne est silencieuse côté page hôte. */
+var _FDRAG_MAX = 0.35;      // |f| max, en fraction du petit côté (cf. FGRAB_MAX en 2D)
+var _forceHold = false, _forceCursor = [0, 0];
+/* Vecteur force en PIXELS écran, après plafonnement — c'est lui que dessine la
+   flèche. Le tracer ainsi plutôt que par une longueur monde fixe donne
+   exactement la flèche des onglets 2D : elle part de la matière, finit sous le
+   curseur, et sa LONGUEUR est la norme de la force réellement appliquée. Elle
+   se contracte donc d'elle-même quand l'objet rejoint le curseur. */
+var _forceScreenVec = null;
+
 var _forceHit3D = null;   // [x,y,z] monde, mis à jour par le serveur
 var _forceDir = null;      // [az, el] en degrés
 var _forceClickX = 0, _forceClickY = 0;
 
 function _resizeOverlay() {
-    _overlay.width = window.innerWidth;
-    _overlay.height = window.innerHeight;
+    // Backing store en pixels PHYSIQUES, dessin en pixels CSS (cf. la transformation
+    // posée dans _drawOverlay) : les canevas 2D font pareil, et sans cela la flèche
+    // est visiblement plus floue que le reste sur un écran HiDPI.
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    _overlay.width = Math.round(window.innerWidth * dpr);
+    _overlay.height = Math.round(window.innerHeight * dpr);
 }
 window.addEventListener('resize', _resizeOverlay);
 _resizeOverlay();
@@ -2332,56 +2382,66 @@ function _project3D(p3) {
 }
 
 function _drawOverlay() {
+    // On efface en repère natif, puis on passe en pixels CSS : toutes les
+    // coordonnées qui suivent viennent de _project3D, qui rend des pixels CSS.
+    _ctx.setTransform(1, 0, 0, 1, 0, 0);
     _ctx.clearRect(0, 0, _overlay.width, _overlay.height);
-    if (!_forceHit3D || !_forceDir) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    _ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (!_forceHit3D || (!_forceScreenVec && !_forceDir)) return;
 
     var p2 = _project3D(_forceHit3D);
     if (!p2) return;
 
-    // Direction 3D monde depuis az/el
-    var az = _forceDir[0] * Math.PI/180, el = _forceDir[1] * Math.PI/180;
-    var dir3 = [
-        Math.cos(el)*Math.cos(az),
-        -Math.sin(el),
-        Math.cos(el)*Math.sin(az)
-    ];
-    // Longueur fixe en monde → projeter pour avoir la tête de flèche
-    var arrowLen = 0.3;
-    var tip3 = [
-        _forceHit3D[0] + dir3[0]*arrowLen,
-        _forceHit3D[1] + dir3[1]*arrowLen,
-        _forceHit3D[2] + dir3[2]*arrowLen
-    ];
-    var p2tip = _project3D(tip3);
-    if (!p2tip) return;
+    var cx = p2[0], cy = p2[1], ex, ey;
+    if (_forceScreenVec) {
+        // Prise en cours : la flèche EST le vecteur force, en pixels — direction
+        // et NORME. Une longueur monde fixe ne dirait rien de l'intensité.
+        ex = cx + _forceScreenVec[0];
+        ey = cy + _forceScreenVec[1];
+    } else {
+        // Repli : direction az/el, longueur fixe (plus aucun appelant aujourd'hui,
+        // gardé pour la commande de force de la page hôte).
+        var az = _forceDir[0] * Math.PI/180, el = _forceDir[1] * Math.PI/180;
+        var dir3 = [Math.cos(el)*Math.cos(az), -Math.sin(el), Math.cos(el)*Math.sin(az)];
+        var arrowLen = 0.3;
+        var p2tip = _project3D([_forceHit3D[0] + dir3[0]*arrowLen,
+                                _forceHit3D[1] + dir3[1]*arrowLen,
+                                _forceHit3D[2] + dir3[2]*arrowLen]);
+        if (!p2tip) return;
+        ex = p2tip[0]; ey = p2tip[1];
+    }
 
-    var cx = p2[0],    cy = p2[1];
-    var ex = p2tip[0], ey = p2tip[1];
-
-    _ctx.strokeStyle = 'rgba(255, 80, 80, 0.9)';
-    _ctx.fillStyle   = 'rgba(255, 80, 80, 0.9)';
-    _ctx.lineWidth   = 4;
+    // Tracé IDENTIQUE à `drawForceArrow` des onglets 2D de lagsplat.html : même
+    // couleur (#ff7a18, commune à toutes les flèches d'effort du site),
+    // même épaisseur 3, même tête de 12 px ouverte à 0.4 rad,
+    // même pastille de 4 px à l'ancrage. La tête large de 0.85 rad et le trait de
+    // 4 px d'avant faisaient un objet nettement plus lourd que la flèche 2D.
+    _ctx.strokeStyle = '#ff7a18';
+    _ctx.fillStyle   = '#ff7a18';
+    _ctx.lineWidth   = 3;
     _ctx.beginPath();
     _ctx.moveTo(cx, cy);
     _ctx.lineTo(ex, ey);
     _ctx.stroke();
-    var angle = Math.atan2(ey - cy, ex - cx);
-    // Tête large et courte : l'angle d'ouverture donne la largeur, headLen la longueur.
-    var headLen = 16, headSpread = 0.85;
+    var ang = Math.atan2(ey - cy, ex - cx), L = Math.hypot(ex - cx, ey - cy);
+    if (L > 6) {          // sous 6 px la tête ferait une tache, comme en 2D
+        _ctx.beginPath();
+        _ctx.moveTo(ex, ey);
+        _ctx.lineTo(ex - 12*Math.cos(ang - 0.4), ey - 12*Math.sin(ang - 0.4));
+        _ctx.lineTo(ex - 12*Math.cos(ang + 0.4), ey - 12*Math.sin(ang + 0.4));
+        _ctx.closePath();
+        _ctx.fill();
+    }
     _ctx.beginPath();
-    _ctx.moveTo(ex, ey);
-    _ctx.lineTo(ex - headLen*Math.cos(angle-headSpread), ey - headLen*Math.sin(angle-headSpread));
-    _ctx.lineTo(ex - headLen*Math.cos(angle+headSpread), ey - headLen*Math.sin(angle+headSpread));
-    _ctx.closePath();
-    _ctx.fill();
-    _ctx.beginPath();
-    _ctx.arc(cx, cy, 6, 0, 2*Math.PI);
+    _ctx.arc(cx, cy, 4, 0, 2*Math.PI);
     _ctx.fill();
 }
 
 function _clearOverlay() {
     _forceHit3D = null;
     _forceDir = null;
+    _forceScreenVec = null;
     _ctx.clearRect(0, 0, _overlay.width, _overlay.height);
 }
 
@@ -2390,6 +2450,7 @@ function _clearOverlay() {
 window._clearForceUI = function () {
     if (window.sim) window.sim.clearForce();
     _forceOn = false;
+    _forceHold = false;      // sinon la boucle réappliquerait la force à la frame suivante
     _clearOverlay();
 };
 
@@ -2398,7 +2459,8 @@ window._clearForceUI = function () {
     requestAnimationFrame(_overlayLoop);
     if (window._paused) return;   // viewer figé : pas de redraw de l'overlay
     if (window._editRender) { window._editRender(); return; }
-    if (_forceOn && window.sim) {
+    _forceTick();               // f = curseur − point d'application, réévalué à l'état courant
+    if (_forceOn && !_forceHold && window.sim) {
         const h = window.sim.hitPos();
         if (h) _forceHit3D = h;
     }
@@ -2407,55 +2469,101 @@ window._clearForceUI = function () {
 
 // Bascule la force au point écran (clientX, clientY) : le premier appel
 // l'applique, le suivant l'efface. Partagé par le clic et le double-tap.
-window._toggleForceAt = function (clientX, clientY) {
+/* ── Effort : EXACTEMENT le modele des onglets 2D ────────────────────────────
+   On appuie sur la matiere, on tire, on lache. Tant que le bouton est tenu, la
+   force est f = curseur − point d'application, et le point d'application SUIT
+   l'objet (hitPos() reevalue a l'etat courant) : f se contracte donc comme un
+   ressort quand l'objet rejoint le curseur, au lieu d'etre un effort constant.
+   Au lache, la force cesse et l'elan reste.
+
+   La seule difference avec la 2D est le passage 2D → 3D : le vecteur ecran est
+   remis dans le PLAN DE LA CAMERA (colonnes « droite » et « haut » de l'inverse
+   de la view matrix), puis rapatrie en force latente par f_z = Σ ŵ_k J_kᵀ F₃.
+   Les curseurs az/el de la page hote ne pilotent donc plus la direction — c'est
+   le geste qui la donne ; `_amp` reste le gain global.
+
+   ⚠️ La force est recalculee A CHAQUE FRAME dans la boucle d'overlay, pas au
+   mousemove : le point d'application bouge avec l'objet meme curseur immobile. */
+// (état de la prise déclaré plus haut, avant la boucle d'overlay qui le lit)
+
+
+/** Axes de la caméra en coordonnées monde.
+ *
+ *  ⚠️ La 2e colonne n'est PAS « haut » mais « BAS ». `_project3D` fait
+ *  `sy = (cy/cz)*fy + H/2`, sans négation : le +y caméra tombe donc vers le BAS
+ *  de l'écran (la projection d'antimatter15 porte déjà l'inversion de Y).
+ *  L'appeler « up » et soustraire, comme le veut le réflexe « y écran vers le
+ *  bas », inverse la verticale de la force. */
+function _camAxes() {
+    const inv = invert4(viewMatrix);
+    return { right: [inv[0], inv[1], inv[2]], down: [inv[4], inv[5], inv[6]] };
+}
+
+/** Recalcule f = curseur − point d'application et l'applique. Appelee chaque frame. */
+function _forceTick() {
     const sim = window.sim;
-    if (!sim) return;
-    if (window._paused) return;   // viewer figé : pas d'interaction force
-    if (window._editPick) { window._editPick(clientX, clientY); return; }
-    if (_forceOn) {
-        sim.clearForce();
-        _forceOn = false;
-        _clearOverlay();
-        return;
-    }
-    _forceClickX = clientX;
-    _forceClickY = clientY;
+    if (!_forceHold || !sim) return;
+    const p3 = sim.hitPos();
+    if (!p3) return;
+    const s0 = _project3D(p3);
+    if (!s0) return;
+    const ref = _FDRAG_MAX * Math.min(window.innerWidth, window.innerHeight);
+    let fx = (_forceCursor[0] - s0[0]) / ref, fy = (_forceCursor[1] - s0[1]) / ref;
+    const m = Math.hypot(fx, fy);
+    if (m > 1) { fx /= m; fy /= m; }            // plafond, comme le clamp 2D
+    const amp = typeof window._amp === 'number' ? window._amp : 2.0;
+    const { right, down } = _camAxes();
+    // fy est mesuré en pixels écran, donc positif vers le bas — et `down` l'est
+    // aussi (cf. _camAxes) : les deux signes concordent, on ADDITIONNE.
+    const F = [amp * (fx * right[0] + fy * down[0]),
+               amp * (fx * right[1] + fy * down[1]),
+               amp * (fx * right[2] + fy * down[2])];
+    sim.applyForceVec(F);
+    _forceHit3D = p3;
+    _forceScreenVec = [fx * ref, fy * ref];   // norme ET direction, en pixels
+}
 
-    // Extraire rayon depuis viewMatrix (world-to-cam, column-major)
-    var vm = viewMatrix;
-    var inv = invert4(vm);
-    // Origine du rayon = position caméra dans le monde
-    var ro = [inv[12], inv[13], inv[14]];
-    // Direction du rayon dans le monde
-    var W = window.innerWidth, H = window.innerHeight;
-    var nx = ((clientX / W) - 0.5) * 2;
-    var ny = -((clientY / H) - 0.5) * 2;
-    // fx/fy sont en pixels pour la résolution originale
-    // nx,ny sont en [-1,1] pour la fenêtre courante W×H
-    // direction caméra : (pixel - center) / focal
-    var fx = camera.fx, fy = camera.fy;
-    var dc = [(nx * W * 0.5) / fx, -(ny * H * 0.5) / fy, 1.0];
-    // Transformer en monde via inverse de la rotation de viewMatrix
-    var rd = [
-        inv[0]*dc[0] + inv[4]*dc[1] + inv[8]*dc[2],
-        inv[1]*dc[0] + inv[5]*dc[1] + inv[9]*dc[2],
-        inv[2]*dc[0] + inv[6]*dc[1] + inv[10]*dc[2],
-    ];
-    var rdlen = Math.sqrt(rd[0]*rd[0]+rd[1]*rd[1]+rd[2]*rd[2]);
-    rd = [rd[0]/rdlen, rd[1]/rdlen, rd[2]/rdlen];
+window._forceIsOn = function () { return _forceHold; };
 
-    var az = window._az !== undefined ? window._az : 0;
-    var el = window._el !== undefined ? window._el : -90;
-
-    // `|| 2` traiterait une amplitude nulle (borne basse du curseur) comme 2.
-    var amp = typeof window._amp === 'number' ? window._amp : 2.0;
-    const r = sim.applyForceFromRay(ro, rd, az, el, amp);
-    if (!r) return;
-    _forceOn = true;
+/** Appui : saisit la matiere sous le curseur. Rien de mobile dessous → pas de prise. */
+window._forceDown = function (clientX, clientY) {
+    const sim = window.sim;
+    if (!sim || window._paused) return false;
+    if (window._editPick) { window._editPick(clientX, clientY); return false; }
+    const { ro, rd } = _rayFrom(clientX, clientY);
+    const r = sim.pickAt(ro, rd);
+    if (!r) return false;
+    _forceHold = true; _forceOn = true;
+    _forceCursor = [clientX, clientY];
     _forceHit3D = r.hit;
-    _forceDir = [az, el];
-    console.log('Force appliquée : gaussienne', r.idx, '|f_z| =', Math.abs(r.fz).toFixed(4));
+    _forceTick();
+    return true;
 };
+window._forceMove = function (clientX, clientY) {
+    if (_forceHold) _forceCursor = [clientX, clientY];
+};
+window._forceUp = function () {
+    if (!_forceHold) return;
+    _forceHold = false; _forceOn = false;
+    _forceScreenVec = null;
+    if (window.sim) window.sim.clearForce();   // la force cesse, l'elan reste
+    _clearOverlay();
+};
+
+/** Rayon monde depuis un point ecran (meme convention que getProjectionMatrix). */
+function _rayFrom(clientX, clientY) {
+    const inv = invert4(viewMatrix);
+    const ro = [inv[12], inv[13], inv[14]];
+    const W = window.innerWidth, H = window.innerHeight;
+    const nx = ((clientX / W) - 0.5) * 2, ny = -((clientY / H) - 0.5) * 2;
+    const dc = [(nx * W * 0.5) / camera.fx, -(ny * H * 0.5) / camera.fy, 1.0];
+    const rd = [inv[0] * dc[0] + inv[4] * dc[1] + inv[8] * dc[2],
+                inv[1] * dc[0] + inv[5] * dc[1] + inv[9] * dc[2],
+                inv[2] * dc[0] + inv[6] * dc[1] + inv[10] * dc[2]];
+    const n = Math.hypot(rd[0], rd[1], rd[2]) || 1;
+    return { ro, rd: [rd[0] / n, rd[1] / n, rd[2] / n] };
+}
+
 
 // ── Mode éditeur (3d.html?edit) ──────────────────────────────────────────────
 // Outil de sélection manuelle des gaussiennes au clic, pour figer le background

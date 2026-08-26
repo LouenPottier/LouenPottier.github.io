@@ -149,7 +149,9 @@ La démo ajoute donc un plancher ADDITIF `c₀·M̃(q)` (Rayleigh proportionnel 
 mode par défaut du pipeline Python) — mettre `C` à l'échelle ne comblerait pas le trou, c'est
 multiplicatif. Curseur Dissipation : ≤ 50 met le `C(q)` appris à l'échelle sans plancher
 (50 = `lnn.pt` pur), > 50 ajoute `c₀` jusqu'à 0,04. Défaut 62 → `c₀` ≈ 0,010, extinction
-en ~27 s.
+en ~27 s. ⚠️ L'étiquette du curseur suit les DEUX régimes (`×0.74` sous la mi-course,
+`×1.00 + c₀ 0.010` au-dessus) : afficher le seul rapport `v/50` sur toute la course
+faisait lire « ×1,24 » là où le `C(q)` appris est en réalité intact.
 
 **Le rendu se fait EN DIRECT, plus par un atlas.** L'onglet lisait sa reconstruction dans
 une mosaïque 19×19 de tuiles pré-décodées (`sac_frames.png`, 11 Mo, 128×128 par tuile,
