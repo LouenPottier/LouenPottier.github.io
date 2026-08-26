@@ -163,6 +163,15 @@
   font-family:'Lora',Georgia,serif;font-size:1.22rem;color:var(--text);
 }
 #lags-demo .lags-eq .op{padding:0 .12em}
+/* ℒ, 𝒯, 𝒱, 𝒟 : les lettres « mathcal » de l'équation. Les trois dernières vivent dans le
+   plan supplémentaire (Mathematical Alphanumeric Symbols), que Lora ne couvre pas — d'où
+   une pile de polices mathématiques explicite, et pas d'italique par-dessus (le glyphe
+   EST déjà penché). */
+#lags-demo .cal{
+  font-family:'Cambria Math','STIX Two Math','Latin Modern Math','Segoe UI Symbol',
+              'DejaVu Serif',Georgia,serif;
+  font-style:normal;
+}
 #lags-demo .lags-eq sup{font-size:.62em;vertical-align:.42em}
 /* fraction empilée : numérateur au-dessus, barre = bordure du dénominateur */
 #lags-demo .lags-eq .frac{
@@ -607,11 +616,15 @@
 
       <section class="panel q">
         <div class="phead">
-          <div class="tag" data-en="reconstruction from q" data-fr="reconstruction depuis q">reconstruction from q</div>
+          <div class="tag" data-en="live GS decoder" data-fr="décodeur GS en direct">live GS decoder</div>
           <h2 data-en="GS decoder output" data-fr="Sortie du décodeur GS">GS decoder output</h2>
-          <div class="sub" data-en="model's RGB output, sliced at (q&#8321;, q&#8322;) = current" data-fr="sortie RGB du modèle, coupe (q&#8321;, q&#8322;) = courante">model's RGB output, sliced at (q&#8321;, q&#8322;) = current</div>
+          <div class="sub" data-en="15&thinsp;000 gaussians conditioned on (q&#8321;, q&#8322;) and re-rasterised every frame" data-fr="15&thinsp;000 gaussiennes conditionnées sur (q&#8321;, q&#8322;) et re-rasterisées à chaque image">15&thinsp;000 gaussians conditioned on (q&#8321;, q&#8322;) and re-rasterised every frame</div>
         </div>
-        <div class="stage recon"><canvas id="cSacRecon"></canvas><div class="badge" data-en="grab &amp; drag the object" data-fr="attraper et glisser l'objet">grab &amp; drag the object</div></div>
+        <div class="stage recon" style="position:relative">
+          <canvas id="cSacRecon" style="background:#000"></canvas>
+          <canvas id="cSacOverlay" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+          <div class="badge" data-en="grab &amp; drag the object" data-fr="attraper et glisser l'objet">grab &amp; drag the object</div>
+        </div>
         <div class="pfoot video"><span data-en="<b style='color:#ff7a18'>&#10230;</b> Interactive user applied force <i>f</i>, pulled back to the latent space through <i>J</i>&#7488;<i>f</i>. Grab the object to apply it." data-fr="<b style='color:#ff7a18'>&#10230;</b> Force <i>f</i> appliquée interactivement par l'utilisateur, rapatriée dans l'espace latent par <i>J</i>&#7488;<i>f</i>. Attrapez l'objet pour l'appliquer."><b style='color:#ff7a18'>&#10230;</b> Interactive user applied force <i>f</i>, pulled back to the latent space through <i>J</i>&#7488;<i>f</i>. Grab the object to apply it.</span></div>
       </section>
     </div>
@@ -632,22 +645,22 @@
 
 
     <div class="lags-eq" role="math"
-         aria-label="d over dt of partial L over partial q dot, plus partial D over partial q dot, minus partial L over partial q, equals b of q transpose P plus J of q transpose f">
+         aria-label="d over dt of partial script L over partial q dot, plus partial script D over partial q dot, minus partial script L over partial q, equals b of q transpose P plus J of q transpose f">
       <span class="frac"><span><i>d</i></span><span><i>dt</i></span></span>
-      <span class="frac"><span>&part;<i>L</i></span><span>&part;<i>q&#775;</i></span></span>
+      <span class="frac"><span>&part;<span class="cal">&#x2112;</span></span><span>&part;<i>q&#775;</i></span></span>
       <span class="op">+</span>
-      <span class="frac"><span>&part;<i>D</i></span><span>&part;<i>q&#775;</i></span></span>
+      <span class="frac"><span>&part;<span class="cal">&#x1D49F;</span></span><span>&part;<i>q&#775;</i></span></span>
       <span class="op">&minus;</span>
-      <span class="frac"><span>&part;<i>L</i></span><span>&part;<i>q</i></span></span>
+      <span class="frac"><span>&part;<span class="cal">&#x2112;</span></span><span>&part;<i>q</i></span></span>
       <span class="op">=</span>
       <span><i>b</i>(<i>q</i>)<sup>&#8868;</sup><i>P</i></span>
       <span class="op">+</span>
       <span><i>J</i>(<i>q</i>)<sup>&#8868;</sup><i>f</i></span>
     </div>
     <p class="eq-legend"
-       data-en="<i>L</i> = <i>T</i> &minus; <i>V</i> and <i>D</i> are the learned kinetic, potential and dissipation terms, <i>P</i> the four chamber pressures set by the sliders, and <i>f</i> a force applied by dragging in the image, transported to the latent space by the decoder Jacobian <i>J</i>(<i>q</i>)."
-       data-fr="<i>L</i> = <i>T</i> &minus; <i>V</i> et <i>D</i> sont les termes cin&eacute;tique, potentiel et dissipatif appris, <i>P</i> les quatre pressions de chambre pos&eacute;es par les curseurs, et <i>f</i> une force appliqu&eacute;e en glissant dans l'image, transport&eacute;e dans l'espace latent par la jacobienne du d&eacute;codeur <i>J</i>(<i>q</i>).">
-      <i>L</i> = <i>T</i> &minus; <i>V</i> and <i>D</i> are the learned kinetic, potential and dissipation terms, <i>P</i> the four chamber pressures set by the sliders, and <i>f</i> a force applied by dragging in the image, transported to the latent space by the decoder Jacobian <i>J</i>(<i>q</i>).
+       data-en="<span class='cal'>&#x2112;</span> = <span class='cal'>&#x1D4AF;</span> &minus; <span class='cal'>&#x1D4B1;</span> and <span class='cal'>&#x1D49F;</span> are the learned kinetic, potential and dissipation terms, <i>P</i> the four chamber pressures set by the sliders, and <i>f</i> a force applied by dragging in the image, transported to the latent space by the decoder Jacobian <i>J</i>(<i>q</i>)."
+       data-fr="<span class='cal'>&#x2112;</span> = <span class='cal'>&#x1D4AF;</span> &minus; <span class='cal'>&#x1D4B1;</span> et <span class='cal'>&#x1D49F;</span> sont les termes cin&eacute;tique, potentiel et dissipatif appris, <i>P</i> les quatre pressions de chambre pos&eacute;es par les curseurs, et <i>f</i> une force appliqu&eacute;e en glissant dans l'image, transport&eacute;e dans l'espace latent par la jacobienne du d&eacute;codeur <i>J</i>(<i>q</i>).">
+      <span class="cal">&#x2112;</span> = <span class="cal">&#x1D4AF;</span> &minus; <span class="cal">&#x1D4B1;</span> and <span class="cal">&#x1D49F;</span> are the learned kinetic, potential and dissipation terms, <i>P</i> the four chamber pressures set by the sliders, and <i>f</i> a force applied by dragging in the image, transported to the latent space by the decoder Jacobian <i>J</i>(<i>q</i>).
     </p>
 
     <div class="rock-controls">
@@ -1470,7 +1483,12 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
 </script>
 
 <!-- trained 2-DOF soft actuator gaussians (generated by extract_sac.py) -->
-<script src="./demo/sac_gaussians.js"></script>
+<!-- Décodeur GS évalué EN DIRECT (générique en d, partagé avec l'onglet d=4) + les
+     15000 gaussiennes du cas sac en base64 et leur en-tête. Remplace l'atlas
+     sac_frames.png (11 Mo) : 1,4 Mo, et la coupe est exacte au lieu d'être interpolée. -->
+<script src="./demo/gs_splat.js"></script>
+<script src="./demo/sac_splat_meta.js"></script>
+<script src="./demo/sac_splat.js"></script>
 <!-- Lagrangien appris : poids de lnn.pt (export_sac_lnn.py) + portage JS de la dynamique.
      C'est le checkpoint de la figure fig_sac_rollout.pdf de l'article — la démo tourne
      donc sur la MÊME physique, et non plus sur un oscillateur linéaire ajusté par LS. -->
@@ -1479,23 +1497,30 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
 <script>
 "use strict";
 /* ── Third demo: the real trained 2-DOF soft-actuator model (latent d=2) ────
-   Reads window.SAC_DATA : per-gaussian Schur blocks generalised to d=2
-   (mz∈ℝ², szzi=Σzz⁻¹, jac=∂μ/∂q 2×2, scinv), a sprite GRID over the (q1,q2)
-   plane, the learned trajectory polyline, and a synthetic 2-DOF damped
-   oscillator (A,B,q0) fitted to the data. No torch at runtime. */
+   La reconstruction n'est plus lue dans un ATLAS de 19×19 tuiles pré-décodées
+   (sac_frames.png, 11 Mo) : le décodeur GS tourne EN DIRECT en WebGL, comme dans
+   l'onglet d=4 — 15000 gaussiennes conditionnées sur (q₁,q₂) et re-rasterisées à chaque
+   image (demo/gs_splat.js, générique en d). C'est plus léger (1,1 Mo de blocs de Schur)
+   et EXACT : la coupe est calculée à l'état courant, au lieu d'être interpolée entre les
+   quatre tuiles voisines d'une grille rendue en 128×128 puis ré-étirée. Le décodeur est
+   du même coup celui de la figure fig_sac_rollout.pdf de l'article (decoder2dpt_15k.pt),
+   que l'atlas ne pouvait pas se payer.
+   Aucun torch au runtime : la recette de rendu est vérifiée contre gsplat par
+   demo_Lags/check_krauss2_splat.py --case sac (PSNR 43.7 dB, 15.8 en ordre inversé). */
 (function(){
-  const D = window.SAC_DATA;
+  const META = window.SAC_SPLAT_META, SP = window.GSSplat;
   const cvPhase = document.getElementById('cSacPhase');
   const cvRecon = document.getElementById('cSacRecon');
-  if(!D || !cvPhase || !cvRecon) return;
+  const cvOv    = document.getElementById('cSacOverlay');
+  if(!META || !SP || !cvPhase || !cvRecon || !cvOv) return;
 
   const $=id=>document.getElementById(id);
-  const [[Q1MIN,Q1MAX],[Q2MIN,Q2MAX]] = D.bbox;
-  const N=D.grid_n, T=D.tile, G=D.gaussians;
+  // bbox du plan latent (espace z BRUT) : sert au garde-fou de recentrage.
+  const [[Q1MIN,Q1MAX],[Q2MIN,Q2MAX]] = META.bbox;
 
   // ── dynamique : le Lagrangien appris (lnn.pt), pas l'oscillateur LS ────────
   // P = poids exportés, L = portage (demo/sac_lnn_dyn.js). Le LNN intègre dans
-  // l'espace BLANCHI u ; l'atlas, les gaussiennes et le plan de phase vivent dans
+  // l'espace BLANCHI u ; les gaussiennes du décodeur vivent dans
   // l'espace latent BRUT z. st.u/st.ud portent l'état du LNN, st.q en est le miroir
   // en z (recalculé à chaque pas) — c'est lui que lisent tous les rendus.
   const P = window.SAC_LNN, LNN = window.SacLNN;
@@ -1524,10 +1549,40 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   const TRAIL_CSS='#d23b3b';                 // traînée pointillée rouge de la trajectoire vécue
   const FORCE_CSS='#ff7a18';                 // flèche de force de prise (point d'application → souris)
   const LAT_CSS='#e8380d';                   // flèche de force latente Jᵀf dans le plan (q₁,q₂)
-  const SPATIAL_SHARP=2.0;
+  // Facteur d'AFFICHAGE de cette flèche, et rien d'autre : la force appliquée à la
+  // dynamique n'en dépend pas. À l'échelle stricte (Δu = F_u/k_u) la flèche est courte au
+  // regard du cadre — l'échelle du plan est celle de la TRAJECTOIRE, pas celle d'un
+  // déplacement d'équilibre. Elle reste bornée par VMAX.
+  const LAT_ARROW_GAIN=3.0;
   const FLICK_GAIN=0.25, TRAIL_MAX=1200;     // gain vitesse de lâcher (¼ de la vitesse souris) · longueur max de la traînée
   const trail=[];    // [[q1,q2],…] - trajectoire tracée au fil de la simulation
   let latF=[0,0];    // dernière force latente Jᵀf appliquée (pour la flèche du plan latent)
+
+  // ── décodeur GS en direct ─────────────────────────────────────────────────
+  // Les 15000 gaussiennes arrivent en base64 dans un <script src> (window.SAC_SPLAT) et
+  // NON par fetch : la page doit s'ouvrir en file:// comme les autres démos du site, où
+  // toute requête réseau est bloquée — et l'échec se voyait alors par un panneau
+  // simplement noir, sans rien dans la console.
+  let splat=null;
+  (function(){
+    try{
+      const b64=window.SAC_SPLAT;
+      if(!b64) throw new Error('sac_splat.js absent');
+      const bin=atob(b64), buf=new ArrayBuffer(bin.length), u8=new Uint8Array(buf);
+      for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
+      splat=SP.create(cvRecon, buf, META);
+    }catch(err){
+      // WebGL2 indisponible ou asset manquant : on le DIT, et le reste de l'onglet (la
+      // physique, le plan de phase) continue de tourner sans le rendu.
+      console.error('[lagsplat/sac] décodeur GS indisponible :', err);
+      const x=cvRecon.getContext('2d');
+      if(x){
+        x.fillStyle='#000'; x.fillRect(0,0,cvRecon.width,cvRecon.height);
+        x.fillStyle='#888'; x.font='13px ui-monospace,monospace'; x.textAlign='center';
+        x.fillText('WebGL2 required for the live decoder', cvRecon.width/2, cvRecon.height/2);
+      }
+    }
+  })();
 
   // ── calibration de la force de prise F_lat = J̄ᵀf ─────────────────────────
   // Saisir = appliquer à la(les) gaussienne(s) cliquée(s) une force image f (vecteur de drag
@@ -1536,31 +1591,39 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   // La chaîne est : force image f → Jᵀf (covecteur en z) → W⁻¹·(Jᵀf) (covecteur en u,
   // cf. SacLNN.forceToU) → terme F_ext de l'équation du LNN. La calibration se fait donc
   // en u, avec la raideur du potentiel appris.
-  const _jn=G.map(g=>{
-    // ‖W⁻¹·Jz‖_F : norme du covecteur u produit par une force image unitaire.
-    const j=g.jac, Wi=P.whiten.W_inv;                   // Jz = [[j0,j2],[j1,j3]] (colonnes = fx,fy)
-    const m=[Wi[0][0]*j[0]+Wi[0][1]*j[1], Wi[0][0]*j[2]+Wi[0][1]*j[3],
-             Wi[1][0]*j[0]+Wi[1][1]*j[1], Wi[1][0]*j[2]+Wi[1][1]*j[3]];
-    return Math.hypot(m[0],m[1],m[2],m[3]);
-  }).filter(v=>v>0).sort((a,b)=>a-b);
-  const JREF=_jn.length? _jn[Math.floor(0.85*(_jn.length-1))] : 1;       // avant-plan (85ᵉ pct)
+  /** Échelle de référence des jacobiennes : 85ᵉ percentile de ‖W⁻¹·J_z‖_F sur les
+      gaussiennes (l'avant-plan), soit la norme du covecteur u que produit une force image
+      unitaire. Sert UNIQUEMENT à calibrer le gain de la prise. */
+  const JREF=(function(){
+    if(!splat) return 1;
+    const data=splat.data, Wi=P.whiten.W_inv, off=SP.layoutOf(META).sxz_szzi[0], out=[];
+    for(let k=0;k<META.K;k+=7){                  // 1 gaussienne sur 7 : le percentile suffit
+      const o=k*META.stride;
+      let s=0;
+      for(let r=0;r<2;r++) for(let i=0;i<2;i++){     // J = ∂μ/∂z, lignes = image (x,y)
+        let m=0;
+        for(let j=0;j<2;j++) m+=Wi[i][j]*data[o+off+r*2+j];
+        s+=m*m;
+      }
+      if(s>0) out.push(Math.sqrt(s));
+    }
+    out.sort((a,b)=>a-b);
+    return out.length? out[Math.floor(0.85*(out.length-1))] : 1;
+  })();
   const GRAB_FORCE=0.8;          // gain : un drag plein écran sur l'avant-plan ≈ déplace l'équilibre de GRAB_FORCE·span
   const FORCE_SCALE=GRAB_FORCE*STIFF_U*MEAN_SPAN_U/Math.max(JREF,1e-6);
   const FGRAB_MAX=0.35;                      // clamp du vecteur force image |f| (fraction de l'image) → borne la prise
   const FMAX=STIFF_U*1.2*MEAN_SPAN_U;        // garde-fou final sur |F_lat| (anti-divergence si jac très grand)
 
-  // ── reconstruction sprite sheet (grille N×N) ─────────────────────────────
-  const sheet=new Image(); let sheetReady=false;
-  sheet.onload=()=>{sheetReady=true;}; sheet.src='./demo/' + D.sheet + '?v=4';
-  // deux canevas hors-écran pour l'interpolation bilinéaire exacte (2 lignes)
-  const offA=document.createElement('canvas'), offB=document.createElement('canvas');
-  offA.width=offA.height=T; offB.width=offB.height=T;
-  const ctxA=offA.getContext('2d'), ctxB=offB.getContext('2d');
+  // Réglages du moyennage de la prise (cf. GSSplat.SEL_DEFAULTS) : ils décident SUR QUOI
+  // la force s'applique, jamais de la physique. Ce sont les valeurs que reproduit
+  // demo_Lags/check_krauss2_splat.py --case sac.
+  const selOpt={radius:0.05, sharp:3.0, wzMin:1e-3, jmin:0.0};
 
   // ── état ──────────────────────────────────────────────────────────────────
   // st.u / st.ud : l'état du LNN (espace blanchi u, vitesse PAR FRAME — l'unité dans
   // laquelle le réseau a été entraîné). st.q : miroir en z, resynchronisé après chaque
-  // pas ; c'est la seule chose que lisent l'atlas, les gaussiennes et le plan de phase.
+  // pas ; c'est lui que lisent le décodeur GS et la sélection de la prise.
   // Dissipation, deux réglages distincts (cf. le curseur plus bas) :
   //   st.dissScale — facteur sur le C(q) APPRIS (1 = tel quel) ;
   //   st.dissFloor — plancher ADDITIF c₀·M̃(q), nul par défaut du modèle.
@@ -1575,7 +1638,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   const syncToZ=()=>{st.q=LNN.toZ(P,st.u);};                // u (état du LNN) → z (miroir)
   // Trajectoire d'entraînement une fois pour toutes en u : elle sert au point de
   // lancement, à la relance ET au cadrage du plan de phase (qui est tracé en u).
-  const TRAJ_U=(D.traj||[]).map(z=>LNN.toU(P,z));
+  const TRAJ_U=(META.traj||[]).map(z=>LNN.toU(P,z));
   // Point de lancement : celui de la trajectoire d'entraînement le plus éloigné de
   // l'équilibre (97ᵉ percentile — le max serait un point aberrant isolé). Partir de
   // traj[0] à vitesse nulle ne donnait qu'une oscillation de 11 % de la bbox sur q₂ ;
@@ -1688,9 +1751,10 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
     // état courant + force latente Jᵀf (rapatriement de la force image par le jacobien)
     const [sx,sy]=q2px(st.u[0],st.u[1],L);
     if(st.grab && (latF[0]||latF[1])){
-      // longueur = déplacement d'équilibre qu'induirait la force, Δu = F_u/k_u. latF est
-      // déjà un covecteur de l'espace u : plus aucune conversion, c'est le même repère.
-      const k=(L.inner/PHASE_SPAN)/STIFF_U;
+      // longueur ∝ déplacement d'équilibre qu'induirait la force, Δu = F_u/k_u, à un
+      // facteur d'affichage près (LAT_ARROW_GAIN). latF est déjà un covecteur de l'espace
+      // u : plus aucune conversion, c'est le même repère.
+      const k=LAT_ARROW_GAIN*(L.inner/PHASE_SPAN)/STIFF_U;
       let vx=latF[0]*k, vy=-latF[1]*k;
       const vm=Math.hypot(vx,vy), VMAX=0.40*L.inner;
       if(vm>VMAX){vx*=VMAX/vm;vy*=VMAX/vm;}
@@ -1700,86 +1764,53 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
     x.strokeStyle='#fff';x.lineWidth=2;x.stroke();
   }
 
-  // ── reconstruction : échantillonnage bilinéaire de la grille ──────────────
-  function blendRow(ctx,c0,c1,r,bx){
-    ctx.clearRect(0,0,T,T);ctx.globalAlpha=1;
-    ctx.drawImage(sheet,c0*T,r*T,T,T,0,0,T,T);
-    if(bx>1e-4){ctx.globalAlpha=bx;ctx.drawImage(sheet,c1*T,r*T,T,T,0,0,T,T);ctx.globalAlpha=1;}
-  }
-  function reconLayout(){const w=cvRecon.clientWidth,h=cvRecon.clientHeight,side=Math.min(w,h);
-    return {side,ox:(w-side)/2,oy:(h-side)/2};}
-  function drawRecon(){
-    const {x,w,h}=setup2D(cvRecon);
-    if(!sheetReady)return;
-    const {side,ox,oy}=reconLayout();
-    const f1=Math.max(0,Math.min(1,(st.q[0]-Q1MIN)/(Q1MAX-Q1MIN)));
-    const f2=Math.max(0,Math.min(1,(st.q[1]-Q2MIN)/(Q2MAX-Q2MIN)));
-    const cf=f1*(N-1), rf=f2*(N-1);
-    const c0=Math.floor(cf),c1=Math.min(c0+1,N-1),bx=cf-c0;
-    const r0=Math.floor(rf),r1=Math.min(r0+1,N-1),by=rf-r0;
-    blendRow(ctxA,c0,c1,r0,bx);
-    blendRow(ctxB,c0,c1,r1,bx);
-    x.imageSmoothingEnabled=true;
-    x.globalAlpha=1;x.drawImage(offA,ox,oy,side,side);
-    if(by>1e-4){x.globalAlpha=by;x.drawImage(offB,ox,oy,side,side);x.globalAlpha=1;}
-    // flèche de force : point d'application (suit l'objet) → bout du vecteur force clampé
+  // ── reconstruction : le décodeur GS, rasterisé à l'état courant ───────────
+  // Une seule ligne de rendu : SP.create a pris le canevas, le shader conditionne les
+  // 15000 gaussiennes sur q et les composite. ⚠️ st.q est en z BRUT — c'est l'espace des
+  // μ_z, PAS le u blanchi dans lequel le LNN intègre.
+  function drawRecon(){ if(splat) splat.render(st.q); }
+  // La flèche de force vit sur un CALQUE 2D par-dessus le canevas WebGL : les deux
+  // contextes ne peuvent pas cohabiter sur le même canevas.
+  function drawOverlay(){
+    const {x,w,h}=setup2D(cvOv);
     const gf=grabForce();
-    if(gf)drawForceArrow(x,ox+gf.ax*side,oy+gf.ay*side,ox+(gf.ax+gf.fx)*side,oy+(gf.ay+gf.fy)*side);
+    if(!gf||!splat)return;
+    // fromImage défait la bande noire du viewport carré : les coordonnées de l'image ne
+    // sont pas celles du canevas.
+    const A=splat.fromImage(gf.ax,gf.ay), B=splat.fromImage(gf.ax+gf.fx,gf.ay+gf.fy);
+    drawForceArrow(x,A[0]*w,A[1]*h,B[0]*w,B[1]*h);
   }
 
-  // ── force latente Jᵀf (d=2) ───────────────────────────────────────────────
-  // jac = [j00,j01,j10,j11] : ∂μ/∂q, lignes = image (x,y), colonnes = (q1,q2).
-  function latentWeight(g,dz0,dz1){
-    // w_z = exp(−½ dzᵀ Σzz⁻¹ dz), szzi = [s00,s01,s11]
-    const s=g.szzi, quad=s[0]*dz0*dz0+2*s[1]*dz0*dz1+s[2]*dz1*dz1;
-    return Math.exp(-0.5*quad);
-  }
-  function condCenter(g,dz0,dz1){
-    return [g.px+g.jac[0]*dz0+g.jac[1]*dz1, g.py+g.jac[2]*dz0+g.jac[3]*dz1];
-  }
-  function selectAt(cx,cy){
-    const sel=[];
-    for(let k=0;k<G.length;k++){const g=G[k];
-      const dz0=st.q[0]-g.mz[0], dz1=st.q[1]-g.mz[1];
-      const wz=latentWeight(g,dz0,dz1); if(!(wz>1e-3))continue;   // !(.) attrape aussi NaN
-      const [mcx,mcy]=condCenter(g,dz0,dz1);
-      const dpx=cx-mcx, dpy=cy-mcy, sc=g.scinv;
-      const quad=sc[0]*dpx*dpx+2*sc[1]*dpx*dpy+sc[2]*dpy*dpy;
-      // Scond⁻¹ peut être numériquement indéfini (Schur en float) ⇒ quad < 0 ⇒
-      // exp(−SHARP·quad)=+∞ ⇒ poids infini ⇒ Σw·…/Σw = NaN. On rejette quad<0/NaN/trop loin.
-      if(!(quad>=0)||quad>20)continue;
-      const w=Math.exp(-SPATIAL_SHARP*quad)*wz*g.a;
-      if(!Number.isFinite(w)||w<=0)continue;                     // gaussienne dégénérée → ignorer
-      sel.push({k, w});
-    }
-    return sel;
-  }
-  // Force latente de prise : F_lat = Σ w·Jᵀf / Σ w  (rapatriement covecteur du jacobien).
-  // Jᵀf = [j00·fx+j10·fy, j01·fx+j11·fy]. Les gaussiennes fixes (jac≈0) ne contribuent pas.
-  function latentForce(sel,fx,fy){
-    let n0=0,n1=0,den=0;
-    for(const {k,w} of sel){const j=G[k].jac;
-      n0+=w*(j[0]*fx+j[2]*fy); n1+=w*(j[1]*fx+j[3]*fy); den+=w;}
-    return den>1e-6?[n0/den,n1/den]:[0,0];
-  }
-  // point d'application (espace image, normalisé) = barycentre des centres conditionnels des
-  // gaussiennes saisies à l'état courant → SUIT les gaussiennes quand q évolue.
-  function appPoint(sel){
-    let bx=0,by=0,den=0;
-    for(const {k,w} of sel){const g=G[k];
-      const [mcx,mcy]=condCenter(g,st.q[0]-g.mz[0],st.q[1]-g.mz[1]);
-      bx+=w*mcx;by+=w*mcy;den+=w;}
-    return den>1e-6?[bx/den,by/den]:null;
-  }
-  // prise courante : point d'application (suit l'objet) + vecteur force image f CLAMPÉ à FGRAB_MAX.
-  // Un même clamp sert à la dynamique et à l'affichage → la flèche montre la force réellement appliquée.
+  // ── prise : ancrage MATÉRIEL (GSSplat) ────────────────────────────────────
+  // Au clic, `select` fige QUELLES gaussiennes sont saisies et leurs poids ; le point
+  // d'application est ensuite leur position courante (`pointOf`), donc il suit l'objet et
+  // la force f = souris − point se contracte quand l'objet rejoint la souris, comme un
+  // ressort. C'est la variante que cet onglet a toujours utilisée — l'onglet d=4 utilise
+  // l'autre (point d'écran fixe), les deux vivent dans le module.
+  // J = ∂μ/∂z est CONSTANT par gaussienne (le décodeur est affine en z) : ce qui rend la
+  // prise dépendante de l'endroit, c'est QUELLES gaussiennes sont là.
+  //
+  // prise courante : point d'application + vecteur force image f CLAMPÉ à FGRAB_MAX. Un
+  // même clamp sert à la dynamique et à l'affichage → la flèche montre la force réellement
+  // appliquée.
   function grabForce(){
-    if(!(st.grab&&grabStart))return null;
-    const ap=appPoint(grabStart.sel); if(!ap)return null;
+    if(!(st.grab&&grabStart&&splat))return null;
+    const ap=splat.pointOf(st.q,grabStart.sel); if(!ap||!Number.isFinite(ap[0]))return null;
     let fx=grabStart.mouse[0]-ap[0], fy=grabStart.mouse[1]-ap[1];
     const m=Math.hypot(fx,fy);
     if(m>FGRAB_MAX){fx*=FGRAB_MAX/m; fy*=FGRAB_MAX/m;}
-    return {ax:ap[0],ay:ap[1],fx,fy};
+    // Présence de la matière saisie à l'état courant, RAPPORTÉE à celle du clic et
+    // plafonnée à 1 : elle module l'amplitude. ⚠️ Sans ce facteur l'amplitude n'en
+    // dépendrait PAS — J̄ est une moyenne NORMALISÉE (division par Σw), donc Σw se
+    // simplifie et un filament effacé tirerait aussi fort que de la matière franche.
+    const pres=Math.min(1, splat.presence(st.q,grabStart.sel)/Math.max(grabStart.pres0,1e-9));
+    return {ax:ap[0],ay:ap[1],fx,fy,pres};
+  }
+  // F_lat = J̄ᵀf : rapatriement covecteur du jacobien moyen de la prise (déjà normalisé
+  // par Σw dans `select`). J̄ = [∂μx/∂z₁, ∂μx/∂z₂, ∂μy/∂z₁, ∂μy/∂z₂].
+  function latentForce(sel,fx,fy){
+    const J=sel.J;
+    return [J[0]*fx+J[2]*fy, J[1]*fx+J[3]*fy];
   }
   // flèche de force : du point d'application (sur l'objet) vers la souris, + pastille à l'ancrage.
   function drawForceArrow(ctx,x0,y0,x1,y1,color){
@@ -1820,22 +1851,32 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   // reconstruction : saisir la(les) gaussienne(s) cliquée(s) et les tirer par une FORCE.
   // f = (souris − clic) en espace image ; tant que le bouton est tenu, F_lat=J̄ᵀf entre dans la
   // dynamique (intégrée par le rollout). Au lâcher, la force cesse - l'objet garde son élan.
-  let grabStart=null;   // {sel, mouse:[mx,my]} ; le point d'application est recalculé (suit les gaussiennes)
+  let grabStart=null;   // {sel, mouse:[ix,iy] en espace IMAGE, pres0} ; le point d'application suit les gaussiennes
+  // Fraction du canevas, puis toImage() pour défaire la bande noire du viewport carré :
+  // les coordonnées du canevas ne sont pas celles de l'image, et sans cette conversion la
+  // prise serait anisotrope sur un panneau non carré.
+  const localXY=e=>{const r=cvRecon.getBoundingClientRect();
+    return [(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height];};
   cvRecon.addEventListener('contextmenu',e=>e.preventDefault());
   cvRecon.addEventListener('pointerdown',e=>{
-    const {side,ox,oy}=reconLayout();
-    const cx=(e.offsetX-ox)/side, cy=(e.offsetY-oy)/side;
-    const sel=selectAt(cx,cy);
-    if(!sel.length)return;                            // clic hors de toute gaussienne → rien à saisir
+    if(!splat)return;
+    const c=localXY(e), img=splat.toImage(c[0],c[1]);
+    if(!img)return;                                   // clic dans la bande noire
+    const sel=splat.select(st.q,img[0],img[1],selOpt);
+    if(!sel)return;                                   // aucune gaussienne présente ici
     cvRecon.setPointerCapture(e.pointerId);
     st.grab=true;st.auto=true;trail.length=0;   // la dynamique tourne pour subir la force
     if(!st.running){st.running=true;$('sPlay').textContent='⏸';}
-    grabStart={sel,mouse:[cx,cy]};
+    // Présence de référence : celle de la matière saisie AU MOMENT du clic. Elle ne vaut
+    // jamais ~1 même sur de la matière franche (les gaussiennes d'un même patch ont des
+    // μ_z différents), d'où un RAPPORT et non une valeur absolue.
+    grabStart={sel, mouse:img, pres0:sel.wsum/sel.kernsum};
   });
-  cvRecon.addEventListener('pointermove',e=>{if(!st.grab||!grabStart)return;
-    const {side,ox,oy}=reconLayout();
-    // position souris (espace image) ; la force f = souris − point_d'application (qui suit l'objet)
-    grabStart.mouse=[(e.offsetX-ox)/side,(e.offsetY-oy)/side];});
+  cvRecon.addEventListener('pointermove',e=>{if(!st.grab||!grabStart||!splat)return;
+    // position souris en espace image ; `true` : une fois la prise faite, le curseur a le
+    // droit de sortir de l'image.
+    const c=localXY(e);
+    grabStart.mouse=splat.toImage(c[0],c[1],true);});
   const endGrab=()=>{if(st.grab){st.grab=false;grabStart=null;latF=[0,0];st.still=0;}};   // force coupée, l'élan reste
   cvRecon.addEventListener('pointerup',endGrab);cvRecon.addEventListener('pointerleave',endGrab);
 
@@ -1859,7 +1900,8 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
         // Jᵀf est un covecteur de l'espace z ; le LNN intègre en u → W⁻¹·(Jᵀf).
         const g=latentForce(grabStart.sel,gf.fx,gf.fy);   // f déjà clampé à FGRAB_MAX
         const gu=LNN.forceToU(P,g);
-        fl0=gu[0]*FORCE_SCALE; fl1=gu[1]*FORCE_SCALE;
+        const sc=FORCE_SCALE*gf.pres;                     // amplitude atténuée par la présence
+        fl0=gu[0]*sc; fl1=gu[1]*sc;
         const fmag=Math.hypot(fl0,fl1); if(fmag>FMAX){fl0*=FMAX/fmag; fl1*=FMAX/fmag;}
       }
       latF=[fl0,fl1];
@@ -1897,6 +1939,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
     }
     drawPhase();
     drawRecon();
+    drawOverlay();
     }catch(err){   // jamais figer l'animation : recentrer et purger la traînée fautive
       console.error('sac loop:',err);
       st.u=[P.energy.u_eq[0],P.energy.u_eq[1]];st.ud=[0,0];syncToZ();trail.length=0;
@@ -1912,20 +1955,24 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
 <script src="./demo/krauss2_gaussians.js"></script>
 <script src="./demo/krauss2_lnn.js"></script>
 <script src="./demo/krauss2_lnn_dyn.js"></script>
-<script src="./demo/krauss2_splat.js"></script>
+<!-- Le décodeur GS en direct (demo/gs_splat.js) est chargé plus haut, par le bloc du
+     sac : le même module sert les deux onglets, en d=2 comme en d=4. -->
 <script>
 "use strict";
 /* ── Fourth demo: the trained 4-DOF pneumatic soft arm (Krauss 2-segments) ──
+   Le décodeur GS tourne en direct en WebGL — 15000 gaussiennes re-rasterisées par image
+   par demo/gs_splat.js, le même module (générique en d) que l'onglet sac. C'est ici une
+   nécessité et pas un choix : un atlas de reconstructions pré-décodées demanderait 19⁴ =
+   130 321 tuiles en d=4.
    Deux différences de fond avec l'onglet sac :
-     • la RECONSTRUCTION n'est plus lue dans un atlas de sprites (19⁴ tuiles seraient
-       nécessaires en d=4) : le décodeur GS tourne en direct en WebGL, 15000 gaussiennes
-       re-rasterisées par image (demo/krauss2_splat.js) ;
      • le système est ACTIONNÉ : les 4 pressions entrent au second membre d'Euler-Lagrange
-       comme force généralisée b(q)ᵀP, en plus de la prise interactive.
+       comme force généralisée b(q)ᵀP, en plus de la prise interactive ;
+     • la prise s'applique en un point d'ÉCRAN fixe (celui du clic), pas sur un paquet de
+       gaussiennes figé comme dans l'onglet sac — les deux variantes vivent dans le module.
    Aucun torch au runtime ; le portage est vérifié contre PyTorch par
    demo_Lags/check_krauss2_lnn.py. */
 (function(){
-  const META=window.KRAUSS2_META, P=window.KRAUSS2_LNN, L=window.Krauss2LNN, SP=window.Krauss2Splat;
+  const META=window.KRAUSS2_META, P=window.KRAUSS2_LNN, L=window.Krauss2LNN, SP=window.GSSplat;
   const cvRec=document.getElementById('cKrRecon');
   const cvOv=document.getElementById('cKrOverlay');
   const cvSt=document.getElementById('cKrState');
@@ -2005,13 +2052,13 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
       gaussiennes présentes (l'avant-plan). Sert UNIQUEMENT à calibrer le gain de la
       prise pour que le geste ait la même autorité que sur les autres onglets. */
   function jacRef(data){
-    const Wi=P.whiten.W_inv, out=[];
+    const Wi=P.whiten.W_inv, off=SP.layoutOf(META).sxz_szzi[0], out=[];
     for(let k=0;k<META.K;k+=7){                      // 1 gaussienne sur 7 : le percentile suffit
       const o=k*META.stride;
       let s=0;
       for(let r=0;r<2;r++) for(let i=0;i<D;i++){
         let m=0;
-        for(let j=0;j<D;j++) m+=Wi[i][j]*data[o+6+r*D+j];
+        for(let j=0;j<D;j++) m+=Wi[i][j]*data[o+off+r*D+j];
         s+=m*m;
       }
       if(s>0) out.push(Math.sqrt(s));
@@ -2101,8 +2148,8 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   // et ce qu'on tire est « la matière qui se trouve là maintenant ».
   //
   // (La variante à ancrage MATÉRIEL — figer le paquet de gaussiennes au clic et suivre sa
-  // position — reste disponible dans le module, `Krauss2Splat.pointOf` ; elle n'est pas
-  // câblée ici.)
+  // position — est celle du module, `GSSplat.pointOf` : c'est l'onglet sac qui l'utilise,
+  // pas celui-ci.)
   //
   // J = ∂μ/∂z est CONSTANT par gaussienne (le décodeur est affine en z) ; ce qui varie
   // d'une frame à l'autre, c'est QUELLES gaussiennes sont là. Attraper le bout du bras ne

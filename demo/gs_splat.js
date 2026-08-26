@@ -1,12 +1,14 @@
 /*
- * krauss2_splat.js — décodeur Gaussian Splatting évalué EN DIRECT dans le navigateur
- * (cas Krauss 2-segments, latent d=4, 15000 gaussiennes).
+ * gs_splat.js — décodeur Gaussian Splatting (2+d)GS évalué EN DIRECT dans le navigateur,
+ * générique en la dimension latente d.
  *
- * Les onglets d=1 (rocking chair) et d=2 (sac) de lagsplat.html reconstruisent l'image
- * en échantillonnant un atlas de reconstructions pré-décodées (19×19 tuiles pour le
- * sac). En d=4 il en faudrait 19⁴ = 130 321 : l'atlas ne passe pas à l'échelle. Ici on
- * re-rasterise donc les gaussiennes à chaque frame — ce qui coûte MOINS cher (1,8 Mo de
- * blocs de Schur contre 11 Mo de PNG pour le sac) et est EXACT, pas interpolé.
+ * Utilisé par lagsplat.html pour l'onglet « sac » (d=2, 15 000 gaussiennes) et l'onglet
+ * « SCR souple » (d=4, 15 000 gaussiennes). C'était à l'origine krauss2_splat.js, écrit
+ * pour d=4 seulement ; le sac lisait alors sa reconstruction dans un ATLAS de 19×19
+ * tuiles pré-décodées (sac_frames.png, 11 Mo). Rendre en direct est à la fois plus léger
+ * (1,1 Mo de blocs de Schur) et EXACT — la coupe est calculée à l'état courant au lieu
+ * d'être interpolée entre les quatre tuiles voisines. En d=4 l'atlas était de toute
+ * façon hors de portée : il aurait fallu 19⁴ = 130 321 tuiles.
  *
  * Conditionner la gaussienne jointe (x, y, q) ∈ ℝ^{2+d} sur l'état q donne une
  * gaussienne 2D en forme close, valable en toute dimension d :
@@ -16,25 +18,27 @@
  *     w_z(q) = exp(−½ (q−μ_z)ᵀ Σ_zz⁻¹ (q−μ_z))       (poids d'opacité)
  *
  * Tout cela tient dans le VERTEX SHADER, `q` étant un uniform : le CPU n'a rien à
- * recalculer par frame, la carte fait les 15000 gaussiennes d'un trait.
+ * recalculer par frame, la carte fait les 15000 gaussiennes d'un trait. Le shader est
+ * ENGENDRÉ à partir de d et de la disposition binaire (`meta.layout`) : aucun offset
+ * n'est écrit en dur, ni ici ni dans les scripts d'extraction/vérification.
  *
  * ── Fidélité au décodeur entraîné ────────────────────────────────────────────────
  * Le décodeur a été entraîné sous `gsplat.rasterization` : reproduire « une gaussienne
  * 2D » ne suffit pas, il faut sa recette exacte. Elle a été fixée par MESURE contre des
- * rendus gsplat de référence (demo_Lags/check_krauss2_splat.py, 8 états latents) :
+ * rendus gsplat de référence (demo_Lags/check_krauss2_splat.py, 8 états latents par cas) :
  *
  *   - covariance en pixels : gsplat projette une gaussienne 3D « pancake »
- *     block_diag(Σ_cond + 1e-5·I, ε_z) par une caméra fictive de focales (W, H) à Z = 1,
- *     d'où un terme radial ε_z·(W·x)(H·y) en plus de W²Σ_cond ; puis ajoute son flou
- *     d'anticrénelage EPS2D = 0.3 px² sur la diagonale ;
+ *     block_diag(Σ_cond + 1e-5·I, ε_z) par une caméra fictive de focales (W, H) placée à
+ *     Z = 1, d'où un terme radial ε_z·(W·x)(H·y) en plus de W²Σ_cond ; puis ajoute son
+ *     flou d'anticrénelage EPS2D = 0.3 px² sur la diagonale ;
  *   - opacité : clamp(α · w_z, 0, 0.99) ;
  *   - compositing : front-to-back « over », dans l'ordre d'INDEX. Toutes les gaussiennes
  *     sont posées à Z = 1.0 EXACTEMENT (models_2pt.py) ⟹ le tri par profondeur de gsplat
  *     est une égalité parfaite et l'ordre effectif est celui du tableau.
  *
- *   Mesures (PSNR contre gsplat) : recette ci-dessus 46.5 dB · sans EPS2D 38.2 dB ·
- *   sans le terme pancake 43.7 dB · en ORDRE INVERSÉ 15.2 dB. Les 31 dB d'écart entre
- *   ordre direct et ordre inverse sont ce qui établit l'hypothèse d'ordre.
+ *   Mesures (PSNR contre gsplat, cas d=4) : recette ci-dessus 46.5 dB · sans EPS2D
+ *   38.2 dB · sans le terme pancake 43.7 dB · en ORDRE INVERSÉ 15.2 dB. Les 31 dB
+ *   d'écart entre ordre direct et ordre inverse sont ce qui établit l'hypothèse d'ordre.
  *
  * Le compositing « over » front-to-back s'obtient sans aucun tri, par le blending
  * `(ONE_MINUS_DST_ALPHA, ONE)` : le canal alpha de destination accumule 1 − T, donc
@@ -42,10 +46,10 @@
  * dans le blending, et les instances sont traitées dans l'ordre — rien à trier.
  *
  * ⚠️ ESPACE : `render(z)` attend l'état latent BRUT z (celui de μ_z), PAS le u blanchi
- * du LNN. Passer par Krauss2LNN.toZ().
+ * du LNN. Passer par <Cas>LNN.toZ().
  *
  * API :
- *   const S = Krauss2Splat.create(canvas, buffer, meta);   // buffer = ArrayBuffer du .bin
+ *   const S = GSSplat.create(canvas, buffer, meta);   // buffer = ArrayBuffer du .bin
  *   S.render(z);        // z : Float64Array/Array (d)
  *   S.resize();
  *   S.select(z, x, y)       // saisie : paquet de gaussiennes figé (ancrage matériel)
@@ -62,24 +66,75 @@
   const EPS_Z = 1e-5;     // épaisseur de la gaussienne « pancake » selon Z
   const S_FLOOR = 1e-5;   // plancher SPD ajouté à Σ_cond avant décomposition
   const CUTOFF = 3.0;     // rayon de coupe, en σ
-  const STRIDE_BYTES = 31 * 4;
 
-  const VERT = `#version 300 es
+  // ── disposition binaire ────────────────────────────────────────────────────
+  /** Table des offsets (en float32) d'une gaussienne. `meta.layout` fait foi ; à défaut
+   *  on la reconstruit pour d — c'est la même que celle des scripts d'extraction. */
+  function layoutOf(meta) {
+    const d = meta.d;
+    if (meta.layout) return meta.layout;
+    const lay = {}; let off = 0;
+    for (const [name, n] of [['mu_xy', 2], ['mz', d], ['sxz_szzi', 2 * d],
+                             ['szzi', d * (d + 1) / 2], ['scond_inv', 3],
+                             ['alpha', 1], ['color', 3]]) {
+      lay[name] = [off, off + n]; off += n;
+    }
+    return lay;
+  }
+
+  /** Découpe n float consécutifs en attributs de vertex de 4 composantes au plus
+   *  (une seule contrainte GLSL) et rend de quoi les déclarer ET les lire :
+   *  `chunks` pour vertexAttribPointer, `comp(i)` pour le i-ième float dans le shader. */
+  function group(name, base, n, loc0) {
+    const chunks = [];
+    for (let o = 0; o < n; o += 4) {
+      chunks.push({ loc: loc0 + chunks.length, size: Math.min(4, n - o),
+                    off: base + o, name: name + chunks.length });
+    }
+    const decl = chunks.map(c => `  layout(location=${c.loc}) in ` +
+      (c.size === 1 ? 'float' : 'vec' + c.size) + ` a_${c.name};`).join('\n');
+    const comp = i => chunks[i >> 2].size === 1
+      ? `a_${chunks[i >> 2].name}`
+      : `a_${chunks[i >> 2].name}.${'xyzw'[i & 3]}`;
+    return { chunks, decl, comp };
+  }
+
+  /** Shaders engendrés pour la dimension d et la disposition `lay`. Le fragment shader
+   *  ne dépend pas de d ; seul le vertex shader déroule les sommes en d. */
+  function shaders(d, lay) {
+    let loc = 2;
+    const mu = group('mu', lay.mu_xy[0], 2, loc); loc += mu.chunks.length;
+    const mz = group('mz', lay.mz[0], d, loc); loc += mz.chunks.length;
+    const sxz = group('sxz', lay.sxz_szzi[0], 2 * d, loc); loc += sxz.chunks.length;
+    const szzi = group('szzi', lay.szzi[0], d * (d + 1) / 2, loc); loc += szzi.chunks.length;
+    const sci = group('sci', lay.scond_inv[0], 3, loc); loc += sci.chunks.length;
+    const alpha = group('alpha', lay.alpha[0], 1, loc); loc += alpha.chunks.length;
+    const color = group('color', lay.color[0], 3, loc); loc += color.chunks.length;
+    const groups = [mu, mz, sxz, szzi, sci, alpha, color];
+
+    // dz = q − μ_z, puis la forme quadratique dzᵀ Σ_zz⁻¹ dz (triangle SUPÉRIEUR : les
+    // termes hors diagonale comptent double).
+    const dzL = [];
+    for (let i = 0; i < d; i++) dzL.push(`    float dz${i} = uQ[${i}] - ${mz.comp(i)};`);
+    const quad = [];
+    let t = 0;
+    for (let i = 0; i < d; i++) {
+      for (let j = i; j < d; j++, t++) {
+        quad.push(`${i === j ? '' : '2.0*'}${szzi.comp(t)}*dz${i}*dz${j}`);
+      }
+    }
+    // μ(q) = μ_xy + (Σ_xz Σ_zz⁻¹) dz — les d premiers floats sont la ligne x, les d
+    // suivants la ligne y (row-major).
+    const shift = r => Array.from({ length: d },
+      (_, i) => `${sxz.comp(r * d + i)}*dz${i}`).join(' + ');
+
+    const VERT = `#version 300 es
   precision highp float;
   layout(location=0) in vec2 aCorner;      // coin du quad, ∈ {−1,+1}²
-  layout(location=1) in vec2 aMu;          // μ_xy
-  layout(location=2) in vec4 aMz;          // μ_z
-  layout(location=3) in vec4 aSxz0;        // (Σ_xz Σ_zz⁻¹) ligne x
-  layout(location=4) in vec4 aSxz1;        // (Σ_xz Σ_zz⁻¹) ligne y
-  layout(location=5) in vec4 aSzziA;       // Σ_zz⁻¹ : 00,01,02,03
-  layout(location=6) in vec4 aSzziB;       //          11,12,13,22
-  layout(location=7) in vec2 aSzziC;       //          23,33
-  layout(location=8) in vec3 aScondInv;    // Σ_cond⁻¹ : (a,b,c)
-  layout(location=9) in float aAlpha;
-  layout(location=10) in vec3 aColor;
+${groups.map(g => g.decl).join('\n')}
 
-  uniform vec4 uQ;        // état latent BRUT z
-  uniform vec2 uSize;     // (W, H) en pixels de rendu
+  uniform float uQ[${d}];  // état latent BRUT z
+  uniform vec2 uSize;      // (W, H) en pixels de rendu
 
   out vec3 vColor;
   out float vOpacity;
@@ -87,20 +142,17 @@
   out vec2 vDelta;        // écart au centre, en pixels
 
   void main() {
-    vec4 dz = uQ - aMz;
+${dzL.join('\n')}
 
-    // w_z = exp(−½ dzᵀ Σ_zz⁻¹ dz)  (Σ_zz⁻¹ symétrique, stockée en triangle supérieur)
-    float qf = aSzziA.x*dz.x*dz.x + aSzziB.x*dz.y*dz.y
-             + aSzziB.w*dz.z*dz.z + aSzziC.y*dz.w*dz.w
-             + 2.0*(aSzziA.y*dz.x*dz.y + aSzziA.z*dz.x*dz.z + aSzziA.w*dz.x*dz.w
-                  + aSzziB.y*dz.y*dz.z + aSzziB.z*dz.y*dz.w + aSzziC.x*dz.z*dz.w);
+    // w_z = exp(−½ dzᵀ Σ_zz⁻¹ dz)
+    float qf = ${quad.join('\n             + ')};
     float wz = exp(-0.5 * min(qf, 20.0));
-    float op = clamp(aAlpha * wz, 0.0, 0.99);
+    float op = clamp(${alpha.comp(0)} * wz, 0.0, 0.99);
 
-    vec2 mu = aMu + vec2(dot(aSxz0, dz), dot(aSxz1, dz));
+    vec2 mu = vec2(${mu.comp(0)}, ${mu.comp(1)}) + vec2(${shift(0)}, ${shift(1)});
 
     // Σ_cond depuis son inverse (2×2 en forme close) + plancher SPD de gsplat
-    float ia = aScondInv.x, ib = aScondInv.y, ic = aScondInv.z;
+    float ia = ${sci.comp(0)}, ib = ${sci.comp(1)}, ic = ${sci.comp(2)};
     float idet = ia*ic - ib*ib;
     float c00 =  ic/idet + ${S_FLOOR.toExponential()};
     float c01 = -ib/idet;
@@ -128,7 +180,7 @@
     float r = ${CUTOFF.toFixed(1)} * sqrt(max(mid + rad, 1e-12));
 
     vDelta = aCorner * r;
-    vColor = aColor;
+    vColor = vec3(${color.comp(0)}, ${color.comp(1)}, ${color.comp(2)});
     vOpacity = op;
 
     // Centre en pixels : px = μ_x·W − 0.5 (le centre du pixel i est i + 0.5)
@@ -138,7 +190,7 @@
                        1.0 - 2.0*(px.y + 0.5)/uSize.y, 0.0, 1.0);
   }`;
 
-  const FRAG = `#version 300 es
+    const FRAG = `#version 300 es
   precision highp float;
   in vec3 vColor;
   in float vOpacity;
@@ -154,6 +206,9 @@
     if (a < 0.0039) discard;
     fragColor = vec4(vColor * a, a);      // prémultiplié : cf. le blending « under »
   }`;
+
+    return { VERT, FRAG, groups };
+  }
 
   function compile(gl, type, src) {
     const s = gl.createShader(type);
@@ -176,6 +231,8 @@
   // bout du bras mais « ce qui passe à cet endroit de l'écran ». Avec l'ancrage matériel,
   // `pointOf` rend la position COURANTE du morceau saisi : la flèche part de la matière,
   // et l'écart au curseur (donc la force) se contracte à mesure que l'objet arrive.
+  // Les deux variantes sont câblées dans lagsplat.html : ancrage matériel pour le sac,
+  // point d'écran fixe pour le bras d=4.
   //
   // Fonctions PURES (hors de la closure WebGL) pour être testables sans contexte GL —
   // cf. demo_Lags/check_krauss2_splat.py.
@@ -188,6 +245,13 @@
     wzMin: 1e-3,    // présence latente minimale pour participer
     jmin: 0.0,      // mobilité minimale, en fraction du max local de ‖J‖ (0 = filtre off)
   };
+
+  /** Offsets (en float) des champs utiles aux fonctions CPU, pour une gaussienne. */
+  function offs(meta) {
+    const lay = layoutOf(meta);
+    return { mu: lay.mu_xy[0], mz: lay.mz[0], sxz: lay.sxz_szzi[0],
+             szzi: lay.szzi[0], a: lay.alpha[0] };
+  }
 
   /** Gaussiennes saisies au point image (x,y) à l'état z, avec leurs poids figés.
    *  `opts` : {radius, sharp, wzMin, jmin} (un nombre est accepté comme radius, pour
@@ -204,7 +268,7 @@
    *  vers le barycentre de l'image au lieu de suivre la matière qui bouge. Le seuil est
    *  relatif au max de la sélection, donc valable partout sur l'objet. */
   function select(data, meta, z, x, y, opts) {
-    const d = meta.d, K = meta.K, st = meta.stride;
+    const d = meta.d, K = meta.K, st = meta.stride, F = offs(meta);
     const o_ = (typeof opts === 'number') ? { radius: opts } : (opts || {});
     const radius = o_.radius > 0 ? o_.radius : SEL_DEFAULTS.radius;
     const sharp = o_.sharp > 0 ? o_.sharp : SEL_DEFAULTS.sharp;
@@ -218,19 +282,19 @@
     for (let k = 0; k < K; k++) {
       const o = k * st;
       const dz = [];
-      for (let i = 0; i < d; i++) dz.push(z[i] - data[o + 2 + i]);
-      let qf = 0, t = 14;
+      for (let i = 0; i < d; i++) dz.push(z[i] - data[o + F.mz + i]);
+      let qf = 0, t = F.szzi;
       for (let i = 0; i < d; i++) {
         for (let j = i; j < d; j++) { qf += (i === j ? 1 : 2) * data[o + t] * dz[i] * dz[j]; t++; }
       }
       const wz = Math.exp(-0.5 * Math.min(qf, 20));
       if (wz < wzMin) continue;                 // gaussienne absente à cet état
-      let mx = data[o], my = data[o + 1];
-      for (let i = 0; i < d; i++) { mx += dz[i] * data[o + 6 + i]; my += dz[i] * data[o + 6 + d + i]; }
+      let mx = data[o + F.mu], my = data[o + F.mu + 1];
+      for (let i = 0; i < d; i++) { mx += dz[i] * data[o + F.sxz + i]; my += dz[i] * data[o + F.sxz + d + i]; }
       const dd = (mx - x) * (mx - x) + (my - y) * (my - y);
       if (dd > r2) continue;
       let jj = 0;
-      for (let i = 0; i < 2 * d; i++) { const v = data[o + 6 + i]; jj += v * v; }
+      for (let i = 0; i < 2 * d; i++) { const v = data[o + F.sxz + i]; jj += v * v; }
       jj = Math.sqrt(jj);
       if (jj > jmax) jmax = jj;
       cand.push([k, wz, dd]); jn.push(jj);
@@ -246,10 +310,10 @@
       if (jmin > 0 && jn[n] <= thr) continue;
       const k = cand[n][0], wz = cand[n][1], dd = cand[n][2], o = k * st;
       // noyau de sélection : opacité × décroissance spatiale (figées) × présence w_z
-      const kn = data[o + 27] * Math.exp(-0.5 * dd / sig2);
+      const kn = data[o + F.a] * Math.exp(-0.5 * dd / sig2);
       const w = kn * wz;
       idx.push(k); ws.push(w); kern.push(kn); wsum += w; kernsum += kn;
-      for (let i = 0; i < d; i++) { J[i] += w * data[o + 6 + i]; J[d + i] += w * data[o + 6 + d + i]; }
+      for (let i = 0; i < d; i++) { J[i] += w * data[o + F.sxz + i]; J[d + i] += w * data[o + F.sxz + d + i]; }
     }
     if (wsum <= 0) return null;                 // le filtre a tout mangé : rien à saisir
     for (let i = 0; i < 2 * d; i++) J[i] /= wsum;
@@ -268,13 +332,13 @@
    *  invisible pour la force. `sel.wsum/sel.kernsum` est sa valeur à l'instant de la
    *  prise, ce qui permet à l'appelant d'en faire un rapport. */
   function presence(data, meta, z, sel) {
-    const d = meta.d, st = meta.stride;
+    const d = meta.d, st = meta.stride, F = offs(meta);
     let acc = 0;
     for (let n = 0; n < sel.idx.length; n++) {
       const o = sel.idx[n] * st;
-      let qf = 0, t = 14;
+      let qf = 0, t = F.szzi;
       const dz = [];
-      for (let i = 0; i < d; i++) dz.push(z[i] - data[o + 2 + i]);
+      for (let i = 0; i < d; i++) dz.push(z[i] - data[o + F.mz + i]);
       for (let i = 0; i < d; i++) {
         for (let j = i; j < d; j++) { qf += (i === j ? 1 : 2) * data[o + t] * dz[i] * dz[j]; t++; }
       }
@@ -286,14 +350,14 @@
   /** Position image du point matériel `sel` à l'état z : moyenne des μ_k(z) aux poids
    *  FIGÉS de la sélection. C'est elle qui suit les gaussiennes. */
   function pointOf(data, meta, z, sel) {
-    const d = meta.d, st = meta.stride;
+    const d = meta.d, st = meta.stride, F = offs(meta);
     let px = 0, py = 0;
     for (let n = 0; n < sel.idx.length; n++) {
       const o = sel.idx[n] * st, w = sel.w[n];
-      let mx = data[o], my = data[o + 1];
+      let mx = data[o + F.mu], my = data[o + F.mu + 1];
       for (let i = 0; i < d; i++) {
-        const dzi = z[i] - data[o + 2 + i];
-        mx += dzi * data[o + 6 + i]; my += dzi * data[o + 6 + d + i];
+        const dzi = z[i] - data[o + F.mz + i];
+        mx += dzi * data[o + F.sxz + i]; my += dzi * data[o + F.sxz + d + i];
       }
       px += w * mx; py += w * my;
     }
@@ -312,19 +376,22 @@
     });
     if (!gl) throw new Error('WebGL2 indisponible');
 
+    const d = meta.d, lay = layoutOf(meta);
+    const src = shaders(d, lay);
     const prog = gl.createProgram();
-    gl.attachShader(prog, compile(gl, gl.VERTEX_SHADER, VERT));
-    gl.attachShader(prog, compile(gl, gl.FRAGMENT_SHADER, FRAG));
+    gl.attachShader(prog, compile(gl, gl.VERTEX_SHADER, src.VERT));
+    gl.attachShader(prog, compile(gl, gl.FRAGMENT_SHADER, src.FRAG));
     gl.linkProgram(prog);
     if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
       throw new Error('link : ' + gl.getProgramInfoLog(prog));
     }
     gl.useProgram(prog);
-    const uQ = gl.getUniformLocation(prog, 'uQ');
+    const uQ = gl.getUniformLocation(prog, 'uQ[0]') || gl.getUniformLocation(prog, 'uQ');
     const uSize = gl.getUniformLocation(prog, 'uSize');
 
     const data = new Float32Array(buffer);
     const K = meta.K;
+    const qbuf = new Float32Array(d);
 
     const vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
@@ -337,20 +404,18 @@
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
-    // Les 31 float32 par gaussienne sont lus TELS QUELS depuis le .bin : la disposition
-    // du fichier (cf. extract_krauss2.py LAYOUT) est déjà celle des attributs, aucun
+    // Les `stride` float32 par gaussienne sont lus TELS QUELS depuis le .bin : la
+    // disposition du fichier (cf. `layout` du meta) est déjà celle des attributs, aucun
     // ré-empaquetage CPU.
     const gbuf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, gbuf);
     gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-    const attrs = [
-      [1, 2, 0], [2, 4, 8], [3, 4, 24], [4, 4, 40], [5, 4, 56],
-      [6, 4, 72], [7, 2, 88], [8, 3, 96], [9, 1, 108], [10, 3, 112],
-    ];
-    for (const [loc, n, off] of attrs) {
-      gl.enableVertexAttribArray(loc);
-      gl.vertexAttribPointer(loc, n, gl.FLOAT, false, STRIDE_BYTES, off);
-      gl.vertexAttribDivisor(loc, 1);
+    for (const g of src.groups) {
+      for (const c of g.chunks) {
+        gl.enableVertexAttribArray(c.loc);
+        gl.vertexAttribPointer(c.loc, c.size, gl.FLOAT, false, meta.stride * 4, c.off * 4);
+        gl.vertexAttribDivisor(c.loc, 1);
+      }
     }
     gl.bindVertexArray(null);
 
@@ -368,7 +433,7 @@
     }
 
     /** Viewport CARRÉ centré : le décodeur rend en coordonnées normalisées [0,1]², donc
-     *  une image carrée. Étirer ce carré sur un panneau large déformerait le bras. Le
+     *  une image carrée. Étirer ce carré sur un panneau large déformerait l'objet. Le
      *  reste du canevas est laissé au noir — la couleur de fond sur laquelle le décodeur
      *  a été entraîné, donc la bande n'introduit aucune discontinuité visible. */
     function box() {
@@ -404,20 +469,21 @@
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.viewport(b.x, b.y, b.side, b.side);
       gl.useProgram(prog);
-      gl.uniform4f(uQ, z[0], z[1], z[2], z[3]);
+      for (let i = 0; i < d; i++) qbuf[i] = z[i];
+      gl.uniform1fv(uQ, qbuf);
       gl.uniform2f(uSize, b.side, b.side);
       gl.bindVertexArray(vao);
       gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, K);
       gl.bindVertexArray(null);
     }
 
-    return { gl, render, resize, toImage, fromImage, box, K,
+    return { gl, render, resize, toImage, fromImage, box, K, data,
              select: (z, x, y, opts) => select(data, meta, z, x, y, opts),
              pointOf: (z, sel) => pointOf(data, meta, z, sel),
              presence: (z, sel) => presence(data, meta, z, sel),
              jacobianAt: (z, x, y, opts) => jacobianAt(data, meta, z, x, y, opts) };
   }
 
-  root.Krauss2Splat = { create, select, pointOf, presence, jacobianAt,
-                        SEL_DEFAULTS, EPS2D, EPS_Z, CUTOFF };
+  root.GSSplat = { create, select, pointOf, presence, jacobianAt, shaders, layoutOf,
+                   SEL_DEFAULTS, EPS2D, EPS_Z, CUTOFF };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -151,27 +151,44 @@ multiplicatif. Curseur Dissipation : ≤ 50 met le `C(q)` appris à l'échelle s
 (50 = `lnn.pt` pur), > 50 ajoute `c₀` jusqu'à 0,04. Défaut 62 → `c₀` ≈ 0,010, extinction
 en ~27 s.
 
-Le décodeur de l'atlas est indépendant de la dynamique : `decoder2dpt_ae_2048.pt` par défaut
-(rendu doux, JS ~400 Ko), `--decoder decoder2dpt_15k.pt` pour la version nette (JS ~1 Mo,
-c'est celui de `fig_sac_rollout.pdf`). Les deux partagent `encoder_ae.pt`, donc le même
-espace latent que `lnn.pt`.
+**Le rendu se fait EN DIRECT, plus par un atlas.** L'onglet lisait sa reconstruction dans
+une mosaïque 19×19 de tuiles pré-décodées (`sac_frames.png`, 11 Mo, 128×128 par tuile,
+mélangées bilinéairement). Il rasterise maintenant les 15 000 gaussiennes à chaque image
+en WebGL2, par `demo/gs_splat.js` — le même module que l'onglet d=4, générique en `d`.
+C'est plus léger (1,4 Mo de blocs de Schur en base64 contre 11 Mo de PNG) et EXACT : la
+coupe est calculée à l'état courant au lieu d'être interpolée entre quatre tuiles. Toute
+la recette de rendu (flou `eps2d`, terme « pancake », ordre d'INDEX) est celle décrite
+dans la section SCR souple ci-dessous — mesurée, pas devinée : PSNR 43,7 dB contre gsplat,
+**15,8 en ordre inversé**.
+
+Le décodeur est du même coup `decoder2dpt_15k.pt`, celui de `fig_sac_rollout.pdf`, que
+l'atlas ne pouvait pas se payer (`--decoder decoder2dpt_ae_2048.pt` pour l'ancien rendu
+doux). Les deux partagent `encoder_ae.pt`, donc le même espace latent que `lnn.pt` :
+changer de décodeur ne touche QUE l'image, jamais la dynamique.
+
+La prise interactive passe aussi par le module, en **ancrage MATÉRIEL** : `select()` fige
+le paquet de gaussiennes au clic, `pointOf()` rend sa position courante — le point
+d'application suit donc l'objet et la force se contracte quand il rejoint la souris.
+(L'onglet d=4 utilise l'autre variante, un point d'écran fixe.) L'amplitude est modulée
+par la **présence**, pour la raison expliquée dans la section SCR souple.
 
 **Deux espaces, à ne jamais mélanger** : le LNN intègre dans l'espace BLANCHI `u`
-(std 1) ; l'atlas de sprites, les gaussiennes et le plan de phase vivent dans l'espace
-latent BRUT `z`. `st.u`/`st.ud` portent l'état, `st.q` en est le miroir en `z`.
+(std 1) ; les gaussiennes du décodeur et le plan de phase vivent dans l'espace latent
+BRUT `z`. `st.u`/`st.ud` portent l'état, `st.q` en est le miroir en `z`.
 **Unité de temps** : le LNN a été entraîné à `dt = 1 frame` (30 fps), pas en secondes.
 
 Régénération, dans le dépôt LaGS (`demo_Lags/`) — l'ordre compte :
 
 ```
 py ../code_new_3D/pipeline2_updated/make_z_enc.py --config ../sac/config.py --stride 1
-py extract_sac.py        # sac_frames.png + sac_gaussians.js (--decoder pour changer)
-py export_sac_lnn.py     # sac_lnn.js
-py check_sac_lnn.py      # vérifie le portage JS contre PyTorch (pip install py-mini-racer)
+py extract_sac_live.py --ref   # sac_splat.js + sac_splat_meta.js (+ références gsplat)
+py export_sac_lnn.py           # sac_lnn.js
+py check_sac_lnn.py            # portage de la dynamique vs PyTorch (pip install py-mini-racer)
+py check_krauss2_splat.py --case sac   # recette de rendu vs gsplat + indexation du .bin
 ```
 
-puis copier `sac_frames.png`, `sac_gaussians.js`, `sac_lnn.js` dans `demo/` **et bumper le
-`?v=` de `sheet.src`** dans le bloc du sac de `lagsplat.html` (sinon atlas en cache).
+puis copier `sac_splat.js`, `sac_splat_meta.js`, `sac_lnn.js` dans `demo/`.
+`extract_sac.py` (atlas) n'est plus utilisé par le site.
 
 ## Onglet « SCR souple » de lagsplat.html — d=4, actionné, décodeur en direct
 
@@ -179,13 +196,14 @@ Quatrième expérience : le robot continuum souple 2-segments de Krauss et al. 2
 leurs NPZ et leur découpe (cas `krauss2026_2seg_npz` du dépôt LaGS). Deux ruptures avec
 les trois onglets précédents.
 
-**1. Pas d'atlas — le décodeur GS tourne dans le navigateur.** Les onglets d=1 et d=2
-lisent leur reconstruction dans une mosaïque pré-décodée (19×19 tuiles pour le sac). En
-d=4 il en faudrait 19⁴ = 130 321. `demo/krauss2_splat.js` re-rasterise donc les 15 000
+**1. Pas d'atlas — le décodeur GS tourne dans le navigateur.** Seul l'onglet d=1 (rocking
+chair) lit encore sa reconstruction dans une mosaïque pré-décodée. En d=4 il en faudrait
+19⁴ = 130 321 tuiles : impossible. `demo/gs_splat.js` re-rasterise donc les 15 000
 gaussiennes à chaque image en WebGL2 : conditionner la gaussienne jointe sur `q` est une
 formule fermée valable en toute dimension (moyenne affine, `Σ_cond` indépendante de `q`,
-poids `w_z`). C'est EXACT et non interpolé, et **plus léger que l'atlas** : 1,8 Mo de
-blocs de Schur contre 11 Mo de PNG.
+poids `w_z`) — d'où un module **générique en `d`**, que l'onglet sac (d=2) utilise aussi
+depuis qu'il a laissé tomber son atlas. C'est EXACT et non interpolé, et **plus léger que
+l'atlas** : 1,8 Mo de blocs de Schur contre 11 Mo de PNG.
 
 ⚠️ **La recette de rendu est mesurée, pas devinée.** Le décodeur a été entraîné sous
 `gsplat.rasterization` : il ne suffit pas de dessiner « une gaussienne 2D ». Il faut le
@@ -209,6 +227,7 @@ d'Euler-Lagrange comme force généralisée `b(q)ᵀP`, avec `ν_φ = −(ICNN c
 CONCAVE (mode `'invex'`, `models.InvexVolume`) — le signe est essentiel : une `ν` convexe
 rendrait l'équilibre chargé instable. `demo/krauss2_lnn_dyn.js` est le pendant générique
 en `d` de `sac_lnn_dyn.js` (qui déroulait des 2×2 à la main), plus ce chemin de pression.
+(La DYNAMIQUE reste donc en deux portages ; seul le RENDU est unifié, dans `gs_splat.js`.)
 
 ⚠️ **Unité de pression** : le LNN attend `p[Pa]/101325`. Les curseurs sont en kPa →
 passer par `Krauss2LNN.kpaToP()`. **Ne PAS** utiliser `config.PRESSURE_NORM`, qui vaut
@@ -265,7 +284,7 @@ fond donne ‖J̄‖ = 0,0087 contre 0,0955 sur le bras, soit 11× moins de pris
 filtre.
 
 ⚠️ Les défauts de `SEL_DEFAULTS` sont ceux que reproduit `check_krauss2_splat.py` (contrôle
-d'indexation du `.bin`) : les changer demande de rejouer ce test.
+d'indexation du `.bin`, sur les deux cas) : les changer demande de rejouer ce test.
 
 **Ordre d'affichage et visibilité (`P.display`, AFFICHAGE UNIQUEMENT).** `LatentWhiten.fit`
 range les valeurs propres par ordre CROISSANT : `u₁` est la direction la moins chargée,
@@ -296,11 +315,16 @@ Régénération, dans le dépôt LaGS (`demo_Lags/`) :
 py extract_krauss2.py --ref     # krauss2_gaussians.bin + krauss2_meta.js + références gsplat
 py export_krauss2_lnn.py        # krauss2_lnn.js (+ .json avec les points de référence)
 py check_krauss2_lnn.py         # portage de la dynamique vs PyTorch (pip install py-mini-racer)
-py check_krauss2_splat.py       # recette de rendu vs gsplat + indexation du .bin
+py check_krauss2_splat.py       # recette de rendu vs gsplat + indexation du .bin (--case sac
+                                #   pour l'autre cas : même script, même recette)
 ```
 
 puis copier `krauss2_gaussians.js`, `krauss2_meta.js`, `krauss2_lnn.js`,
-`krauss2_lnn_dyn.js`, `krauss2_splat.js` dans `demo/`.
+`krauss2_lnn_dyn.js`, `gs_splat.js` dans `demo/`.
+
+⚠️ **La disposition du `.bin` diffère d'un cas à l'autre** : elle est TASSÉE pour sa
+dimension (18 float32 par gaussienne en d=2, 31 en d=4). Aucun offset n'est écrit en dur —
+`meta.layout` fait foi, et le module JS comme les scripts de vérification le lisent.
 
 ⚠️ **Les gaussiennes se chargent par `<script src>`, pas par `fetch`.** L'extraction écrit
 les deux (`krauss2_gaussians.bin` pour les scripts de vérification, `krauss2_gaussians.js`
@@ -320,6 +344,6 @@ Chaque HTML est standalone et lisible. Les poids du réseau de neurones sont cha
 | `prehenseur.html` | Pneumatic gripper simulé par LEBNN | `prehenseur-weights.js` · `W` (~2,2 Mo) | ✅ **Actif** — lié depuis publications.html + projects.html |
 | `lebnn.html` | LEBNN · poutre cantilever 20-DOF | `lebnn-weights.js` · `LEBNN_RAW` (~2,6 Mo) | ⚠️ **Obsolète** — non lié, archive |
 | `4dgs.html` + `3d.html` | 4DGS — scène Gaussian Splatting pilotée par la physique latente. `4dgs.html` est la page hôte (texte + curseurs), `3d.html` le viewer WebGL embarqué en iframe, pilotable aussi en plein écran. Pont par `postMessage`. | scène inlinée dans `3d.html` : `__SCENE_META` + `__SCENE_BIN_B64` (~3,8 Mo) | ⚠️ **Non liée** — pas encore référencée depuis publications/projects |
-| `../lagsplat.html` (à la **racine**, pas dans `demo/`) | LaGS — Gaussian Splatting indexé par état (4 onglets : pendule synthétique, rocking chair d=1, sac d=2, SCR souple Krauss d=4 actionné en pression). Ses assets restent dans `demo/` (`lags_architecture.png`, `rocking_*`, `sac_*`, iframe `demo/3d.html`) → chemins préfixés `./demo/`, y compris l'atlas chargé en JS (`sheet.src = './demo/' + D.sheet`). `demo/lags_demo.html` n'est plus qu'une page de redirection vers l'ancienne URL. | rocking chair : `rocking_gaussians.js` · `ROCKING_DATA` (~450 Ko) + `rocking_frames.png` (~3,5 Mo, atlas binaire) · sac : `sac_gaussians.js` · `SAC_DATA` (~400 Ko) + `sac_frames.png` (~11 Mo, atlas binaire) + `sac_lnn.js` · `SAC_LNN` (~290 Ko, poids du LNN) + `sac_lnn_dyn.js` (portage lisible) · SCR souple : `krauss2_gaussians.js` · `KRAUSS2_GAUSSIANS` (~2,4 Mo, 15000 gaussiennes float32 en base64) + `krauss2_meta.js` · `KRAUSS2_META` (~65 Ko) + `krauss2_lnn.js` · `KRAUSS2_LNN` (~380 Ko) + `krauss2_lnn_dyn.js` et `krauss2_splat.js` (portages lisibles) | ✅ **Actif** — lié depuis publications.html (carte « Learning Physics from Video ») |
+| `../lagsplat.html` (à la **racine**, pas dans `demo/`) | LaGS — Gaussian Splatting indexé par état (4 onglets : pendule synthétique, rocking chair d=1, sac d=2, SCR souple Krauss d=4 actionné en pression). Ses assets restent dans `demo/` (`lags_architecture.png`, `rocking_*`, `sac_*`, `krauss2_*`, `gs_splat.js`, iframe `demo/3d.html`) → chemins préfixés `./demo/`, y compris l'atlas du rocking chair chargé en JS (`sheet.src = './demo/' + D.sheet`). `demo/lags_demo.html` n'est plus qu'une page de redirection vers l'ancienne URL. | **rendu commun** : `gs_splat.js` (décodeur GS en direct, WebGL2, générique en `d` — lisible) · rocking chair : `rocking_gaussians.js` · `ROCKING_DATA` (~450 Ko) + `rocking_frames.png` (~3,5 Mo, atlas binaire — le seul onglet encore sur atlas) · sac : `sac_splat.js` · `SAC_SPLAT` (~1,4 Mo, 15000 gaussiennes float32 en base64) + `sac_splat_meta.js` · `SAC_SPLAT_META` (~43 Ko) + `sac_lnn.js` · `SAC_LNN` (~290 Ko, poids du LNN) + `sac_lnn_dyn.js` (portage lisible) · SCR souple : `krauss2_gaussians.js` · `KRAUSS2_GAUSSIANS` (~2,4 Mo) + `krauss2_meta.js` · `KRAUSS2_META` (~65 Ko) + `krauss2_lnn.js` · `KRAUSS2_LNN` (~380 Ko) + `krauss2_lnn_dyn.js` (portage lisible) | ✅ **Actif** — lié depuis publications.html (carte « Learning Physics from Video ») |
 
-> ⚠️ **Ne jamais lire** les fichiers de poids ci-dessus ni `rocking_frames.png`, `sac_gaussians.js`, `sac_lnn.js`, `sac_frames.png`, `krauss2_lnn.js`, `krauss2_meta.js`, `krauss2_gaussians.js` : JSON sur **une seule ligne géante** (centaines de Ko à plusieurs Mo) ou binaire → des dizaines de milliers de tokens pour rien. Idem pour les **lignes 260–261 de `3d.html`** (`__SCENE_META`, `__SCENE_BIN_B64`) : lire ce fichier par plages de lignes en les évitant.
+> ⚠️ **Ne jamais lire** les fichiers de poids ci-dessus ni `rocking_frames.png`, `sac_splat.js`, `sac_splat_meta.js`, `sac_lnn.js`, `krauss2_lnn.js`, `krauss2_meta.js`, `krauss2_gaussians.js` : JSON sur **une seule ligne géante** (centaines de Ko à plusieurs Mo) ou binaire → des dizaines de milliers de tokens pour rien. Idem pour les **lignes 260–261 de `3d.html`** (`__SCENE_META`, `__SCENE_BIN_B64`) : lire ce fichier par plages de lignes en les évitant.
