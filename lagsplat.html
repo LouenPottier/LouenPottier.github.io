@@ -760,6 +760,56 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 "use strict";
+
+/* ---------------------------------------------------------------------------
+ * Visibilite des demos.
+ *
+ * La page n'a PAS d'onglets : les 4 experiences sont empilees dans un seul
+ * flux qui defile, et leurs 4 boucles rAF tournaient donc toutes en meme
+ * temps, y compris hors ecran (jusqu'a 45 000 gaussiennes rasterisees par
+ * frame pour des panneaux que personne ne regarde).
+ *
+ * `watchVisible(ids)` rend un objet dont `.on` dit si AU MOINS UN des canevas
+ * cites est a l'ecran, et dont `.armed` sert de « redessiner une fois » : une
+ * boucle en pause peut ainsi sauter son rendu sans rater la frame qui suit un
+ * changement de curseur. Les experiences n'ayant pas de conteneur propre, ce
+ * sont leurs canevas qu'on observe — aucune restructuration du HTML.
+ *
+ * L'onglet navigateur en arriere-plan gele tout, via `document.hidden`.
+ * ------------------------------------------------------------------------- */
+let PAGE_HIDDEN = document.hidden;
+const VIS_GROUPS = [];
+document.addEventListener('visibilitychange', () => {
+  PAGE_HIDDEN = document.hidden;
+  // Au retour, chaque boucle doit rearmer son horloge : sans cela le premier
+  // `now - last` vaut la duree entiere passee en arriere-plan.
+  if (!PAGE_HIDDEN) for (const g of VIS_GROUPS) { g.resumed = true; g.armed = true; }
+});
+
+function watchVisible(ids) {
+  const g = { on: true, armed: true, resumed: false, seen: new Set() };
+  VIS_GROUPS.push(g);
+  if (typeof IntersectionObserver !== 'function') return g;  // vieux moteur : tout reste actif
+  const io = new IntersectionObserver(entries => {
+    for (const e of entries) {
+      if (e.isIntersecting) g.seen.add(e.target); else g.seen.delete(e.target);
+    }
+    const on = g.seen.size > 0;
+    if (on && !g.on) { g.resumed = true; g.armed = true; }
+    g.on = on;
+  }, { rootMargin: '120px' });
+  const attach = () => {
+    for (const id of ids) { const el = document.getElementById(id); if (el) io.observe(el); }
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', attach);
+  else attach();
+  return g;
+}
+
+/** Vrai si la boucle doit travailler cette frame. Consomme `resumed` : la
+ *  boucle appelante s'en sert pour rearmer son accumulateur de temps. */
+function visActive(g) { return !PAGE_HIDDEN && g.on; }
+
 const TAU=Math.PI*2;
 const COL={t:0xc2610e,q:0x0d8a7e,axis:0x9aa6b4,grid:0xdbe1ea,rod:0x2a4570,mass:0x1a2e4a,plane:0x5b8fc7,pend:0xd23b3b};
 const PLANE_CSS='#5b8fc7', PEND_CSS='#d23b3b';
@@ -1010,20 +1060,20 @@ function refreshBadges(){
   $('nTime').textContent=counts.nT;
   $('nLat').textContent=counts.nQ;
 }
-function rebuildAll(){counts=computeCounts();sceneT.rebuild();sceneL.rebuild();refreshBadges();}
-function resizeAll(){sceneT.resize();sceneL.resize();}
+function rebuildAll(){counts=computeCounts();sceneT.rebuild();sceneL.rebuild();refreshBadges();vis1.armed=true;}
+function resizeAll(){sceneT.resize();sceneL.resize();vis1.armed=true;}
 
 function attachDrag(canvas){
   canvas.addEventListener('pointerdown',e=>{orbit.dragging=true;orbit.lx=e.clientX;orbit.ly=e.clientY;canvas.setPointerCapture(e.pointerId);});
   canvas.addEventListener('pointermove',e=>{if(!orbit.dragging)return;
     orbit.az-=(e.clientX-orbit.lx)*0.008;orbit.el+=(e.clientY-orbit.ly)*0.006;
     orbit.el=Math.max(-0.2,Math.min(0.95,orbit.el));orbit.lx=e.clientX;orbit.ly=e.clientY;});
-  const up=()=>{orbit.dragging=false;};
+  const up=()=>{orbit.dragging=false;vis1.armed=true;};
   canvas.addEventListener('pointerup',up);canvas.addEventListener('pointerleave',up);
 }
 attachDrag(sceneT.canvas);attachDrag(sceneL.canvas);
 
-$('play').addEventListener('click',()=>{params.running=!params.running;$('play').textContent=params.running?'⏸':'▶';});
+$('play').addEventListener('click',()=>{params.running=!params.running;$('play').textContent=params.running?'⏸':'▶';vis1.armed=true;});
 $('damp').addEventListener('input',e=>{const v=+e.target.value;params.zeta=(v/100)*0.6;$('vDamp').textContent='ζ '+params.zeta.toFixed(2);rebuildAll();});
 $('density').addEventListener('input',e=>{params.density=+e.target.value;$('vD').textContent=params.density;rebuildAll();});
 $('amp').addEventListener('input',e=>{params.theta0=e.target.value*Math.PI/180;$('vAmp').textContent=e.target.value+'°';rebuildAll();});
@@ -1031,11 +1081,18 @@ $('amp').addEventListener('input',e=>{params.theta0=e.target.value*Math.PI/180;$
 window.addEventListener('resize',resizeAll);
 
 let frameAcc=0;
+const vis1=watchVisible(['cVideo','cTime','cLat']);
 function loop(now){
   requestAnimationFrame(loop);
+  if(!visActive(vis1)) return;                       // hors ecran : rien, pas meme le rendu
+  if(vis1.resumed){vis1.resumed=false;lastTime=now;frameAcc=0;return;}
   const dt=(now-lastTime)/1000; lastTime=now; frameAcc+=dt;
   if(frameAcc<1/40) return;
   const useDt=Math.min(0.05,frameAcc); frameAcc=0;
+  // En pause l'image ne bouge plus : on ne redessine que la frame armee par
+  // un curseur (rebuildAll) ou par un retour a l'ecran.
+  if(!params.running && !orbit.dragging && !vis1.armed) return;
+  vis1.armed=false;
   if(params.running){tau+=params.speed*useDt;if(tau>params.nOsc)tau-=params.nOsc;}
   drawVideo();
   sceneT.updateSlice();sceneL.updateSlice();
@@ -1254,13 +1311,13 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   const fracToZ=f=>REMAP_SIGN>0?ZMIN+f*Z_SPAN:ZMAX-f*Z_SPAN;
   const st={running:true,auto:true,speed:TS_DEFAULT,frac:zToFrac(sim.state.z),still:0};
   sim.setDamping(sim.meta.gamma);   // amortissement appris
-  $('rPlay').addEventListener('click',()=>{st.running=!st.running;$('rPlay').textContent=st.running?'⏸':'▶';});
+  $('rPlay').addEventListener('click',()=>{st.running=!st.running;$('rPlay').textContent=st.running?'⏸':'▶';vis2.armed=true;});
   $('rDiss').addEventListener('input',e=>{const g=(e.target.value/100)*GAMMA_RANGE;sim.setDamping(g);$('rVd').textContent=g.toFixed(5);});
-  $('rckQ').addEventListener('input',e=>{st.frac=e.target.value/1000;sim.setZ(fracToZ(st.frac),0);st.auto=false;});
+  $('rckQ').addEventListener('input',e=>{st.frac=e.target.value/1000;sim.setZ(fracToZ(st.frac),0);st.auto=false;vis2.armed=true;});
   $('rckQ').addEventListener('change',()=>{sim.setZ(fracToZ(st.frac),0);st.auto=true;st.still=0;});
-  $('rShowBg').addEventListener('change',e=>{showBg=e.target.checked;refreshInst();});
+  $('rShowBg').addEventListener('change',e=>{showBg=e.target.checked;refreshInst();vis2.armed=true;});
   window.__rockReset2D=()=>{sim.reset();st.auto=true;st.running=true;st.still=0;st.frac=zToFrac(sim.state.z);
-    const rp=$('rPlay');if(rp)rp.textContent='⏸';};
+    const rp=$('rPlay');if(rp)rp.textContent='⏸';vis2.armed=true;};
 
   function attachDrag(c){
     c.addEventListener('pointerdown',e=>{orbit.dragging=true;orbit.lx=e.clientX;orbit.ly=e.clientY;c.setPointerCapture(e.pointerId);});
@@ -1362,12 +1419,16 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   }
 
   function resize(){const w=cv3d.clientWidth,h=cv3d.clientHeight;if(!w||!h)return;
-    renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+    renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();vis2.armed=true;}
   window.addEventListener('resize',resize);
 
   let last=performance.now(),acc=0;
+  const vis2=watchVisible(['cRock3D','cRockRecon']);
+  let prevZpos=NaN;
   function loop(now){
     requestAnimationFrame(loop);
+    if(!visActive(vis2))return;                      // hors ecran : ni physique ni rendu
+    if(vis2.resumed){vis2.resumed=false;last=now;acc=0;return;}
     const dt=(now-last)/1000;last=now;acc+=dt;
     if(acc<1/40)return;const useDt=Math.min(0.2,acc);acc=0;
 
@@ -1388,6 +1449,12 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
       $('rckQ').value=Math.round(Math.max(0,Math.min(1,st.frac))*1000);
     }
     const zpos=(st.frac*2-1)*ZS;
+    // `applyCaps` reconstruit 2048 matrices d'instance et les re-televerse au GPU.
+    // Tant que la coupe n'a pas bouge et que la camera est immobile, l'image est
+    // identique a la precedente : on ne refait rien.
+    const dirty = zpos!==prevZpos || orbit.dragging || grabStart || vis2.armed;
+    if(!dirty) return;
+    prevZpos=zpos; vis2.armed=false;
     plane.position.z=zpos;
     clipPlane.constant=zpos;
     applyCaps(capMesh,capData,zpos,capDummy,visFlags);
@@ -1452,7 +1519,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
       if(!b64) throw new Error('sac_splat.js absent');
       const bin=atob(b64), buf=new ArrayBuffer(bin.length), u8=new Uint8Array(buf);
       for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
-      splat=SP.create(cvRecon, buf, META);
+      splat=SP.create(cvRecon, buf, META, {maxSide: 512});
     }catch(err){
       console.error('[lagsplat/sac] décodeur GS indisponible :', err);
       const x=cvRecon.getContext('2d');
@@ -1513,8 +1580,8 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   launch();
   const STILL_EPS=0.05, STILL_RESET=2.5;
 
-  $('sPlay').addEventListener('click',()=>{st.running=!st.running;$('sPlay').textContent=st.running?'⏸':'▶';});
-  $('sSpeed').addEventListener('input',e=>{st.speed=e.target.value/250;$('sVs').textContent='×'+(Math.round(st.speed/0.4*10)/10).toFixed(1);});
+  $('sPlay').addEventListener('click',()=>{st.running=!st.running;$('sPlay').textContent=st.running?'⏸':'▶';vis3.armed=true;});
+  $('sSpeed').addEventListener('input',e=>{st.speed=e.target.value/250;$('sVs').textContent='×'+(Math.round(st.speed/0.4*10)/10).toFixed(1);vis3.armed=true;});
   /* Facteur UNIQUE sur la dissipation TOTALE : × (C(q) appris + c₀·M̃).
      Les deux termes suivent le même curseur, au lieu de l'ancien découpage en
      deux régimes où la première moitié mettait C(q) à l'échelle et la seconde
@@ -1531,7 +1598,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
     st.dissFloor=t*C0_REF;
     $('sVd').textContent = '×' + t.toFixed(2);
   }
-  $('sDiss').addEventListener('input',e=>setDiss(+e.target.value));
+  $('sDiss').addEventListener('input',e=>{setDiss(+e.target.value);vis3.armed=true;});
 
   function setup2D(cv){
     const dpr=Math.min(devicePixelRatio||1,2),w=cv.clientWidth,h=cv.clientHeight;
@@ -1554,8 +1621,18 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   function px2q(px,py,L){const s=L.inner/PHASE_SPAN;
     return [U1C+(px-(L.ox+L.inner/2))/s, U2C-(py-(L.oy+L.inner/2))/s];}
 
-  function drawPhase(){
-    const {x,w,h}=setup2D(cvPhase); const L=phaseBox(w,h);
+  /* Le cadre, les etiquettes et la trajectoire de reference TRAJ_U (2280 points)
+   * sont STATIQUES : les redessiner a chaque frame coutait ~2300 `lineTo` pour un
+   * resultat identique. On les rend une fois dans un canevas hors ecran, re-rendu
+   * seulement si la taille d'affichage change. */
+  let phaseBg=null, phaseBgKey='';
+  function phaseBackground(w,h,L){
+    const dpr=Math.min(devicePixelRatio||1,2);
+    const key=w+'x'+h+'@'+dpr;
+    if(phaseBg&&phaseBgKey===key) return phaseBg;
+    const c=document.createElement('canvas');
+    c.width=Math.max(1,Math.round(w*dpr)); c.height=Math.max(1,Math.round(h*dpr));
+    const x=c.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0);
     x.strokeStyle='rgba(154,166,180,.6)';x.lineWidth=1;
     x.strokeRect(L.ox,L.oy,L.inner,L.inner);
     x.fillStyle='#5d6b7a';x.font="600 12px 'JetBrains Mono', monospace";
@@ -1572,6 +1649,12 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
       }
       x.stroke();
     }
+    phaseBg=c; phaseBgKey=key; return c;
+  }
+
+  function drawPhase(){
+    const {x,w,h}=setup2D(cvPhase); const L=phaseBox(w,h);
+    x.drawImage(phaseBackground(w,h,L),0,0,w,h);
     if(trail.length>1){
       x.save();x.strokeStyle=TRAIL_CSS;x.lineWidth=1.5;x.setLineDash([4,4]);
       x.globalAlpha=0.85;x.beginPath();
@@ -1643,7 +1726,8 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
     st.u=nq;st.ud=[0,0];syncToZ();});
   const endDrag=()=>{if(st.dragging){st.dragging=false;st.auto=true;st.still=0;
     st.ud=[FLICK_GAIN*st.dragV[0]/FPS, FLICK_GAIN*st.dragV[1]/FPS];
-    if(!st.running){st.running=true;$('sPlay').textContent='⏸';}}};
+    if(!st.running){st.running=true;$('sPlay').textContent='⏸';}}
+    vis3.armed=true;};
   cvPhase.addEventListener('pointerup',endDrag);cvPhase.addEventListener('pointerleave',endDrag);
 
   let grabStart=null;
@@ -1664,14 +1748,22 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   cvRecon.addEventListener('pointermove',e=>{if(!st.grab||!grabStart||!splat)return;
     const c=localXY(e);
     grabStart.mouse=splat.toImage(c[0],c[1],true);});
-  const endGrab=()=>{if(st.grab){st.grab=false;grabStart=null;latF=[0,0];st.still=0;}};
+  const endGrab=()=>{if(st.grab){st.grab=false;grabStart=null;latF=[0,0];st.still=0;}vis3.armed=true;};
   cvRecon.addEventListener('pointerup',endGrab);cvRecon.addEventListener('pointerleave',endGrab);
 
   let last=performance.now(),acc=0;
+  const vis3=watchVisible(['cSacPhase','cSacRecon']);
   function loop(now){
     requestAnimationFrame(loop);
+    if(!visActive(vis3))return;                      // hors ecran : ni physique ni rendu
+    if(vis3.resumed){vis3.resumed=false;last=now;acc=0;return;}
     const dt=(now-last)/1000;last=now;acc+=dt;
     if(acc<1/40)return;const useDt=Math.min(0.2,acc);acc=0;
+    // A l'arret complet (pause, aucune prise, aucun glisse) l'image ne change
+    // plus : inutile de rasteriser 15 000 gaussiennes pour la reproduire.
+    const idle=!(st.auto&&st.running&&!st.dragging)&&!st.grab&&!st.dragging;
+    if(idle&&!vis3.armed)return;
+    vis3.armed=false;
 
     try{
     if(st.auto&&st.running&&!st.dragging){
@@ -1760,7 +1852,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
       if(!b64) throw new Error('krauss2_gaussians.js absent');
       const bin=atob(b64), buf=new ArrayBuffer(bin.length), u8=new Uint8Array(buf);
       for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
-      splat=SP.create(cvRec, buf, META);
+      splat=SP.create(cvRec, buf, META, {maxSide: 512});
       JREF=jacRef(new Float32Array(buf));
     }catch(err){
       console.error('[lagsplat/krauss2] décodeur GS indisponible :', err);
@@ -1805,24 +1897,26 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   const FGRAB_MAX=0.35;
   const FMAX=STIFF_U*1.2*SPAN_U;
 
-  $('kPlay').addEventListener('click',()=>{st.running=!st.running;$('kPlay').textContent=st.running?'⏸':'▶';});
+  $('kPlay').addEventListener('click',()=>{st.running=!st.running;$('kPlay').textContent=st.running?'⏸':'▶';vis4.armed=true;});
   $('kSpeed').addEventListener('input',e=>{
     st.speed=e.target.value/100;
     $('kVs').textContent='×'+st.speed.toFixed(1);
+    vis4.armed=true;
   });
   function setP(i,v){ st.kpa[i]=v; $('kVp'+i).textContent=v.toFixed(1); }
   for(let i=0;i<NC;i++){
     const el=$('kP'+i);
-    el.addEventListener('input',e=>setP(i,+e.target.value));
+    el.addEventListener('input',e=>{setP(i,+e.target.value);vis4.armed=true;});
     setP(i,+el.value);
   }
   $('kVent').addEventListener('click',()=>{
     for(let i=0;i<NC;i++){ const v=P.p_init_kpa[i]; $('kP'+i).value=v; setP(i,v); }
+    vis4.armed=true;
   });
   const selOpt={radius:0.05, sharp:3.0, wzMin:1e-3, jmin:0.0};
   const wzOf=v=>Math.pow(10, -4 + (v/100)*3.7);
   const setTxt=(id,v)=>{const el=$(id); if(el) el.textContent=v;};
-  const onSlider=(id,fn)=>{const el=$(id); if(el) el.addEventListener('input',fn);};
+  const onSlider=(id,fn)=>{const el=$(id); if(el) el.addEventListener('input',e=>{fn(e);vis4.armed=true;});};
   function refreshSel(){
     setTxt('kVselR', selOpt.radius.toFixed(3));
     setTxt('kVselS', '×'+selOpt.sharp.toFixed(1));
@@ -1844,7 +1938,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
 
   $('kReset').addEventListener('click',()=>{
     st.u=Float64Array.from(START_U); st.ud=new Float64Array(D);
-    st.Fu=null; st.grab=false; hist.length=0;
+    st.Fu=null; st.grab=false; hist.length=0; vis4.armed=true;
   });
 
   function updateGrab(z){
@@ -1884,7 +1978,7 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
     if(!st.running){st.running=true;$('kPlay').textContent='⏸';}
   });
   cvRec.addEventListener('pointermove',e=>{ if(st.grab) st.mouse=localXY(e); });
-  const release=()=>{ st.grab=false; st.sel=null; st.Fu=null; st.anchorImg=null;
+  const release=()=>{ st.grab=false; st.sel=null; st.Fu=null; st.anchorImg=null; vis4.armed=true;
                       st.pres=1; st.pres0=1; showCount(); };
   cvRec.addEventListener('pointerup',release);
   cvRec.addEventListener('pointercancel',release);
@@ -1963,9 +2057,22 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   }
 
   let last=performance.now();
+  const vis4=watchVisible(['cKrState','cKrRecon']);
+  let acc4=0;
   function loop(now){
-    const dtms=Math.min(now-last, 100);
-    last=now;
+    requestAnimationFrame(loop);
+    if(!visActive(vis4))return;                      // hors ecran : ni physique ni rendu
+    if(vis4.resumed){vis4.resumed=false;last=now;acc4=0;return;}
+    // Cette boucle etait la seule des quatre sans plafond de cadence : sur un
+    // ecran 120 Hz elle rasterisait 15 000 gaussiennes et deroulait jusqu'a
+    // 8 pas de RK4 trois fois plus souvent que les autres panneaux.
+    acc4+=(now-last)/1000; last=now;
+    if(acc4<1/40)return;
+    const dtms=Math.min(acc4*1000, 100);   // le temps ECOULE depuis le dernier pas,
+    acc4=0;                                // pas depuis la derniere frame ecran
+    const idle=!st.running&&!st.grab;
+    if(idle&&!vis4.armed)return;
+    vis4.armed=false;
     let z=L.toZ(P, st.u);
     updateGrab(z);
     if(st.running){
@@ -1982,7 +2089,6 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
     }
     if(splat) splat.render(z);
     drawState(); drawOverlay();
-    requestAnimationFrame(loop);
   }
   refreshSel();
   requestAnimationFrame(()=>{ last=performance.now(); requestAnimationFrame(loop); });

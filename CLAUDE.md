@@ -242,8 +242,9 @@ gaussiennes reçoivent 3× moins de flou *relatif* que celui avec lequel elles o
 ajustées, et leur structure devient visible. Le rendu paraît alors « trop net » — ce qui se
 lit comme un défaut de rasterisation alors que c'est une sur-résolution. Mettre `eps2d` à
 l'échelle ne suffit pas (mesuré : les deux images sont presque superposables) ; c'est bien
-la résolution de rendu qu'il faut borner. `maxSide` est **optionnel et désactivé par
-défaut** : les onglets sac et SCR souple gardent leur rendu pleine résolution.
+la résolution de rendu qu'il faut borner. `maxSide` reste **optionnel et désactivé par
+défaut dans `gs_splat.js`**, mais `lagsplat.html` le passe désormais aux **trois**
+décodeurs (512 px) — voir la section « Coût d'affichage » ci-dessous.
 
 La flèche de force est passée sur un canevas d'**overlay** (`#cRockOverlay`) : `#cRockRecon`
 est désormais WebGL2 et ne peut plus donner de contexte 2D. Même montage que le sac et le
@@ -426,6 +427,54 @@ l'échec se manifestait par un **panneau simplement noir**, sans rien dans la co
 Le surcoût base64 (+33 %) est annulé par gzip. Si le décodeur échoue malgré tout (WebGL2
 absent), l'onglet le dit maintenant dans la console ET sur le canevas, et le reste (la
 physique, le plan d'état) continue de tourner.
+
+## Coût d'affichage de lagsplat.html — ce qui tourne, et quand
+
+⚠️ **`lagsplat.html` n'a PAS d'onglets**, malgré le vocabulaire employé plus haut dans ce
+fichier (« onglet sac », « onglet rocking chair »…). Ce sont **quatre sections empilées
+dans une seule page qui défile**. Aucun mécanisme ne les masque l'une l'autre — d'où le
+piège : leurs quatre boucles `requestAnimationFrame` tournaient toutes **simultanément et
+en permanence**, y compris pour des panneaux hors écran, soit jusqu'à **45 000 gaussiennes
+rasterisées par frame** (K = 15 000 × 3 décodeurs en direct) plus trois scènes Three.js.
+Lire « onglet » comme « section » partout dans ce document.
+
+Trois gardes tiennent ce coût, toutes dans `lagsplat.html` :
+
+- **Visibilité** — `watchVisible(ids)` / `visActive(g)` (helpers globaux déclarés en tête du
+  premier bloc `<script>`). Chaque boucle sort avant tout travail — physique *et* rendu — si
+  aucun de ses canevas n'est à l'écran, ou si l'onglet navigateur est en arrière-plan
+  (`document.hidden`). Les expériences n'ayant pas de conteneur HTML propre, ce sont leurs
+  **canevas** qui sont observés. ⚠️ À la reprise, le drapeau `resumed` fait **réarmer
+  l'horloge** de la boucle (`last = now`, accumulateur remis à zéro) : sans lui, le premier
+  `now - last` vaudrait toute la durée passée hors écran.
+- **Cadence** — les quatre boucles plafonnent à 40 Hz. ⚠️ Celle du SCR souple ne l'a pas
+  toujours fait : elle tournait au plein taux écran (120/144 Hz), soit 3× le travail des
+  autres, décodeur GS **et** RK4 du LNN (jusqu'à 8 pas, 4 évaluations de `accel` chacun).
+- **Rendu inutile** — `armed` est un drapeau « redessiner une fois ». En pause, hors prise et
+  hors glisse, la boucle **ne redessine pas** : l'image serait identique. Chaque curseur,
+  bouton et fin d'interaction pose `armed = true` pour que le panneau se rafraîchisse quand
+  même. ⚠️ **Tout nouveau contrôle doit poser `armed`**, sinon son effet ne s'affichera qu'au
+  prochain mouvement.
+
+Deux caches ôtent des boucles CPU par frame :
+
+- `applyCaps` (2048 matrices d'instance reconstruites **et re-téléversées au GPU**) n'est
+  rejoué que si la coupe `zpos` a bougé, ou si la caméra tourne, ou sur une prise.
+- Le fond du plan de phase du sac — cadre, étiquettes et la trajectoire de référence
+  `TRAJ_U` (**2280 points**), tous **statiques** — est rendu une fois dans un canevas hors
+  écran et blitté ; seuls la traînée et le point mobile sont redessinés.
+
+**Résolution** : les trois décodeurs GS sont plafonnés à `maxSide: 512`. `gs_splat.js:517`
+dimensionne sinon au `devicePixelRatio` **sans borne** — sur un écran 2×, un panneau de
+900 px rendait 1800 px, soit 4× les fragments, pour **aucun détail supplémentaire** : le
+décodeur est ajusté à `meta.img_size` = 256 px (cf. `gs_splat.js:373-383`).
+
+⚠️ **Le poids au chargement n'est PAS traité** : les ~6,4 Mo de poids en base64
+(`:1047-1051`, `:1406-1409`, `:1723-1726`, ~4,8 Mo après gzip) restent chargés en
+`<script src>` **synchrones et bloquants**, comme Three.js depuis son CDN. Les rendre
+paresseux — en réutilisant l'`IntersectionObserver` déjà en place — reste à faire ; chaque
+IIFE gère déjà l'absence de ses poids (`throw new Error('…absent')`), ce qui en est le point
+d'accroche naturel.
 
 ## Démos demo/
 
