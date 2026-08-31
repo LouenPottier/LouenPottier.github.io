@@ -203,16 +203,29 @@ main {
   gap: 0.5rem 1.25rem;
 }
 .contact-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 0.82rem;
   color: var(--navy-light);
   text-decoration: none;
+  transition: color 0.15s;
+}
+/* Le soulignement porte sur le texte seul, pas sur le logo. */
+.contact-links a > span {
   border-bottom: 1px solid var(--border);
   padding-bottom: 1px;
-  transition: color 0.15s, border-color 0.15s;
+  transition: border-color 0.15s;
 }
 .contact-links a:hover {
   color: var(--navy);
+}
+.contact-links a:hover > span {
   border-color: var(--navy);
+}
+.contact-icon {
+  flex: none;
+  fill: currentColor;
 }
 
 .cv-pdf-link {
