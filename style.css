@@ -144,7 +144,6 @@ main {
   gap: 3rem;
   align-items: start;
   padding-bottom: 3rem;
-  border-bottom: 1px solid var(--border);
   margin-bottom: 3.5rem;
 }
 
@@ -386,6 +385,20 @@ a.hero-stat:hover .hero-stat-label::after { transform: translateX(2px); }
   color: var(--text-muted);
   line-height: 1.65;
 }
+
+.timeline-link {
+  display: inline-block;
+  margin-top: 0.6rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--navy-light);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.timeline-link:hover { color: var(--navy); border-color: var(--navy); }
 
 /* ── SKILLS ── */
 .skills-section { margin-bottom: 3.5rem; }
