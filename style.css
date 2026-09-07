@@ -350,13 +350,29 @@ a.hero-stat:hover .hero-stat-label::after { transform: translateX(2px); }
 
 .highlight-body { padding: 1rem 1.1rem 1.15rem; }
 
+.highlight-tagline {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+}
+.highlight-tagline .highlight-tag { flex: 1 1 auto; }
+.highlight-tag-logo {
+  flex: 0 0 auto;
+  order: 2;
+  height: 22px;
+  width: auto;
+  max-width: 78px;
+  object-fit: contain;
+  display: block;
+}
+
 .highlight-tag {
   display: block;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.68rem;
   letter-spacing: 0.06em;
   color: var(--text-muted);
-  margin-bottom: 0.4rem;
 }
 
 .highlight-body h3 {
