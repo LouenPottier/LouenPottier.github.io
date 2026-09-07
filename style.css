@@ -360,9 +360,9 @@ a.hero-stat:hover .hero-stat-label::after { transform: translateX(2px); }
 .highlight-tag-logo {
   flex: 0 0 auto;
   order: 2;
-  height: 22px;
+  height: 32px;
   width: auto;
-  max-width: 78px;
+  max-width: 110px;
   object-fit: contain;
   display: block;
 }
