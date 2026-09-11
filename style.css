@@ -478,6 +478,7 @@ a.hero-stat:hover .hero-stat-label::after { transform: translateX(2px); }
   transition: color 0.15s, border-color 0.15s;
 }
 .timeline-link:hover { color: var(--navy); border-color: var(--navy); }
+.timeline-link + .timeline-link { margin-left: 1.2rem; }
 
 /* ── SKILLS ── */
 .skills-section { margin-bottom: 3.5rem; }
