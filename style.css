@@ -489,10 +489,6 @@ a.hero-stat:hover .hero-stat-label::after { transform: translateX(2px); }
   gap: 0.85rem;
 }
 
-/* Languages card spans full width */
-.skills-grid .skill-group:last-child {
-  grid-column: 1 / -1;
-}
 
 .skill-group {
   background: var(--surface);
@@ -995,7 +991,6 @@ footer {
   }
 
   .skills-grid { grid-template-columns: 1fr; }
-  .skills-grid .skill-group:last-child { grid-column: 1; }
 
   .lang-bar { padding: 0.35rem 1.25rem; }
 }
