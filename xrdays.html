@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FLKK795BKL"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    analytics_storage: 'denied', ad_storage: 'denied',
+    ad_user_data: 'denied', ad_personalization: 'denied', wait_for_update: 0
+  });
+  gtag('js', new Date());
+  gtag('config', 'G-FLKK795BKL');
+</script>
+<meta charset="utf-8"/>
+<meta name="description" content="LaGSplat on a soft tab held by a robot arm: held-out video against the network reconstruction, and an interactive demo with two 2D views and one 3D view driven by the same latent state."/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Louen Pottier - LaGSplat XR Days</title>
+<link rel="stylesheet" href="./style.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&amp;family=Source+Sans+3:wght@300;400;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+
+<style>
+#lags-demo{
+  --q:#5b8fc7;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  margin-top:.5rem;
+}
+#lags-demo .thesis{
+  font-family:'Lora',Georgia,serif;
+  font-size:1.02rem;line-height:1.75;color:var(--text-mid);
+  max-width:96ch;margin:0 0 1.75rem;
+}
+#lags-demo .thesis b{color:var(--navy);font-weight:600}
+#lags-demo .exp-divider{border:none;border-top:2px solid var(--navy);margin:2.75rem 0 1.6rem;}
+#lags-demo .exp-head{margin:0 0 1.2rem;}
+#lags-demo .exp-tag{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--navy-light);margin:0 0 .5rem;
+}
+#lags-demo .exp-title{
+  font-family:'Lora',Georgia,serif;font-weight:600;font-size:1.4rem;line-height:1.2;
+  color:var(--navy);margin:0;
+}
+#lags-demo .controls{
+  display:flex;flex-wrap:wrap;gap:14px 26px;align-items:flex-end;
+  margin-bottom:1.5rem;
+}
+#lags-demo .ctl{display:flex;flex-direction:column;gap:6px;}
+#lags-demo .ctl label{
+  font-family:var(--mono);font-size:.62rem;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--text-muted);
+}
+#lags-demo .ctl .val{color:var(--navy);font-weight:600}
+#lags-demo input[type=range]{
+  -webkit-appearance:none;appearance:none;width:138px;height:3px;border-radius:3px;
+  background:var(--border);outline:none;cursor:pointer;
+}
+#lags-demo input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  background:var(--navy);border:2px solid #fff;box-shadow:0 0 0 1px var(--border);
+}
+#lags-demo input[type=range]::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;background:var(--navy);border:2px solid #fff;
+}
+#lags-demo .btn{
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;
+  color:#fff;background:var(--navy);border:none;border-radius:var(--radius);
+  padding:9px 13px;cursor:pointer;line-height:1;
+}
+#lags-demo .btn:hover{background:var(--navy-mid)}
+#lags-demo .btn.ghost{background:none;color:var(--text-muted);border:1px solid var(--border);}
+#lags-demo .btn.ghost:hover{color:var(--navy);border-color:var(--navy-light);background:none}
+#lags-demo .btn.ghost.on{color:var(--navy);border-color:var(--navy);}
+#lags-demo .valbig{font-family:var(--mono);font-size:.92rem;font-weight:600;color:var(--navy);}
+
+#lags-demo .panel{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--card-shadow);min-width:0;
+}
+#lags-demo .panel.q{border-top:3px solid var(--q)}
+#lags-demo .phead{padding:12px 15px 11px;border-bottom:1px solid var(--border-soft);}
+#lags-demo .phead .tag{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--q);}
+#lags-demo .phead h2{font-family:'Lora',Georgia,serif;font-weight:600;font-size:1.02rem;color:var(--navy);margin:3px 0 2px;}
+#lags-demo .phead .sub{font-size:.78rem;color:var(--text-muted);line-height:1.4}
+#lags-demo .stage{position:relative;width:100%;background:#111;line-height:0;
+  display:flex;justify-content:center;align-items:center;}
+#lags-demo .badge{position:absolute;top:8px;right:10px;font-family:var(--mono);font-size:.58rem;
+  letter-spacing:.05em;color:var(--text-muted);background:rgba(255,255,255,.78);line-height:1.4;
+  border:1px solid var(--border);border-radius:3px;padding:2px 6px;}
+
+/* comparaison video */
+#lags-demo .vid-grid{display:grid;grid-template-columns:2fr 1.125fr;gap:14px;align-items:start;margin:0 0 1rem;}
+@media(max-width:880px){#lags-demo .vid-grid{grid-template-columns:1fr}}
+#lags-demo .vid-grid video{display:block;width:100%;height:auto;background:#111;}
+#lags-demo .vid-labels{display:grid;grid-template-columns:1fr 1fr;
+  font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-muted);padding:8px 15px 10px;border-top:1px solid var(--border-soft);}
+#lags-demo .vid-labels span:last-child{color:var(--q)}
+#lags-demo .vid-note{font-size:.82rem;line-height:1.55;color:var(--text-muted);max-width:96ch;margin:0 0 .5rem;}
+
+/* demo interactive */
+#lags-demo .live-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2.1fr);gap:14px;align-items:stretch;}
+@media(max-width:880px){#lags-demo .live-grid{grid-template-columns:1fr}}
+#lags-demo .live-col{display:flex;flex-direction:column;gap:14px;min-width:0;}
+#lags-demo .live-col .panel{flex:1 1 auto;}
+#lags-demo .live-col .stage{flex:1 1 0;min-height:160px;}
+#lags-demo .live-grid .stage.big{aspect-ratio:1/1;height:auto;}
+@media(max-width:880px){#lags-demo .live-col .stage{flex:none;height:380px}}
+#lags-demo .live-grid canvas.view{display:block;touch-action:none;cursor:grab;}
+#lags-demo .live-grid canvas.view.grabbing{cursor:grabbing}
+#lags-demo .live-grid canvas.ovl{position:absolute;pointer-events:none;}
+#lags-demo .live-warn{display:none;font-size:.86rem;color:var(--text-muted);
+  border-left:2px solid var(--border);padding-left:11px;margin:0 0 1.2rem;}
+#lags-demo .stats{font-family:var(--mono);font-size:.62rem;letter-spacing:.04em;color:var(--text-muted);
+  margin:.8rem 0 0;}
+#lags-demo .play-overlay{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:80px;height:80px;border-radius:50%;
+  background:rgba(26,46,74,.85);color:#fff;border:2px solid rgba(255,255,255,.9);
+  font-size:2rem;line-height:1;padding-left:6px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 30px rgba(0,0,0,.55);z-index:4;
+}
+#lags-demo .play-overlay:hover{background:var(--navy)}
+#lags-demo.loaded .play-overlay{display:none}
+#lags-demo .loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:#bbb;line-height:1.4;}
+#lags-demo.loaded .loading{display:none}
+
+.lags-head{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;}
+.lags-head .page-title{margin-bottom:.5rem;}
+.lags-affil{flex:0 0 auto;}
+.lags-affil img{height:46px;width:auto;display:block;object-fit:contain;}
+@media(max-width:720px){.lags-head{gap:.6rem;}.lags-affil img{height:34px;}}
+.lags-byline{border-top:1px solid var(--border);padding-top:.6rem;margin:.9rem 0 1.4rem;max-width:680px;}
+.lags-meta{
+  font-family:'JetBrains Mono',ui-monospace,monospace;
+  font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-muted);margin:0;line-height:1.9;
+}
+.lags-meta i{font-style:normal;color:var(--text-faint);margin:0 .55em;}
+.lags-meta a{color:var(--navy-light);text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;}
+.lags-meta a:hover{color:var(--navy);border-color:var(--navy);}
+</style>
+</head>
+<body>
+
+<div class="lang-bar">
+  <button class="lang-btn active" onclick="setLang('en')">EN</button>
+  <span class="lang-sep">·</span>
+  <button class="lang-btn" onclick="setLang('fr')">FR</button>
+</div>
+
+<nav>
+  <a class="nav-name" href="./index.html">Louen Pottier</a>
+  <ul>
+    <li><a href="./index.html" data-en="CV" data-fr="CV">CV</a></li>
+    <li><a href="./publications.html" data-en="Publications" data-fr="Publications">Publications</a></li>
+    <li><a href="./projects.html" class="active" data-en="Projects" data-fr="Projets">Projects</a></li>
+    <li><a href="./teaching.html" data-en="Teaching" data-fr="Enseignement">Teaching</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <div class="lags-head">
+    <h1 class="page-title"
+        data-en="LaGSplat: a soft tab held by a robot arm"
+        data-fr="LaGSplat : une languette souple tenue par un bras robot">
+      LaGSplat: a soft tab held by a robot arm
+    </h1>
+    <div class="lags-affil">
+      <img src="./logos/cea-list.png" alt="CEA-List"
+           onerror="this.parentElement.style.display='none'"/>
+    </div>
+  </div>
+
+  <div class="lags-byline">
+    <p class="lags-meta">
+      <a href="./lagsplat.html" data-en="LaGSplat main page" data-fr="Page principale LaGSplat">LaGSplat main page</a><i>·</i><a href="https://arxiv.org/abs/2608.16324" target="_blank" rel="noopener">arXiv:2608.16324</a><i>·</i><a href="https://list.cea.fr/en/" target="_blank" rel="noopener">CEA&#8209;List</a>
+    </p>
+  </div>
+
+  <div id="lags-demo">
+
+    <p class="thesis"
+       data-en="A UR robot arm moves a soft hyperelastic tab held in its gripper. The scene was filmed by four synchronised phones. An encoder reads one camera and returns the deformation of the tab as two latent coordinates <b>q = (q0, q1)</b>; the position of the arm along its path, <b>s</b>, is measured. The same state <b>(s, q)</b> drives three Gaussian Splatting decoders: a 2D decoder in a window that follows the gripper, a 2D decoder of the full camera frame, and a 3D decoder trained on all four views. A linear dynamics identified on q(t) makes the tab move, and a force applied with the mouse enters it through the decoder Jacobian."
+       data-fr="Un bras robot UR déplace une languette hyperélastique tenue dans sa pince. La scène a été filmée par quatre téléphones synchronisés. Un encodeur lit une caméra et rend la déformation de la languette sous la forme de deux coordonnées latentes <b>q = (q0, q1)</b> ; la position du bras le long de sa trajectoire, <b>s</b>, est mesurée. Le même état <b>(s, q)</b> pilote trois décodeurs Gaussian Splatting : un décodeur 2D dans une fenêtre qui suit la pince, un décodeur 2D de l'image entière de la caméra, et un décodeur 3D entraîné sur les quatre vues. Une dynamique linéaire identifiée sur q(t) met la languette en mouvement, et un effort appliqué à la souris y entre par la jacobienne du décodeur.">
+      A UR robot arm moves a soft hyperelastic tab held in its gripper.
+    </p>
+
+    <div class="exp-head">
+      <p class="exp-tag" data-en="held-out video" data-fr="vidéo held-out">held-out video</p>
+      <h2 class="exp-title" data-en="Filmed video against the network reconstruction" data-fr="Vidéo filmée contre reconstruction du réseau">Filmed video against the network reconstruction</h2>
+    </div>
+    <p class="vid-note"
+       data-en="Ten seconds taken from the last minute of the recording, which none of the networks saw during training. Left half: filmed image. Right half: image decoded from the encoded state (s, q)."
+       data-fr="Dix secondes prises dans la dernière minute de l'enregistrement, qu'aucun des réseaux n'a vue à l'entraînement. Moitié gauche : image filmée. Moitié droite : image décodée depuis l'état encodé (s, q).">
+      Ten seconds taken from the last minute of the recording.
+    </p>
+    <div class="vid-grid">
+      <section class="panel q">
+        <div class="phead">
+          <div class="tag" data-en="2D decoder · tracking window" data-fr="décodeur 2D · fenêtre suiveuse">2D decoder · tracking window</div>
+          <h2 data-en="Window that follows the gripper" data-fr="Fenêtre qui suit la pince">Window that follows the gripper</h2>
+        </div>
+        <video class="cmp" muted playsinline loop preload="metadata" src="./videos/mpov_crop.mp4"></video>
+        <div class="vid-labels"><span data-en="filmed" data-fr="filmé">filmed</span><span data-en="network" data-fr="réseau">network</span></div>
+      </section>
+      <section class="panel q">
+        <div class="phead">
+          <div class="tag" data-en="2D decoder · fixed camera" data-fr="décodeur 2D · caméra fixe">2D decoder · fixed camera</div>
+          <h2 data-en="Full camera frame" data-fr="Image entière de la caméra">Full camera frame</h2>
+        </div>
+        <video class="cmp" muted playsinline loop preload="metadata" src="./videos/mpov_fixed.mp4"></video>
+        <div class="vid-labels"><span data-en="filmed" data-fr="filmé">filmed</span><span data-en="network" data-fr="réseau">network</span></div>
+      </section>
+    </div>
+
+    <hr class="exp-divider">
+
+    <div class="exp-head">
+      <p class="exp-tag" data-en="interactive simulation" data-fr="simulation interactive">interactive simulation</p>
+      <h2 class="exp-title" data-en="One latent state, three decoders" data-fr="Un état latent, trois décodeurs">One latent state, three decoders</h2>
+    </div>
+
+    <p class="live-warn" id="liveWarn"></p>
+
+    <div class="controls">
+      <button class="btn" id="mpPlay" type="button">❚❚</button>
+      <div class="ctl">
+        <label data-en="arm position s" data-fr="position du bras s">arm position s</label>
+        <input type="range" id="mpS" step="0.001"/>
+      </div>
+      <button class="btn ghost" id="mpReplay" type="button" data-en="replay recorded arm motion" data-fr="rejouer le mouvement enregistré du bras">replay recorded arm motion</button>
+      <button class="btn ghost" id="mpKick" type="button" data-en="impulse" data-fr="impulsion">impulse</button>
+      <button class="btn ghost" id="mpRest" type="button" data-en="rest" data-fr="repos">rest</button>
+      <button class="btn ghost" id="mpHi" type="button" data-en="high resolution" data-fr="haute résolution">high resolution</button>
+      <div class="ctl">
+        <label data-en="latent state q" data-fr="état latent q">latent state q</label>
+        <span class="valbig" id="mpQ">0.00, 0.00</span>
+      </div>
+    </div>
+
+    <div class="live-grid">
+      <div class="live-col">
+        <section class="panel q">
+          <div class="phead">
+            <div class="tag" id="tagCrop" data-en="2D decoder · 5 000 Gaussians" data-fr="décodeur 2D · 5 000 gaussiennes">2D decoder · 5 000 Gaussians</div>
+            <h2 data-en="Tracking window" data-fr="Fenêtre suiveuse">Tracking window</h2>
+            <div class="sub" data-en="drag on the tab to push it" data-fr="glisser sur la languette pour la pousser">drag on the tab to push it</div>
+          </div>
+          <div class="stage"><canvas class="view" id="cvCrop"></canvas><canvas class="ovl" id="ovCrop"></canvas>
+            <div class="loading" data-en="loading" data-fr="chargement">loading</div></div>
+        </section>
+        <section class="panel q">
+          <div class="phead">
+            <div class="tag" id="tagFixed" data-en="2D decoder · 5 000 Gaussians" data-fr="décodeur 2D · 5 000 gaussiennes">2D decoder · 5 000 Gaussians</div>
+            <h2 data-en="Fixed camera" data-fr="Caméra fixe">Fixed camera</h2>
+            <div class="sub" data-en="drag on the tab to push it" data-fr="glisser sur la languette pour la pousser">drag on the tab to push it</div>
+          </div>
+          <div class="stage"><canvas class="view" id="cvFixed"></canvas><canvas class="ovl" id="ovFixed"></canvas>
+            <div class="loading" data-en="loading" data-fr="chargement">loading</div></div>
+        </section>
+      </div>
+      <section class="panel q">
+        <div class="phead">
+          <div class="tag" id="tag3d" data-en="3D decoder · 20 000 Gaussians · four views" data-fr="décodeur 3D · 20 000 gaussiennes · quatre vues">3D decoder · 20 000 Gaussians · four views</div>
+          <h2 data-en="3D scene" data-fr="Scène 3D">3D scene</h2>
+          <div class="sub" data-en="left-drag on the tab to push it · right-drag to rotate · scroll to zoom · double-click to reset the view" data-fr="glisser au clic gauche sur la languette pour la pousser · glisser au clic droit pour tourner · molette pour zoomer · double-clic pour revenir à la vue initiale">left-drag on the tab to push it · right-drag to rotate · scroll to zoom · double-click to reset the view</div>
+        </div>
+        <div class="stage big"><canvas class="view" id="cv3d"></canvas><canvas class="ovl" id="ov3d"></canvas>
+          <div class="loading" data-en="loading" data-fr="chargement">loading</div></div>
+      </section>
+    </div>
+    <p class="stats" id="mpStats"></p>
+  </div>
+</main>
+
+<script src="./demo/mpov/deform_splat.js"></script>
+<script src="./demo/mpov/zoned3d.js"></script>
+<script src="./demo/mpov/phys.js"></script>
+<script src="./demo/mpov/mpov_demo.js"></script>
+<script src="./lang.js"></script>
+</body>
+</html>
