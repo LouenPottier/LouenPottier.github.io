@@ -14,9 +14,9 @@
  *   haute : 2D 20 000 gaussiennes, 3D 85 000 gaussiennes rendue en 640 px
  * Le jeu haute resolution n'est telecharge qu'au premier passage ; chaque jeu reste en memoire.
  *
- * Espace latent interpretable (section suivante) : nuage des q mesures, etat choisi a la
- * souris (« extrapolation » affiche hors de l'enveloppe convexe du nuage), et les deux decodeurs 2D (memes poids, contextes WebGL distincts) a cet
- * etat pour le s du curseur.
+ * Espace latent interpretable (section suivante) : nuage des q mesures et ETAT PARTAGE avec la
+ * demo (point a deplacer a la souris, « extrapolation » hors de l'enveloppe convexe du nuage,
+ * fleche de l'effort latent applique), et deux vues 2D de plus, saisissables comme les autres.
  *
  * Dynamique (phys.js) : q'' = -K q - C q' + G s'' + b, identifiee sur q(t) ; B est mis a
  * zero, la position de repos ne depend pas de s. s suit le curseur avec une inertie
@@ -143,7 +143,7 @@
       for (let j = 0; j < dq; j++) a[i] += -P.K[i][j] * S.q[j] - P.C[i][j] * S.v[j];
     }
     const cp = coupling();
-    if (!cp) { S.Fq = 0; for (let i = 0; i < dq; i++) S.v[i] += dt * a[i]; }
+    if (!cp) { S.Fq = 0; S.F = [0, 0]; for (let i = 0; i < dq; i++) S.v[i] += dt * a[i]; }
     else {
       const w = dt * (cp.c + dt * cp.k), A = [[0, 0], [0, 0]], r = [0, 0];
       for (let i = 0; i < 2; i++) {
@@ -155,6 +155,8 @@
       const F = [0, 1].map(i => cp.F0[i] - (cp.c + dt * cp.k) * (cp.JtJ[i][0] * v1[0] + cp.JtJ[i][1] * v1[1]));
       const nF = Math.hypot(F[0], F[1]);
       S.Fq = Math.min(nF, FMAX);
+      // effort latent effectivement applique (borne comprise) : fleche du plan latent
+      S.F = nF <= FMAX ? F : F.map(x => x * FMAX / nF);
       if (nF <= FMAX) { S.v[0] = v1[0]; S.v[1] = v1[1]; }
       else for (let i = 0; i < 2; i++) S.v[i] += dt * (a[i] + F[i] * FMAX / nF);
     }
@@ -267,11 +269,15 @@
     if (v.orbit) c.addEventListener('wheel', e => { e.preventDefault(); v.orbit.wheel(e); }, {passive: false});
   }
 
-  function view2D(name, cvId, ovId, radius, crop) {
-    const v = {canvas: $(cvId), ovl: $(ovId), radius, crop, gate: GATE2D, ready: false, visible: true,
+  // share : autre vue 2D dont on reprend les poids decodes (D) ; seul le contexte WebGL est propre
+  function view2D(name, cvId, ovId, radius, crop, share) {
+    const v = {canvas: $(cvId), ovl: $(ovId), radius, crop, share, gate: GATE2D, ready: false, visible: true,
                st: null, byQ: {}};
     v.init = (pack, q) => {
-      if (!v.byQ[q]) { const D = DeformSplat.load(pack); v.byQ[q] = {D, R: DeformSplat.renderer(v.canvas, D)}; }
+      if (!v.byQ[q]) {
+        const D = share ? share.byQ[q].D : DeformSplat.load(pack);
+        v.byQ[q] = {D, R: DeformSplat.renderer(v.canvas, D)};
+      }
       v.D = v.byQ[q].D; v.R = v.byQ[q].R; v.st = null;
       v.canvas.width = v.D.W; v.canvas.height = v.D.H;
       v.W = () => v.D.W; v.H = () => v.D.H;
@@ -417,7 +423,10 @@
   // camera fixe (270 x 480) : carre des lignes 120 a 390, bras, pince et languette
   const vFixed = view2D('fixed', 'cvFixed', 'ovFixed', 14, {y0: 120});
   const v3 = view3D('cv3d', 'ov3d', 22);
-  views.push(vCrop, vFixed, v3);
+  // section « espace latent » : les memes deux vues 2D (poids partages, saisie identique)
+  const vExCrop = view2D('crop', 'cvExCrop', 'ovExCrop', 18, null, vCrop);
+  const vExFixed = view2D('fixed', 'cvExFixed', 'ovExFixed', 14, {y0: 120}, vFixed);
+  views.push(vCrop, vFixed, v3, vExCrop, vExFixed);
 
   // ── qualites : fichiers, cote du rendu 3D (agrandi par le navigateur) et etiquettes ──
   const QUAL = {
@@ -456,7 +465,7 @@
       v.init(window.MPOV_DEC2D[key], q);
       loadingShow(v, false);
     }
-    EX.useQuality(q);
+    for (const v of [vExCrop, vExFixed]) if (v.share.byQ[q]) { v.init(null, q); loadingShow(v, false); }
     if (!v3.byQ[q]) {
       loadingShow(v3, true);
       try { await loadScript(Q.d3); packs3d[q] = window.MPOV_DEC3D; }
@@ -472,40 +481,15 @@
   function zNow() { return [S.q[0], S.q[1], S.s]; }
 
   // ── espace latent interpretable : nuage des q mesures (phys.js, cloud = (s, q0, q1) une
-  // image sur 12), etat choisi a la souris, et les deux decodeurs 2D a cet etat (q, s) ──
+  // image sur 12) et etat PARTAGE (S) avec la demo : le point est S.q, le curseur pilote s,
+  // « lecture » est celle de la demo. Saisir le point fige la simulation (vitesse nulle) ; le
+  // lacher la laisse figee. Fleche : effort latent applique F_q = J^T f (borne comprise), comme
+  // le plan de phase du sac de lagsplat.html (longueur 3 F / KREF en unites de q, plafonnee).
   const EX = (() => {
-    const X = {q: [0, 0], s: P.s_rest, dirty: true, visible: false, drag: false, hover: null,
-               views: []};
-    // decodeurs 2D : memes poids que la demo (D partage), un contexte WebGL par canevas
-    function exView(cvId, src, crop) {
-      const v = {canvas: $(cvId), src, crop, byQ: {}, R: null, D: null};
-      v.init = q => {
-        const D = src.byQ[q] && src.byQ[q].D;
-        if (!D) return;
-        if (!v.byQ[q]) v.byQ[q] = DeformSplat.renderer(v.canvas, D);
-        v.D = D; v.R = v.byQ[q];
-        v.canvas.width = D.W; v.canvas.height = D.H;
-        const ld = v.canvas.parentElement.querySelector('.loading'); if (ld) ld.style.display = 'none';
-      };
-      v.fit = () => {
-        // largeur de la scene carree ; camera fixe : lignes [y0, y0 + W) comme dans la demo
-        const st = v.canvas.parentElement, k = st.clientWidth / v.D.W;
-        const cw = st.clientWidth + 'px', ch = Math.floor(v.D.H * k) + 'px';
-        const top = Math.round(-(v.crop ? v.crop.y0 : 0) * k) + 'px';
-        if (v.canvas.style.width !== cw || v.canvas.style.height !== ch || v.canvas.style.top !== top) {
-          v.canvas.style.width = cw; v.canvas.style.height = ch; v.canvas.style.top = top;
-        }
-      };
-      X.views.push(v);
-      return v;
-    }
-    exView('cvExCrop', vCrop, null);
-    exView('cvExFixed', vFixed, {y0: 120});
-
-    // ── graphe ──
+    const X = {visible: false, drag: false, hover: null};
     const cv = $('exPlot'), ctx = cv.getContext('2d');
-    const lo = P.q_lo, hi = P.q_hi, slo = P.s_lo, shi = P.s_hi;
-    // enveloppe convexe des q mesures (chaine monotone d'Andrew), non affichee : un etat choisi
+    const lo = P.q_lo, hi = P.q_hi;
+    // enveloppe convexe des q mesures (chaine monotone d'Andrew), non affichee : un etat
     // hors d'elle est une extrapolation des decodeurs
     const HULL = (() => {
       const pts = P.cloud.map(c => [c[1], c[2]]).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
@@ -525,9 +509,10 @@
     }
     let geo = null, cache = null;
     // style du plan de phase de lagsplat.html (experience 3) : cadre fin gris, pas de grille,
-    // etiquettes q en gris, donnees en bleu --q translucide, etat en rouge a anneau blanc
+    // etiquettes q en gris, donnees en bleu --q translucide, etat en rouge a anneau blanc,
+    // effort latent en orange
     const FRAME = 'rgba(154,166,180,.6)', LABEL = '#5d6b7a', DATA = 'rgba(91,143,199,.35)';
-    const DOT = '#d23b3b';
+    const DOT = '#d23b3b', LAT = '#e8380d', LAT_ARROW_GAIN = 3.0;
     function layout() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2), w = cv.clientWidth, h = cv.clientHeight;
       if (!w || !h) return false;
@@ -556,6 +541,18 @@
       g.restore();
       return true;
     }
+    // fleche d'effort de lagsplat.html (drawForceArrow) : trait 3 px, pointe, point d'origine
+    function arrow(x0, y0, x1, y1, color) {
+      ctx.save(); ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+      const ang = Math.atan2(y1 - y0, x1 - x0), L = Math.hypot(x1 - x0, y1 - y0);
+      if (L > 6) {
+        ctx.beginPath(); ctx.moveTo(x1, y1);
+        ctx.lineTo(x1 - 12 * Math.cos(ang - 0.4), y1 - 12 * Math.sin(ang - 0.4));
+        ctx.lineTo(x1 - 12 * Math.cos(ang + 0.4), y1 - 12 * Math.sin(ang + 0.4)); ctx.closePath(); ctx.fill();
+      }
+      ctx.beginPath(); ctx.arc(x0, y0, 4, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    }
     function drawPlot() {
       if (!layout()) return;
       ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, geo.W, geo.H); ctx.drawImage(cache, 0, 0);
@@ -567,8 +564,18 @@
         ctx.beginPath(); ctx.moveTo(hx, geo.oy); ctx.lineTo(hx, geo.oy + geo.inner);
         ctx.moveTo(geo.ox, hy); ctx.lineTo(geo.ox + geo.inner, hy); ctx.stroke(); ctx.setLineDash([]);
       }
-      // etat choisi : point rouge a anneau blanc
-      ctx.beginPath(); ctx.arc(geo.px(X.q[0]), geo.py(X.q[1]), 7, 0, 6.284);
+      const sx = geo.px(S.q[0]), sy = geo.py(S.q[1]);
+      // effort latent applique, pendant une saisie
+      const F = S.F || [0, 0];
+      if (S.grab && (F[0] || F[1])) {
+        const k = LAT_ARROW_GAIN * geo.sc / KREF;
+        let vx = F[0] * k, vy = -F[1] * k;
+        const vm = Math.hypot(vx, vy), VMAX = 0.40 * geo.inner;
+        if (vm > VMAX) { vx *= VMAX / vm; vy *= VMAX / vm; }
+        arrow(sx, sy, sx + vx, sy + vy, LAT);
+      }
+      // etat courant : point rouge a anneau blanc
+      ctx.beginPath(); ctx.arc(sx, sy, 7, 0, 6.284);
       ctx.fillStyle = DOT; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
     }
     function qAt(e) {
@@ -578,74 +585,31 @@
     function hoverText(q) {
       return 'q = (' + q[0].toFixed(2) + ', ' + q[1].toFixed(2) + ')' + (inHull(q) ? '' : ' · extrapolation');
     }
-    // ── physique du panneau : meme dynamique que la demo (q'' = -K q - C q' + G s'' + b,
-    // barriere au bord du domaine couvert), s suit le curseur avec la meme inertie. Saisir le
-    // point fige l'etat (vitesse nulle) ; le lacher le laisse fige, « lecture » relance.
-    X.v = [0, 0]; X.sd = 0; X.target = X.s; X.running = false; X.acc = 0;
-    function setRunning(r) { X.running = r; $('exPlay').textContent = r ? '❚❚' : '▶'; }
-    function step() {
-      const kp = 400, kd = 40;
-      const sdd = Math.max(-P.sdd_max, Math.min(P.sdd_max, kp * (X.target - X.s) - kd * X.sd));
-      X.sd += dt * sdd; X.s += dt * X.sd;
-      const Fb = barrierForce(X.q, X.v), a = [0, 0];
-      for (let i = 0; i < dq; i++) {
-        a[i] = P.b[i] + Fb[i] + P.G[i] * sdd;
-        for (let j = 0; j < dq; j++) a[i] += -P.K[i][j] * X.q[j] - P.C[i][j] * X.v[j];
-      }
-      for (let i = 0; i < dq; i++) { X.v[i] += dt * a[i]; X.q[i] += dt * X.v[i]; }
-      // projection au bord du domaine (wallProject de la demo)
-      const d = distAt(X.q);
-      if (d > G.margin) {
-        const n = gradDist(X.q);
-        for (let k = 0; k < dq; k++) X.q[k] -= (d - G.margin) * n[k];
-        const vn = X.v[0] * n[0] + X.v[1] * n[1];
-        if (vn > 0) for (let k = 0; k < dq; k++) X.v[k] -= vn * n[k];
-      }
-    }
-    $('exPlay').onclick = () => setRunning(!X.running);
-    setRunning(false);
+    function place(q) { S.q[0] = q[0]; S.q[1] = q[1]; S.v[0] = 0; S.v[1] = 0; }
     cv.addEventListener('pointerdown', e => {
       if (!geo) return;
       X.drag = true; cv.setPointerCapture(e.pointerId);
-      setRunning(false); X.v = [0, 0];
-      X.q = qAt(e); X.dirty = true;
+      S.grab = null; S.cursor = null;
+      setRunning(false); place(qAt(e));
     });
     cv.addEventListener('pointermove', e => {
       if (!geo) return;
       const q = qAt(e); X.hover = q;
       $('exHover').textContent = hoverText(q);
-      if (X.drag) { X.q = q; X.dirty = true; } else X.plotDirty = true;
+      if (X.drag) place(q);
     });
-    for (const ev of ['pointerup', 'pointercancel']) cv.addEventListener(ev, () => { X.drag = false; X.plotDirty = true; });
-    cv.addEventListener('pointerleave', () => { X.hover = null; X.plotDirty = true; $('exHover').innerHTML = '&nbsp;'; });
-    const sx = $('exS');
-    sx.min = slo; sx.max = shi; sx.value = X.s;
-    sx.addEventListener('input', () => {
-      X.target = +sx.value;
-      // a l'arret, s suit le curseur directement ; en lecture, avec l'inertie du bras
-      if (!X.running) { X.s = X.target; X.sd = 0; }
-      X.dirty = true;
-    });
-    new IntersectionObserver(es => { X.visible = es.some(e => e.isIntersecting); X.dirty = true; })
+    for (const ev of ['pointerup', 'pointercancel']) cv.addEventListener(ev, () => { X.drag = false; });
+    cv.addEventListener('pointerleave', () => { X.hover = null; $('exHover').innerHTML = '&nbsp;'; });
+    new IntersectionObserver(es => { X.visible = es.some(e => e.isIntersecting); })
       .observe(document.querySelector('#lags-demo .ex-grid'));
-    new ResizeObserver(() => { X.dirty = true; }).observe(cv);
 
     return {
-      useQuality(q) { for (const v of X.views) v.init(q); X.dirty = true; },
-      frame(el) {
+      frame() {
         if (!X.visible) return;
-        if (X.running && !X.drag) {
-          X.acc = Math.min(X.acc + el, 40 * dt);
-          while (X.acc >= dt) { step(); X.acc -= dt; }
-          X.dirty = true;
-        }
-        if (X.dirty || X.plotDirty) { drawPlot(); X.plotDirty = false; }
-        if (!X.dirty) return;
-        for (const v of X.views) if (v.R) { v.fit(); v.R.draw(v.D.state([X.q[0], X.q[1], X.s])); }
-        $('exQ').textContent = X.q[0].toFixed(2) + ', ' + X.q[1].toFixed(2);
-        const ext = !inHull(X.q);
+        drawPlot();
+        $('exQ').textContent = S.q[0].toFixed(2) + ', ' + S.q[1].toFixed(2);
+        const ext = !inHull(S.q);
         for (const b of document.querySelectorAll('#lags-demo .ex-grid .ext')) b.style.display = ext ? 'block' : 'none';
-        X.dirty = false;
       }};
   })();
 
@@ -672,9 +636,10 @@
       ms[v.canvas.id] = 0.9 * (ms[v.canvas.id] || 0) + 0.1 * (performance.now() - t0);
       drawOverlay(v);
     }
-    EX.frame(el);
+    EX.frame();
     $('mpQ').textContent = S.q[0].toFixed(2) + ', ' + S.q[1].toFixed(2);
-    if (!S.replay && document.activeElement !== $('mpS')) $('mpS').value = S.target;
+    for (const id of ['mpS', 'exS'])
+      if (!S.replay && document.activeElement !== $(id)) $(id).value = S.target;
     $('mpStats').textContent = (quality === 'high' ? 'high' : 'low') + ' resolution · ' + fps.toFixed(0) + ' fps · ' + Object.entries(ms)
       .map(([k, v]) => k.replace('cv', '') + ' ' + v.toFixed(1) + ' ms').join(' · ')
       + (distAt(Array.from(S.q)) > 0 ? ' · edge of the explored domain' : '');
@@ -682,14 +647,20 @@
   }
 
   // ── commandes ───────────────────────────────────────────────────────────
-  function setRunning(r) { S.running = r; $('mpPlay').textContent = r ? '❚❚' : '▶'; }
-  $('mpPlay').onclick = () => setRunning(!S.running);
-  const sl = $('mpS');
-  sl.min = P.s_lo; sl.max = P.s_hi; sl.value = S.target;
-  sl.addEventListener('input', () => {
-    S.target = +sl.value;
-    if (S.replay) { S.replay = false; $('mpReplay').classList.remove('on'); }
-  });
+  function setRunning(r) {
+    S.running = r;
+    for (const id of ['mpPlay', 'exPlay']) $(id).textContent = r ? '\u275a\u275a' : '\u25b6';
+  }
+  $('mpPlay').onclick = $('exPlay').onclick = () => setRunning(!S.running);
+  for (const id of ['mpS', 'exS']) {
+    const sl = $(id);
+    sl.min = P.s_lo; sl.max = P.s_hi; sl.value = S.target;
+    sl.addEventListener('input', () => {
+      S.target = +sl.value;
+      if (S.replay) { S.replay = false; $('mpReplay').classList.remove('on'); }
+    });
+  }
+  setRunning(S.running);
   $('mpReplay').onclick = e => {
     S.replay = !S.replay; S.k = 0; e.currentTarget.classList.toggle('on', S.replay);
     if (!S.replay) { S.target = S.s; S.sd = 0; }

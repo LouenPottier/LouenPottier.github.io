@@ -121,7 +121,9 @@
 #lags-demo .ex-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start;}
 @media(max-width:880px){#lags-demo .ex-grid{grid-template-columns:1fr}}
 #lags-demo .ex-grid .stage.sq{aspect-ratio:1/1;overflow:hidden;display:block;}
-#lags-demo .ex-grid .stage.sq canvas.view{display:block;position:absolute;left:0;}
+#lags-demo .ex-grid .stage.sq canvas.view{display:block;position:absolute;left:0;touch-action:none;cursor:grab;}
+#lags-demo .ex-grid canvas.view.grabbing{cursor:grabbing}
+#lags-demo .ex-grid canvas.ovl{position:absolute;pointer-events:none;}
 #lags-demo .plot-wrap{position:relative;width:100%;aspect-ratio:1/1;
   background:radial-gradient(130% 120% at 50% 12%,#ffffff 0%,#eef0f3 100%);}
 #lags-demo #exPlot{display:block;width:100%;height:100%;cursor:crosshair;touch-action:none;}
@@ -131,6 +133,7 @@
 #lags-demo .ex-legend .key{display:inline-flex;align-items:center;gap:6px;}
 #lags-demo .ex-legend .dot-sel{display:inline-block;width:10px;height:10px;border-radius:50%;
   background:#d23b3b;box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(154,166,180,.6);}
+#lags-demo .ex-legend .arr-lat{display:inline-block;width:16px;height:3px;background:#e8380d;border-radius:2px;}
 #lags-demo .ex-legend .dot-rec{display:inline-block;width:6px;height:6px;border-radius:50%;background:rgba(91,143,199,.6);}
 #lags-demo .ex-grid .badge.ext{display:none;z-index:2;color:var(--navy);font-weight:600;}
 #lags-demo .ex-hover{font-family:var(--mono);font-size:.6rem;color:var(--text-muted);margin:0;padding:4px 15px 10px;}
@@ -305,8 +308,8 @@
       <h2 class="exp-title" data-en="Interpretable latent space" data-fr="Espace latent interprétable">Interpretable latent space</h2>
     </div>
     <p class="vid-note"
-       data-en="Each dot is one frame of the recording, placed at its encoded state q = (q0, q1). Click or drag in the plot to choose a state; the two 2D decoders show the image for that state and for the arm position set by the slider. The play button lets the identified dynamics evolve from the chosen state; grabbing the dot freezes it. Outside the convex hull of the dots, the decoders extrapolate."
-       data-fr="Chaque point est une image de l'enregistrement, placée à son état encodé q = (q0, q1). Cliquer ou glisser dans le graphe pour choisir un état ; les deux décodeurs 2D montrent l'image de cet état, pour la position du bras réglée par le curseur. Le bouton lecture laisse évoluer la dynamique identifiée à partir de l'état choisi ; saisir le point le fige. Hors de l'enveloppe convexe des points, les décodeurs extrapolent.">
+       data-en="Each dot is one frame of the recording, placed at its encoded state q = (q0, q1). The red dot is the current state, shared with the demo above: the arm slider, the play button and the effort applied in any view act on the same state. Dragging the dot sets the state and freezes the simulation; the play button restarts it. While the tab is pushed in a 2D view, the arrow shows the effort brought back into the latent space, J&#7488;f. Outside the convex hull of the dots, the decoders extrapolate."
+       data-fr="Chaque point est une image de l'enregistrement, placée à son état encodé q = (q0, q1). Le point rouge est l'état courant, partagé avec la démo ci-dessus : le curseur du bras, le bouton lecture et l'effort appliqué dans n'importe quelle vue agissent sur le même état. Glisser le point fixe l'état et fige la simulation ; le bouton lecture la relance. Pendant qu'on pousse la languette dans une vue 2D, la flèche montre l'effort ramené dans l'espace latent, J&#7488;f. Hors de l'enveloppe convexe des points, les décodeurs extrapolent.">
       Each dot is one frame of the recording, placed at its encoded state q = (q0, q1).
     </p>
 
@@ -317,7 +320,7 @@
         <input type="range" id="exS" step="0.001"/>
       </div>
       <div class="ctl">
-        <label data-en="chosen state q" data-fr="état choisi q">chosen state q</label>
+        <label data-en="latent state q" data-fr="état latent q">latent state q</label>
         <span class="valbig" id="exQ">0.00, 0.00</span>
       </div>
     </div>
@@ -327,11 +330,12 @@
         <div class="phead">
           <div class="tag" data-en="dataset · encoded states" data-fr="jeu de données · états encodés">dataset · encoded states</div>
           <h2 data-en="Latent plane (q0, q1)" data-fr="Plan latent (q0, q1)">Latent plane (q0, q1)</h2>
-          <div class="sub" data-en="click or drag to choose a state" data-fr="cliquer ou glisser pour choisir un état">click or drag to choose a state</div>
+          <div class="sub" data-en="drag the dot to set the state" data-fr="glisser le point pour fixer l'état">drag the dot to set the state</div>
         </div>
         <div class="plot-wrap"><canvas id="exPlot"></canvas><div class="badge" data-en="drag the dot" data-fr="glisser le point">drag the dot</div></div>
         <div class="ex-legend">
-          <span class="key"><i class="dot-sel"></i><span data-en="chosen state" data-fr="état choisi">chosen state</span></span>
+          <span class="key"><i class="dot-sel"></i><span data-en="current state" data-fr="état courant">current state</span></span>
+          <span class="key"><i class="arr-lat"></i><span data-en="latent effort Jᵀf" data-fr="effort latent Jᵀf">latent effort Jᵀf</span></span>
           <span class="key"><i class="dot-rec"></i><span data-en="recorded frames" data-fr="images enregistrées">recorded frames</span></span>
         </div>
         <p class="ex-hover" id="exHover">&nbsp;</p>
@@ -340,16 +344,18 @@
         <div class="phead">
           <div class="tag" data-en="2D decoder" data-fr="décodeur 2D">2D decoder</div>
           <h2 data-en="Tracking window" data-fr="Fenêtre suiveuse">Tracking window</h2>
+          <div class="sub" data-en="drag on the tab to push it" data-fr="glisser sur la languette pour la pousser">drag on the tab to push it</div>
         </div>
-        <div class="stage sq"><canvas class="view" id="cvExCrop"></canvas><span class="badge ext">extrapolation</span>
+        <div class="stage sq"><canvas class="view" id="cvExCrop"></canvas><canvas class="ovl" id="ovExCrop"></canvas><span class="badge ext">extrapolation</span>
           <div class="loading" data-en="loading" data-fr="chargement">loading</div></div>
       </section>
       <section class="panel q">
         <div class="phead">
           <div class="tag" data-en="2D decoder" data-fr="décodeur 2D">2D decoder</div>
           <h2 data-en="Fixed camera" data-fr="Caméra fixe">Fixed camera</h2>
+          <div class="sub" data-en="drag on the tab to push it" data-fr="glisser sur la languette pour la pousser">drag on the tab to push it</div>
         </div>
-        <div class="stage sq"><canvas class="view" id="cvExFixed"></canvas><span class="badge ext">extrapolation</span>
+        <div class="stage sq"><canvas class="view" id="cvExFixed"></canvas><canvas class="ovl" id="ovExFixed"></canvas><span class="badge ext">extrapolation</span>
           <div class="loading" data-en="loading" data-fr="chargement">loading</div></div>
       </section>
     </div>
