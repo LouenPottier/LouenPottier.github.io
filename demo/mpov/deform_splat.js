@@ -160,10 +160,24 @@
     D.select = function (st, x, y, radius, uniform) {
       const idx = [], w = [], ws = [];
       const side = 0.5 * (D.W + D.H);
+      // premier plan seulement, comme zoned3d.js : profondeur < 1.15 x la plus petite profondeur
+      // des gaussiennes opaques du disque. Sans ce filtre, les gaussiennes de fond (immobiles en q)
+      // emportaient jusqu'a 2/3 du poids : le point d'application bougeait ~3 fois moins que la
+      // languette (fenetre suiveuse, mesure).
+      const r2max = radius * radius;
+      let zref = Infinity, zany = Infinity;
+      for (let g = 0; g < K; g++) {
+        const dx = st.mu[2 * g] * D.W - x, dy = st.mu[2 * g + 1] * D.H - y;
+        if (dx * dx + dy * dy > r2max) continue;
+        zany = Math.min(zany, st.Z[g]);
+        if (D.alpha(g) > 0.2) zref = Math.min(zref, st.Z[g]);
+      }
+      if (!isFinite(zref)) zref = zany;
+      const zcut = zref * 1.15;
       for (let g = 0; g < K; g++) {
         const dx = st.mu[2 * g] * D.W - x, dy = st.mu[2 * g + 1] * D.H - y;
         const r2 = dx * dx + dy * dy;
-        if (r2 > radius * radius) continue;
+        if (r2 > r2max || !(st.Z[g] < zcut)) continue;
         const a = D.alpha(g);
         let wi;
         if (uniform) wi = a;
