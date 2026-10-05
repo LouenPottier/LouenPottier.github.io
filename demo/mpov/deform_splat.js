@@ -2,13 +2,14 @@
  * deform_splat.js : decodeur 2D a deformation PARTAGEE (models_deform.SharedDeformSplatDecoder)
  * evalue dans le navigateur, sans gsplat.
  *
- *   z = (q0, q1, s)  ->  Fourier  ->  MLP (SiLU)  ->  K x 9 sorties
+ *   z = (q0, q1, s)  ->  Fourier  ->  MLP (SiLU)  ->  K x 9 sorties (K x 10 si deform_alpha)
  *   mu    = mu0 + tanh(o[0:2]) * dmu          centre, coordonnees normalisees
  *   prof  = prof0 + tanh(o[2]) * dprof        profondeur : ORDRE de compositing
  *   s     = scale_min + softplus(logs0 + tanh(o[3:5]) * dlogs)
  *   theta = theta0 + tanh(o[5]) * dtheta
  *   color = sigmoid(color0 + tanh(o[6:9]) * dcolor)
- *   alpha constante (canonique)
+ *   alpha = alpha0 (canonique), ou si meta.deform_alpha :
+ *           alpha_min + (1 - alpha_min) sigmoid(logit0 + tanh(o[9]) * dalpha)   (depend de z)
  *
  * Rendu : recette de gsplat.rasterization telle que l'appelle forward() :
  *   - caméra fictive de focales (W, H), point principal (W/2, H/2), gaussienne 3D en
@@ -42,6 +43,20 @@
     if (e === 0) return s * Math.pow(2, -14) * (f / 1024);
     if (e === 31) return f ? NaN : s * Infinity;
     return s * Math.pow(2, e - 15) * (1 + f / 1024);
+  }
+
+  // exposant de la mobilite : 1 = |J_j|, 2 = |J_j|^2 (2026-10-05, plus fort)
+  const MOB_POW = 2;
+  function mobilityWeights(w, Ji, n) {
+    const wm = new Float64Array(n);
+    let s = 0;
+    for (let j = 0; j < n; j++) {
+      wm[j] = w[j] * Math.pow(Math.hypot(Ji[4 * j], Ji[4 * j + 1], Ji[4 * j + 2], Ji[4 * j + 3]), MOB_POW);
+      s += wm[j];
+    }
+    if (!(s > 0)) return w;
+    for (let j = 0; j < n; j++) wm[j] /= s;
+    return wm;
   }
 
   function load(pack) {
@@ -129,7 +144,8 @@
       headOut(hiddenOf(z), null, raw);
       const st = {mu: new Float32Array(2 * K), Z: new Float32Array(K),
                   s: new Float32Array(2 * K), th: new Float32Array(K),
-                  col: new Float32Array(3 * K), z: z.slice()};
+                  col: new Float32Array(3 * K), z: z.slice(),
+                  a: meta.deform_alpha ? new Float32Array(K) : null};
       for (let g = 0; g < K; g++) {
         const c = g * 10, o = g * NO;
         st.mu[2 * g] = C[c] + Math.tanh(raw[o]) * B.dmu;
@@ -140,10 +156,15 @@
         st.th[g] = C[c + 5] + Math.tanh(raw[o + 5]) * B.dtheta;
         for (let k = 0; k < 3; k++)
           st.col[3 * g + k] = sg(C[c + 7 + k] + Math.tanh(raw[o + 6 + k]) * B.dcolor);
+        if (st.a)
+          st.a[g] = meta.alpha_min + (1 - meta.alpha_min)
+                    * sg(C[c + 6] + Math.tanh(raw[o + 9]) * B.dalpha);
       }
       return st;
     };
-    D.alpha = g => C[g * 10 + 6];
+    // opacite de la gaussienne g ; avec deform_alpha elle depend de l'etat `st`
+    // (canon[6] porte alors le logit de base, pas l'opacite)
+    D.alpha = (g, st) => (st && st.a ? st.a[g] : C[g * 10 + 6]);
 
     // centre (px) des gaussiennes `idx` a l'etat z, sans evaluer les autres
     D.centers = function (z, idx) {
@@ -160,25 +181,13 @@
     D.select = function (st, x, y, radius, uniform) {
       const idx = [], w = [], ws = [];
       const side = 0.5 * (D.W + D.H);
-      // premier plan seulement, comme zoned3d.js : profondeur < 1.15 x la plus petite profondeur
-      // des gaussiennes opaques du disque. Sans ce filtre, les gaussiennes de fond (immobiles en q)
-      // emportaient jusqu'a 2/3 du poids : le point d'application bougeait ~3 fois moins que la
-      // languette (fenetre suiveuse, mesure).
+      // toutes les gaussiennes du disque, sans filtre de profondeur (retire le 2026-10-05)
       const r2max = radius * radius;
-      let zref = Infinity, zany = Infinity;
-      for (let g = 0; g < K; g++) {
-        const dx = st.mu[2 * g] * D.W - x, dy = st.mu[2 * g + 1] * D.H - y;
-        if (dx * dx + dy * dy > r2max) continue;
-        zany = Math.min(zany, st.Z[g]);
-        if (D.alpha(g) > 0.2) zref = Math.min(zref, st.Z[g]);
-      }
-      if (!isFinite(zref)) zref = zany;
-      const zcut = zref * 1.15;
       for (let g = 0; g < K; g++) {
         const dx = st.mu[2 * g] * D.W - x, dy = st.mu[2 * g + 1] * D.H - y;
         const r2 = dx * dx + dy * dy;
-        if (r2 > r2max || !(st.Z[g] < zcut)) continue;
-        const a = D.alpha(g);
+        if (r2 > r2max) continue;
+        const a = D.alpha(g, st);
         let wi;
         if (uniform) wi = a;
         else {
@@ -197,21 +206,28 @@
     };
 
     // point materiel saisi et J = d(point)/dq (px par unite de q), differences centrees
+    // poids de saisie ponderes par la MOBILITE (2026-10-05) : w_j |J_j|^MOB_POW renormalises, |J_j| norme de
+    // Frobenius du jacobien de la gaussienne j (px par unite de q). Une gaussienne immobile en q (le
+    // fond) ne pese plus rien dans le point d'application ni dans J. Recalcule a chaque appel, donc
+    // pendant le mouvement. Repli sur w si rien ne bouge. La porte (n_eff, coherence) garde les ws.
     D.jacobian = function (z, sel, h) {
       h = h || 0.05;
       const n = sel.idx.length, base = D.centers(z, sel.idx);
-      const pt = [0, 0];
-      for (let j = 0; j < n; j++) { pt[0] += sel.w[j] * base[2 * j]; pt[1] += sel.w[j] * base[2 * j + 1]; }
-      const J = [[0, 0], [0, 0]], Ji = new Float64Array(n * 4);
+      const Ji = new Float64Array(n * 4);
       for (let k = 0; k < 2; k++) {
         const zp = z.slice(), zm = z.slice();
         zp[k] += h; zm[k] -= h;
         const cp = D.centers(zp, sel.idx), cm = D.centers(zm, sel.idx);
         for (let j = 0; j < n; j++) {
-          const gx = (cp[2 * j] - cm[2 * j]) / (2 * h), gy = (cp[2 * j + 1] - cm[2 * j + 1]) / (2 * h);
-          J[0][k] += sel.w[j] * gx; J[1][k] += sel.w[j] * gy;
-          Ji[4 * j + k] = gx; Ji[4 * j + 2 + k] = gy;
+          Ji[4 * j + k] = (cp[2 * j] - cm[2 * j]) / (2 * h);
+          Ji[4 * j + 2 + k] = (cp[2 * j + 1] - cm[2 * j + 1]) / (2 * h);
         }
+      }
+      const wm = mobilityWeights(sel.w, Ji, n);
+      const pt = [0, 0], J = [[0, 0], [0, 0]];
+      for (let j = 0; j < n; j++) {
+        pt[0] += wm[j] * base[2 * j]; pt[1] += wm[j] * base[2 * j + 1];
+        for (let k = 0; k < 2; k++) { J[0][k] += wm[j] * Ji[4 * j + k]; J[1][k] += wm[j] * Ji[4 * j + 2 + k]; }
       }
       // statistiques de porte (cf. serve_deform_demo.py) : n_eff et coherence en q
       let mean = [0, 0, 0, 0], den = 0, s2 = 0;
@@ -342,7 +358,7 @@
         inst[o] = mx * W; inst[o + 1] = my * H;
         inst[o + 2] = d / det; inst[o + 3] = -b / det; inst[o + 4] = a / det;
         inst[o + 5] = Math.ceil(3 * Math.sqrt(lmax));
-        inst[o + 6] = D.alpha(g); inst[o + 7] = 0;
+        inst[o + 6] = D.alpha(g, st); inst[o + 7] = 0;
         inst[o + 8] = st.col[3 * g]; inst[o + 9] = st.col[3 * g + 1]; inst[o + 10] = st.col[3 * g + 2];
         n++;
       }
@@ -378,5 +394,5 @@
     return {draw, gl, floatTarget: !!fl};
   }
 
-  root.DeformSplat = {load, renderer};
+  root.DeformSplat = {load, renderer, mobilityWeights};
 })(typeof window !== 'undefined' ? window : this);

@@ -26,6 +26,21 @@
 (function (root) {
   'use strict';
 
+  // w_j |J_j| renormalises (cf. jacobian) ; meme fonction que deform_splat.js
+  // exposant de la mobilite : 1 = |J_j|, 2 = |J_j|^2 (2026-10-05, plus fort)
+  const MOB_POW = 2;
+  function mobilityWeights(w, Ji, n) {
+    const wm = new Float64Array(n);
+    let s = 0;
+    for (let j = 0; j < n; j++) {
+      wm[j] = w[j] * Math.pow(Math.hypot(Ji[4 * j], Ji[4 * j + 1], Ji[4 * j + 2], Ji[4 * j + 3]), MOB_POW);
+      s += wm[j];
+    }
+    if (!(s > 0)) return w;
+    for (let j = 0; j < n; j++) wm[j] /= s;
+    return wm;
+  }
+
   function b64ToBytes(b64) {
     const bin = atob(b64), n = bin.length, out = new Uint8Array(n);
     for (let i = 0; i < n; i++) out[i] = bin.charCodeAt(i);
@@ -199,7 +214,7 @@
       return [K[0][0] * xc / zc + K[0][2], K[1][1] * yc / zc + K[1][2], zc];
     }
 
-    // saisie : gaussiennes du disque, les plus proches de la camera seulement (cf. demo3d.py)
+    // saisie : toutes les gaussiennes du disque, sans filtre de profondeur (retire le 2026-10-05)
     function select(cam, x, y, radius, uniform) {
       const cand = [];
       for (let g = 0; g < N; g++) {
@@ -209,10 +224,7 @@
         if (r2 <= radius * radius) cand.push([g, r2, p[2]]);
       }
       if (!cand.length) return null;
-      let zref = Infinity;
-      for (const c of cand) if (alpha[c[0]] > 0.2) zref = Math.min(zref, c[2]);
-      if (!isFinite(zref)) zref = Math.min(...cand.map(c => c[2]));
-      const sel = cand.filter(c => c[2] < zref * 1.15);
+      const sel = cand;
       const f = cam.K[0][0];
       const idx = [], w = [], ws = [];
       for (const [g, r2, dep] of sel) {
@@ -231,14 +243,18 @@
     }
 
     // point saisi (px) et J = d(point)/dq (px par unite de q), differences centrees
+    // poids de saisie ponderes par la MOBILITE (2026-10-05) : w_j |J_j|^MOB_POW renormalises, |J_j| norme de
+    // Frobenius du jacobien de la gaussienne j (px par unite de q). Une gaussienne immobile en q (le
+    // fond) ne pese plus rien dans le point d'application ni dans J. Recalcule a chaque appel, donc
+    // pendant le mouvement. Repli sur w si rien ne bouge. La porte (n_eff, coherence) garde les ws.
     function jacobian(z, cam, sel, h) {
       h = h || 0.05;
       const n = sel.idx.length, pt = [0, 0], J = [[0, 0], [0, 0]], Ji = new Float64Array(4 * n);
-      const qi = [], qj = [];
+      const qi = [], qj = [], P0 = new Float64Array(2 * n);
       for (let j = 0; j < n; j++) {
         const g = sel.idx[j];
         const p = project(cam, [xyz[3 * g], xyz[3 * g + 1], xyz[3 * g + 2]]);
-        pt[0] += sel.w[j] * p[0]; pt[1] += sel.w[j] * p[1];
+        P0[2 * j] = p[0]; P0[2 * j + 1] = p[1];
         if (g < NQ) { qi.push(g); qj.push(j); }
       }
       if (qi.length) {
@@ -249,11 +265,15 @@
           for (let m = 0; m < qi.length; m++) {
             const a = project(cam, [Xp[3 * m], Xp[3 * m + 1], Xp[3 * m + 2]]);
             const b = project(cam, [Xm[3 * m], Xm[3 * m + 1], Xm[3 * m + 2]]);
-            const j = qj[m], gx = (a[0] - b[0]) / (2 * h), gy = (a[1] - b[1]) / (2 * h);
-            J[0][k] += sel.w[j] * gx; J[1][k] += sel.w[j] * gy;
-            Ji[4 * j + k] = gx; Ji[4 * j + 2 + k] = gy;
+            const j = qj[m];
+            Ji[4 * j + k] = (a[0] - b[0]) / (2 * h); Ji[4 * j + 2 + k] = (a[1] - b[1]) / (2 * h);
           }
         }
+      }
+      const wm = mobilityWeights(sel.w, Ji, n);
+      for (let j = 0; j < n; j++) {
+        pt[0] += wm[j] * P0[2 * j]; pt[1] += wm[j] * P0[2 * j + 1];
+        for (let k = 0; k < 2; k++) { J[0][k] += wm[j] * Ji[4 * j + k]; J[1][k] += wm[j] * Ji[4 * j + 2 + k]; }
       }
       const mean = [0, 0, 0, 0];
       let den = 0, s2 = 0;

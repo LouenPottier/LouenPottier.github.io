@@ -51,8 +51,12 @@
     const s = a * a + b * b + c * c + d * d, t = a * d - b * c;
     return Math.sqrt(0.5 * (s + Math.sqrt(Math.max(0, s * s - 4 * t * t)))); })() * P.q_disk.r;
   const FMAX = Math.pow(10, -0.4) * FREF;
+  // 2026-10-05 : plafond divise par 2 pour les vues 2D (FMAX inchange en 3D)
+  const FMAX2D = 0.5 * FMAX;
+  const fmaxOf = v => (v && v.fmax) || FMAX;
   // kc, cc : raideur et dissipation du couplage, en multiples de KREF et de 2 sqrt(KREF)
-  const G = {kc: 2.0, cc: 1.0, barrier: 8, margin: 0.02};
+  // 2026-10-05 : gain divise par 2 (2.0 -> 1.0), dissipation doublee (1.0 -> 2.0)
+  const G = {kc: 1.0, cc: 2.0, barrier: 8, margin: 0.02};
   // porte (n_eff, coherence) : par vue, n_eff dependant de la densite de gaussiennes du
   // decodeur. 3D : valeurs de la demo PC (meme decodeur) ; 2D : inchangees.
   const GATE2D = {nmin: Math.pow(10, 0.7), cmin: 0.5}, GATE3D = {nmin: Math.pow(10, 1.3), cmin: 0.8};
@@ -154,6 +158,7 @@
       const v1 = [(A[1][1] * r[0] - A[0][1] * r[1]) / det, (-A[1][0] * r[0] + A[0][0] * r[1]) / det];
       const F = [0, 1].map(i => cp.F0[i] - (cp.c + dt * cp.k) * (cp.JtJ[i][0] * v1[0] + cp.JtJ[i][1] * v1[1]));
       const nF = Math.hypot(F[0], F[1]);
+      const FMAX = fmaxOf(S.grab.view);
       S.Fq = Math.min(nF, FMAX);
       // effort latent effectivement applique (borne comprise) : fleche du plan latent
       S.F = nF <= FMAX ? F : F.map(x => x * FMAX / nF);
@@ -271,7 +276,7 @@
 
   // share : autre vue 2D dont on reprend les poids decodes (D) ; seul le contexte WebGL est propre
   function view2D(name, cvId, ovId, radius, crop, share) {
-    const v = {canvas: $(cvId), ovl: $(ovId), radius, crop, share, gate: GATE2D, ready: false, visible: true,
+    const v = {canvas: $(cvId), ovl: $(ovId), radius, crop, share, gate: GATE2D, fmax: FMAX2D, ready: false, visible: true,
                st: null, byQ: {}};
     v.init = (pack, q) => {
       if (!v.byQ[q]) {
@@ -334,6 +339,10 @@
         // fraction de la distance au pivot
         const pull = DOLLY0 * len3(sub3(pos, p));
         for (let j = 0; j < 3; j++) pos[j] -= z[j] * pull;
+        // 2026-10-05 : position par defaut rapprochee d'UN cran de molette (deltaY = -100 px,
+        // meme loi que wheel() : facteur exp(-100 x 0.0015)), homothetie autour du pivot
+        const k1 = Math.exp(-100 * 0.0015);
+        for (let j = 0; j < 3; j++) pos[j] = p[j] + (pos[j] - p[j]) * k1;
         [x, y, z].forEach((a, i) => { for (let j = 0; j < 3; j++) E[i][j] = a[j]; E[i][3] = -dot3(a, pos); });
       }
       v.ready = true;
@@ -429,11 +438,12 @@
   views.push(vCrop, vFixed, v3, vExCrop, vExFixed);
 
   // ── qualites : fichiers, cote du rendu 3D (agrandi par le navigateur) et etiquettes ──
+  // Seule la 3D change de qualite ; les deux vues 2D gardent le decodeur 5 000 gaussiennes.
+  const DEC2D = {crop: ['./demo/mpov/mpov_crop.js', 'crop'], fixed: ['./demo/mpov/mpov_fixed.js', 'fixed'],
+                 n2: '5 000'};
   const QUAL = {
-    low: {crop: ['./demo/mpov/mpov_crop.js', 'crop'], fixed: ['./demo/mpov/mpov_fixed.js', 'fixed'],
-          d3: './demo/mpov/mpov_3d.js', side: 512, n2: '5 000', n3: '20 000'},
-    high: {crop: ['./demo/mpov/mpov_crop_hi.js', 'crop_hi'], fixed: ['./demo/mpov/mpov_fixed_hi.js', 'fixed_hi'],
-           d3: './demo/mpov/mpov_3d_hi.js', side: 640, n2: '20 000', n3: '85 000'}};
+    low: {d3: './demo/mpov/mpov_3d.js', side: 512, n3: '20 000'},
+    high: {d3: './demo/mpov/mpov_3d_hi.js', side: 640, n3: '85 000'}};
   const packs3d = {};
   let quality = 'low', switching = false;
   function setLabel(el, en, fr) {
@@ -443,7 +453,7 @@
   function labels(q) {
     const Q = QUAL[q];
     for (const id of ['tagCrop', 'tagFixed'])
-      setLabel($(id), '2D decoder · ' + Q.n2 + ' Gaussians', 'décodeur 2D · ' + Q.n2 + ' gaussiennes');
+      setLabel($(id), '2D decoder · ' + DEC2D.n2 + ' Gaussians', 'décodeur 2D · ' + DEC2D.n2 + ' gaussiennes');
     setLabel($('tag3d'), '3D decoder · ' + Q.n3 + ' Gaussians · four views',
              'décodeur 3D · ' + Q.n3 + ' gaussiennes · quatre vues');
   }
@@ -456,16 +466,16 @@
     switching = true;
     const Q = QUAL[q];
     S.grab = null; S.cursor = null;          // les selections portent des indices de gaussiennes
-    for (const [v, [src, key]] of [[vCrop, Q.crop], [vFixed, Q.fixed]]) {
-      if (!v.byQ[q]) {
-        loadingShow(v, true);
-        try { if (!(window.MPOV_DEC2D && window.MPOV_DEC2D[key])) await loadScript(src); }
-        catch (e) { console.error(e); loadingShow(v, false); continue; }
-      }
-      v.init(window.MPOV_DEC2D[key], q);
+    // vues 2D : chargees une seule fois, sous la cle 'low', quelle que soit la qualite 3D
+    for (const [v, [src, key]] of [[vCrop, DEC2D.crop], [vFixed, DEC2D.fixed]]) {
+      if (v.byQ.low) continue;
+      loadingShow(v, true);
+      try { if (!(window.MPOV_DEC2D && window.MPOV_DEC2D[key])) await loadScript(src); }
+      catch (e) { console.error(e); loadingShow(v, false); continue; }
+      v.init(window.MPOV_DEC2D[key], 'low');
       loadingShow(v, false);
     }
-    for (const v of [vExCrop, vExFixed]) if (v.share.byQ[q]) { v.init(null, q); loadingShow(v, false); }
+    for (const v of [vExCrop, vExFixed]) if (v.share.byQ.low && !v.byQ.low) { v.init(null, 'low'); loadingShow(v, false); }
     if (!v3.byQ[q]) {
       loadingShow(v3, true);
       try { await loadScript(Q.d3); packs3d[q] = window.MPOV_DEC3D; }
@@ -732,7 +742,7 @@
         }
         const cpl = coupling();
         out.push('   point saisi ' + (cpl ? cpl.p.map(x => x.toFixed(1)) : '-') + ' px, consigne '
-          + S.cursor.map(x => x.toFixed(1)) + ' px, effort ' + (100 * S.Fq / FMAX).toFixed(0) + ' % du plafond');
+          + S.cursor.map(x => x.toFixed(1)) + ' px, effort ' + (100 * S.Fq / fmaxOf(S.grab && S.grab.view)).toFixed(0) + ' % du plafond');
         out.push(v.canvas.id + ' : saisie en (' + best.p.map(x => x.toFixed(0)) + ') px, n ' + best.j.n
           + ', n_eff ' + best.j.neff.toFixed(1) + ', coh ' + best.j.coh.toFixed(2) + ', porte ' + best.g.toFixed(2)
           + ', |J| ' + (best.nJ / Math.max(best.g, 1e-9)).toFixed(1) + ' px/q ; apres 1.5 s de traction : q = ('
