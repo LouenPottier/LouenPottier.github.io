@@ -11,8 +11,10 @@
  * Deux jeux de decodeurs 3D, choisis par l'interrupteur « haute resolution » (haute par defaut) :
  * 85 000 gaussiennes rendues en 640 px, ou 20 000 en 512 px (telecharge au premier passage).
  *
- * Dynamique (phys.js) : q'' = -K q - C q' + G s'' + b, identifiee sur q(t) ; B est mis a
- * zero, la position de repos ne depend pas de s. s suit le curseur avec une inertie
+ * Dynamique (2026-10-07) : LNN a masse et dissipation constantes et potentiel INVEXE (lnn.js,
+ * code_new_3D/demoxrdays/mpov/fit_lnn_invex.py), M q'' = -grad V(q) - C q' + G s'', evalue ici
+ * (gradient analytique du potentiel). Il remplace q'' = -K q - C q' + G s'' + b (phys.js), dont
+ * K sert encore d'echelle aux reglages de la saisie (KREF, FREF). s suit le curseur avec une inertie
  * (s'' borne a la valeur maximale mesuree) ou rejoue s(t) enregistre.
  *
  * Effort a la souris : consigne de position du point saisi, ressort et amortisseur,
@@ -26,7 +28,7 @@
  * de l'application XR. Les memes pour les trois vues.
  *
  * Coque hors des donnees (2026-10-07, bouton « coque hors des données », actif par defaut) :
- * la physique reste lineaire, mais au-dela du domaine des donnees (rayon R(theta) en q) la
+ * la physique reste celle du LNN, mais au-dela du domaine des donnees (rayon R(theta) en q) la
  * geometrie de la semelle 3D vient d'une coque elastique (zoned3d.js, shell_ext.js,
  * code_new_3D/demoxrdays/mpov/elastic/hybrid.py). La barriere est repoussee a EXT x R(theta),
  * le plafond d'effort multiplie par SHELL_FMAX pour pouvoir y tirer la semelle ; les vues 2D,
@@ -35,6 +37,72 @@
 (function () {
   'use strict';
   const P = window.MPOV_PHYS, dt = P.dt, dq = 2;
+
+  // ── LNN invexe (web/export_web_lnn.py) : V(q) = g(Phi(q) - Phi(q_r)), gradient analytique ──
+  const LN = (() => {
+    const W = window.MPOV_LNN;
+    const sp = x => x > 20 ? x : Math.log1p(Math.exp(x)), sg = x => 1 / (1 + Math.exp(-x));
+    const mv = (Mx, x) => Mx.map(r => r.reduce((a, w, j) => a + w * x[j], 0));
+    const mtv = (Mx, x) => { const o = new Array(Mx[0].length).fill(0);
+      Mx.forEach((r, i) => r.forEach((w, j) => { o[j] += w * x[i]; })); return o; };
+    // Phi et son jacobien (2 x 2)
+    function phi(q) {
+      let z = [q[0], q[1]], J = [[1, 0], [0, 1]];
+      for (const b of W.blocks) {
+        const a = mv(b.W1, z).map((v, i) => v + b.b1[i]), t = a.map(Math.tanh);
+        const r = mv(b.W2, t).map((v, i) => v + b.b2[i]);
+        const Jr = [[0, 0], [0, 0]];
+        for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) {
+          let v = 0;
+          for (let k = 0; k < t.length; k++) v += b.W2[i][k] * (1 - t[k] * t[k]) * b.W1[k][j];
+          Jr[i][j] = (i === j ? 1 : 0) + b.alpha * v;
+        }
+        J = [[Jr[0][0] * J[0][0] + Jr[0][1] * J[1][0], Jr[0][0] * J[0][1] + Jr[0][1] * J[1][1]],
+             [Jr[1][0] * J[0][0] + Jr[1][1] * J[1][0], Jr[1][0] * J[0][1] + Jr[1][1] * J[1][1]]];
+        z = [z[0] + b.alpha * r[0], z[1] + b.alpha * r[1]];
+      }
+      return {z, J};
+    }
+    // h (ICNN) et son gradient
+    function h(y) {
+      const I = W.icnn, a1 = mv(I.Wy0, y).map((v, i) => v + I.by0[i]), z1 = a1.map(sp);
+      const w1 = mv(I.Wy1, y);
+      const a2 = mv(I.Wz, z1).map((v, i) => v + w1[i] + I.by1[i]);
+      const val = a2.reduce((acc, v, i) => acc + I.out[i] * sp(v), 0);
+      const da2 = a2.map((v, i) => I.out[i] * sg(v));
+      const da1 = mtv(I.Wz, da2).map((v, i) => v * sg(a1[i]));
+      const g0 = mtv(I.Wy0, da1), g1 = mtv(I.Wy1, da2);
+      return {val, grad: [g0[0] + g1[0], g0[1] + g1[1]]};
+    }
+    const zr = phi(W.q_r).z, A = W.A;
+    function V(q, withGrad) {
+      const P_ = phi(q), y = [P_.z[0] - zr[0], P_.z[1] - zr[1]], H = h(y);
+      const Ay = mv(A, y);
+      const val = 0.5 * (y[0] * Ay[0] + y[1] * Ay[1]) + H.val - W.h0 - W.gh0[0] * y[0] - W.gh0[1] * y[1];
+      if (!withGrad) return val;
+      const gy = [Ay[0] + H.grad[0] - W.gh0[0], Ay[1] + H.grad[1] - W.gh0[1]];
+      return {val, grad: mtv(P_.J, gy)};
+    }
+    const M = W.M, detM = M[0][0] * M[1][1] - M[0][1] * M[1][0];
+    const Minv = [[M[1][1] / detM, -M[0][1] / detM], [-M[1][0] / detM, M[0][0] / detM]];
+    // acceleration sans saisie : M^-1 (-grad V - C v + G s'')
+    function accel(q, v, sdd) {
+      const g = V(q, true).grad, f = [0, 1].map(i => -g[i] - W.C[i][0] * v[0] - W.C[i][1] * v[1] + W.G[i] * sdd);
+      return mv(Minv, f);
+    }
+    // controle contre les valeurs de reference de PyTorch
+    function check() {
+      let eV = 0, eG = 0, eA = 0;
+      W.ref.q.forEach((q, i) => {
+        const r = V(q, true), a = accel(q, W.ref.v[i], W.ref.sdd[i]);
+        eV = Math.max(eV, Math.abs(r.val - W.ref.V[i]) / (1 + Math.abs(W.ref.V[i])));
+        eG = Math.max(eG, ...[0, 1].map(k => Math.abs(r.grad[k] - W.ref.gV[i][k]) / (1 + Math.abs(W.ref.gV[i][k]))));
+        eA = Math.max(eA, ...[0, 1].map(k => Math.abs(a[k] - W.ref.acc[i][k]) / (1 + Math.abs(W.ref.acc[i][k]))));
+      });
+      return {eV, eG, eA};
+    }
+    return {V, accel, M, Minv, G: W.G, q_r: W.q_r, check};
+  })();
   const root = document.getElementById('lags-demo');
   const $ = id => document.getElementById(id);
   const lang = () => (document.documentElement.lang === 'fr' ? 'fr' : 'en');
@@ -155,18 +223,20 @@
     }
     // point du plan latent tenu : etat fixe, vitesse nulle ; le bras continue (S.hold)
     if (S.hold) { S.v[0] = 0; S.v[1] = 0; S.Fq = 0; S.F = [0, 0]; return; }
-    const Fb = barrierForce(Array.from(S.q), Array.from(S.v)), a = [0, 0];
-    for (let i = 0; i < dq; i++) {
-      a[i] = P.b[i] + Fb[i] + P.G[i] * S.sdd;
-      for (let j = 0; j < dq; j++) a[i] += -P.K[i][j] * S.q[j] - P.C[i][j] * S.v[j];
-    }
+    // LNN : a = M^-1 (-grad V - C v + G s''), plus la barriere (en acceleration)
+    const Fb = barrierForce(Array.from(S.q), Array.from(S.v));
+    const aL = LN.accel(S.q, S.v, S.sdd), a = [aL[0] + Fb[0], aL[1] + Fb[1]];
     const cp = coupling();
     if (!cp) { S.Fq = 0; S.F = [0, 0]; for (let i = 0; i < dq; i++) S.v[i] += dt * a[i]; }
     else {
-      const w = dt * (cp.c + dt * cp.k), A = [[0, 0], [0, 0]], r = [0, 0];
+      // couplage implicite avec la masse du LNN : (M + w J^T J) v1 = M (v + dt a) + dt F0
+      const w = dt * (cp.c + dt * cp.k), A = [[0, 0], [0, 0]], r = [0, 0], Mm = LN.M;
       for (let i = 0; i < 2; i++) {
-        r[i] = S.v[i] + dt * (a[i] + cp.F0[i]);
-        for (let j = 0; j < 2; j++) A[i][j] = (i === j ? 1 : 0) + w * cp.JtJ[i][j];
+        r[i] = dt * cp.F0[i];
+        for (let j = 0; j < 2; j++) {
+          r[i] += Mm[i][j] * (S.v[j] + dt * a[j]);
+          A[i][j] = Mm[i][j] + w * cp.JtJ[i][j];
+        }
       }
       const det = A[0][0] * A[1][1] - A[0][1] * A[1][0];
       const v1 = [(A[1][1] * r[0] - A[0][1] * r[1]) / det, (-A[1][0] * r[0] + A[0][0] * r[1]) / det];
@@ -177,7 +247,10 @@
       // effort latent effectivement applique (borne comprise) : fleche du plan latent
       S.F = nF <= FMAX ? F : F.map(x => x * FMAX / nF);
       if (nF <= FMAX) { S.v[0] = v1[0]; S.v[1] = v1[1]; }
-      else for (let i = 0; i < 2; i++) S.v[i] += dt * (a[i] + F[i] * FMAX / nF);
+      else {
+        const Fc = F.map(x => x * FMAX / nF), aF = [0, 1].map(i => LN.Minv[i][0] * Fc[0] + LN.Minv[i][1] * Fc[1]);
+        for (let i = 0; i < 2; i++) S.v[i] += dt * (a[i] + aF[i]);
+      }
     }
     for (let i = 0; i < dq; i++) S.q[i] += dt * S.v[i];
     wallProject();
@@ -484,7 +557,14 @@
   // etat, sauf si la simulation est en pause (bouton lecture, independant de la saisie). Fleche : effort latent applique F_q = J^T f (borne comprise), comme
   // le plan de phase du sac de lagsplat.html (longueur 3 F / KREF en unites de q, plafonnee).
   const EX = (() => {
-    const X = {visible: false, drag: false, hover: null};
+    const X = {visible: false, drag: false, hover: null, cloud: true};
+    // vue FIXE centree sur le domaine des donnees (cote = 1.35 x leur plus grande etendue) ; la
+    // limite de la coque (EXT x R) n'est pas montree
+    function view() {
+      const h = 0.5 * 1.35 * Math.max(P.q_hi[0] - P.q_lo[0], P.q_hi[1] - P.q_lo[1]);
+      const m = [0.5 * (lo[0] + hi[0]), 0.5 * (lo[1] + hi[1])];
+      return [[m[0] - h, m[1] - h], [m[0] + h, m[1] + h]];
+    }
     const cv = $('exPlot'), ctx = cv.getContext('2d');
     // lo, hi, X.hover, qAt : coordonnees d'AFFICHAGE (D) ; S.q, inHull, le domaine : internes
     let lo = D(P.q_lo), hi = D(P.q_hi);
@@ -538,12 +618,13 @@
       const W = Math.round(w * dpr), H = Math.round(h * dpr);
       if (geo && geo.W === W && geo.H === H) return true;
       cv.width = W; cv.height = H;
-      // cadre carre (marge 10 % du cote, comme phaseBox) ; echelle EGALE sur q0 et q1
-      const side = Math.min(w, h), pad = 0.10 * side, inner = side - 2 * pad;
+      // cadre carre (marge 7 % du cote) ; echelle EGALE sur q0 et q1 ; vue zoomable (view)
+      const side = Math.min(w, h), pad = 0.07 * side, inner = side - 2 * pad;
       const ox = (w - side) / 2 + pad, oy = (h - side) / 2 + pad;
-      const span = Math.max(hi[0] - lo[0], hi[1] - lo[1]), sc = inner / span;
+      const [vlo, vhi] = view();
+      const span = vhi[0] - vlo[0], sc = inner / span;
       const cx = ox + inner / 2, cy = oy + inner / 2;
-      const mx = 0.5 * (lo[0] + hi[0]), my = 0.5 * (lo[1] + hi[1]);
+      const mx = 0.5 * (vlo[0] + vhi[0]), my = 0.5 * (vlo[1] + vhi[1]);
       geo = {W, H, dpr, w, h, sc, ox, oy, inner,
              px: q0 => cx + (q0 - mx) * sc, py: q1 => cy - (q1 - my) * sc,
              qx: x => mx + (x - cx) / sc, qy: y => my - (y - cy) / sc};
@@ -557,12 +638,13 @@
       g.save(); g.translate(ox - 14, oy + inner / 2); g.rotate(-Math.PI / 2); g.fillText(nm[1], 0, 0); g.restore();
       g.save(); g.beginPath(); g.rect(ox, oy, inner, inner); g.clip();
       g.fillStyle = DATA;
-      for (const c of P.cloud) { g.beginPath(); g.arc(geo.px(c[2]), geo.py(c[1]), 2, 0, 6.284); g.fill(); }
+      if (X.cloud)            // bouton « images enregistrées » (exCloud) : nuage affiche ou masque
+        for (const c of P.cloud) { g.beginPath(); g.arc(geo.px(c[2]), geo.py(c[1]), 2, 0, 6.284); g.fill(); }
       if (SHELL.SH) {
-        for (const [f, dash] of [[1, [5, 4]], [SHELL.SH.meta.ext, [1.5, 3]]]) {
-          g.strokeStyle = LABEL; g.lineWidth = 1.2; g.setLineDash(dash); g.beginPath();
+        for (const [f, dash] of [[1, [5, 4]]]) {              // domaine des donnees seulement
+          g.setLineDash(dash); g.beginPath();
           shellCurve(f).forEach((p, i) => i ? g.lineTo(geo.px(p[0]), geo.py(p[1])) : g.moveTo(geo.px(p[0]), geo.py(p[1])));
-          g.stroke();
+          g.strokeStyle = LABEL; g.lineWidth = 1.2; g.stroke();
         }
         g.setLineDash([]);
       }
@@ -608,7 +690,8 @@
     }
     function qAt(e) {
       const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-      return [Math.max(lo[0], Math.min(hi[0], geo.qx(x))), Math.max(lo[1], Math.min(hi[1], geo.qy(y)))];
+      const [vlo, vhi] = view();
+      return [Math.max(vlo[0], Math.min(vhi[0], geo.qx(x))), Math.max(vlo[1], Math.min(vhi[1], geo.qy(y)))];
     }
     function hoverText(d) {
       const q = D(d), sh = shellOn() && SHELL.SH.project(q).out;
@@ -631,6 +714,8 @@
     for (const ev of ['pointerup', 'pointercancel']) cv.addEventListener(ev, () => { X.drag = false; S.hold = false; S.v[0] = 0; S.v[1] = 0; });
     cv.addEventListener('pointerleave', () => { X.hover = null; $('exHover').innerHTML = '&nbsp;'; });
     new IntersectionObserver(es => { X.visible = es.some(e => e.isIntersecting); }).observe(cv);
+    $('exCloud').addEventListener('pointerdown', e => e.stopPropagation());
+    $('exCloud').onclick = () => { X.cloud = !X.cloud; $('exCloud').classList.toggle('on', X.cloud); geo = null; };
     // changement de langue (lang.js) : etiquettes des axes
     new MutationObserver(() => { geo = null; }).observe(document.documentElement, {attributes: true, attributeFilter: ['lang']});
 
@@ -728,7 +813,18 @@
   }
 
   // ── commandes ───────────────────────────────────────────────────────────
+  // pause : temps FIGE (ni q(t) ni s(t) n'avancent), mais le curseur deplace le bras tout de suite.
+  // A la reprise, le saut de s accumule pendant la pause est applique d'un coup : avec le forcage
+  // de d'Alembert M q'' = ... + G s'', p = q - M^-1 G s est continu a travers un deplacement
+  // instantane du bras, donc q saute de M^-1 G (s - s_pause), vitesse inchangee (reponse a un
+  // echelon) ; s(t) presente la meme discontinuite.
   function setRunning(r) {
+    if (!r && S.running) S.sPause = S.s;
+    if (r && !S.running && S.sPause !== undefined) {
+      const ds = S.s - S.sPause;
+      for (let i = 0; i < 2; i++) S.q[i] += (LN.Minv[i][0] * LN.G[0] + LN.Minv[i][1] * LN.G[1]) * ds;
+      S.sd = 0; S.sdd = 0; S.sPause = undefined;
+    }
     S.running = r;
     $('mpPlay').textContent = r ? '\u275a\u275a' : '\u25b6';
   }
@@ -739,6 +835,8 @@
     sl.addEventListener('input', () => {
       S.target = +sl.value;
       if (S.replay) { S.replay = false; $('mpReplay').classList.remove('on'); }
+      // en pause : le bras suit le curseur tout de suite (temps fige, pas de dynamique du bras)
+      if (!S.running) { S.s = S.target; S.sd = 0; S.sdd = 0; }
     });
   }
   setRunning(S.running);
@@ -751,7 +849,7 @@
     for (let i = 0; i < dq; i++) S.v[i] += (Math.random() * 2 - 1) * 12 * P.q_std[i];
     if (!S.running) setRunning(true);
   };
-  $('mpRest').onclick = () => { S.q.fill(0); S.v.fill(0); };
+  $('mpRest').onclick = () => { S.q[0] = LN.q_r[0]; S.q[1] = LN.q_r[1]; S.v.fill(0); };
   $('mpHi').onclick = () => { if (started) useQuality(quality === 'high' ? 'low' : 'high'); };
   $('mpShell').onclick = () => {
     if (!SHELL.SH) return;
@@ -841,6 +939,9 @@
         S.grab = null; S.cursor = null;
       }
       }
+      const ck = LN.check();
+      out.push('LNN JS contre PyTorch : ecart relatif max V ' + ck.eV.toExponential(1) + ', grad V '
+               + ck.eG.toExponential(1) + ', acceleration ' + ck.eA.toExponential(1));
       const d = document.createElement('pre'); d.id = 'selftest'; d.textContent = out.join('\n');
       document.body.appendChild(d);
     })();
@@ -866,7 +967,8 @@
     const h2 = pan('exPlot').offsetHeight - stg('exPlot').offsetHeight;
     const hR = pan('cv3d').offsetHeight - stg('cv3d').offsetHeight;
     const g = parseFloat(getComputedStyle(grid).columnGap) || 14, T = grid.clientWidth;
-    const a = Math.round((T - 2 * g + hR - h1 - h2) / 3);
+    const r1 = stg('qtPlot').offsetHeight / Math.max(1, stg('qtPlot').offsetWidth);
+    const a = Math.round((T - 2 * g + hR - h1 - h2) / (2 + r1));
     const cols = a + 'px minmax(0,1fr)';
     if (a > 120 && grid.style.gridTemplateColumns !== cols) grid.style.gridTemplateColumns = cols;
   }

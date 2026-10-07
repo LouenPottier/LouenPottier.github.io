@@ -118,6 +118,7 @@
   background:radial-gradient(130% 120% at 50% 12%,#ffffff 0%,#eef0f3 100%);}
 #lags-demo #exPlot{display:block;width:100%;height:100%;cursor:crosshair;touch-action:none;}
 #lags-demo #qtPlot{display:block;width:100%;height:100%;}
+#lags-demo .plot-wrap.qt{aspect-ratio:16/10;}
 #lags-demo .ex-legend{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;
   font-family:var(--mono);font-size:.6rem;letter-spacing:.04em;color:var(--text-muted);
   padding:8px 15px 0;border-top:1px solid var(--border-soft);}
@@ -125,6 +126,8 @@
 #lags-demo .ex-legend .dot-sel{display:inline-block;width:10px;height:10px;border-radius:50%;
   background:#d23b3b;box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(154,166,180,.6);}
 #lags-demo .ex-legend .arr-lat{display:inline-block;width:16px;height:3px;background:#e8380d;border-radius:2px;}
+#lags-demo #exCloud{position:absolute;top:8px;left:10px;font-size:.56rem;padding:4px 7px;background:rgba(255,255,255,.85);}
+#lags-demo #exCloud:hover{background:#fff}
 #lags-demo .ex-legend .dot-rec{display:inline-block;width:6px;height:6px;border-radius:50%;background:rgba(91,143,199,.6);}
 #lags-demo .ex-hover{font-family:var(--mono);font-size:.6rem;color:var(--text-muted);margin:0;padding:4px 15px 10px;}
 #lags-demo .stats{font-family:var(--mono);font-size:.62rem;letter-spacing:.04em;color:var(--text-muted);
@@ -240,8 +243,8 @@
       <h2 class="exp-title" data-en="Latent state and 3D decoder" data-fr="État latent et décodeur 3D">Latent state and 3D decoder</h2>
     </div>
     <p class="vid-note"
-       data-en="A linear dynamics identified on q(t) moves the state; the 3D decoder renders it. The dominant mode q0 is a &ldquo;bending&rdquo; of the tab, the secondary mode q1 a &ldquo;twist&rdquo;. Push the tab with the mouse in the 3D scene: the force enters the dynamics through the decoder Jacobian, J&#7488;f. In the latent plane, each dot is one recorded frame placed at its encoded state; dragging the red dot holds the state while time keeps running, and releasing it lets the dynamics start again from there (unless the simulation is paused). Beyond the recorded states (dashed contour), the 3D geometry of the tab comes from an elastic shell while the dynamics stays linear; the dotted contour is the limit of the state."
-       data-fr="Une dynamique linéaire identifiée sur q(t) fait évoluer l'état ; le décodeur 3D le rend. Le mode dominant q0 est une « flexion » de la languette, le mode secondaire q1 une « torsion ». Poussez la languette à la souris dans la scène 3D : l'effort entre dans la dynamique par la jacobienne du décodeur, J&#7488;f. Dans le plan latent, chaque point est une image enregistrée, placée à son état encodé ; glisser le point rouge tient l'état pendant que le temps continue, et le lâcher relance la dynamique depuis cet état (sauf si la simulation est en pause). Au-delà des états enregistrés (contour en tirets), la géométrie 3D de la languette vient d'une coque élastique, la dynamique restant linéaire ; le contour en pointillés est la limite de l'état.">
+       data-en="A Lagrangian neural network (LNN) identified on q(t), with constant mass, constant dissipation and an invex potential energy V(q), moves the state; the 3D decoder renders it. The dominant mode q0 is a &ldquo;bending&rdquo; of the tab, the secondary mode q1 a &ldquo;twist&rdquo;. Push the tab with the mouse in the 3D scene: the force enters the dynamics through the decoder Jacobian, J&#7488;f. In the latent plane, each dot is one recorded frame placed at its encoded state; dragging the red dot holds the state while time keeps running, and releasing it lets the dynamics start again from there (unless the simulation is paused). In pause, time stops but the arm slider still moves the arm; on play, the tab responds to that jump as to a step. Beyond the recorded states (dashed contour), the 3D geometry of the tab comes from an elastic shell while the dynamics stays that of the LNN."
+       data-fr="Un réseau de neurones lagrangien (LNN) identifié sur q(t), à masse et dissipation constantes et à énergie potentielle V(q) invexe, fait évoluer l'état ; le décodeur 3D le rend. Le mode dominant q0 est une « flexion » de la languette, le mode secondaire q1 une « torsion ». Poussez la languette à la souris dans la scène 3D : l'effort entre dans la dynamique par la jacobienne du décodeur, J&#7488;f. Dans le plan latent, chaque point est une image enregistrée, placée à son état encodé ; glisser le point rouge tient l'état pendant que le temps continue, et le lâcher relance la dynamique depuis cet état (sauf si la simulation est en pause). En pause, le temps s'arrête mais le curseur du bras le déplace toujours ; à la reprise, la languette répond à ce saut comme à un échelon. Au-delà des états enregistrés (contour en tirets), la géométrie 3D de la languette vient d'une coque élastique, la dynamique restant celle du LNN.">
       A linear dynamics identified on q(t) moves the state; the 3D decoder renders it.
     </p>
 
@@ -257,7 +260,7 @@
       <button class="btn ghost" id="mpKick" type="button" data-en="impulse" data-fr="impulsion">impulse</button>
       <button class="btn ghost" id="mpRest" type="button" data-en="rest" data-fr="repos">rest</button>
       <button class="btn ghost" id="mpHi" type="button" data-en="high resolution 3D" data-fr="3D haute résolution">high resolution 3D</button>
-      <button class="btn ghost" id="mpShell" type="button" title="beyond the recorded states, the 3D geometry of the tab comes from an elastic shell; the dynamics stays linear" data-en="shell beyond the data" data-fr="coque hors des données">shell beyond the data</button>
+      <button class="btn ghost" id="mpShell" type="button" title="beyond the recorded states, the 3D geometry of the tab comes from an elastic shell; the dynamics is unchanged" data-en="shell beyond the data" data-fr="coque hors des données">shell beyond the data</button>
       <div class="ctl">
         <label data-en="latent state q" data-fr="état latent q">latent state q</label>
         <span class="valbig" id="mpQ">0.00, 0.00</span>
@@ -268,11 +271,11 @@
       <div class="live-col">
         <section class="panel q">
           <div class="phead">
-            <div class="tag" data-en="linear dynamics · latent state" data-fr="dynamique linéaire · état latent">linear dynamics · latent state</div>
+            <div class="tag" data-en="LNN dynamics · latent state" data-fr="dynamique LNN · état latent">LNN dynamics · latent state</div>
             <h2 data-en="Latent state and arm position over time" data-fr="État latent et position du bras au cours du temps">Latent state and arm position over time</h2>
             <div class="sub" data-en="shaded band: range covered by the recording" data-fr="bande grisée : étendue couverte par l'enregistrement">shaded band: range covered by the recording</div>
           </div>
-          <div class="plot-wrap"><canvas id="qtPlot"></canvas></div>
+          <div class="plot-wrap qt"><canvas id="qtPlot"></canvas></div>
         </section>
         <section class="panel q">
           <div class="phead">
@@ -280,7 +283,7 @@
             <h2 data-en="Latent plane (q0, q1)" data-fr="Plan latent (q0, q1)">Latent plane (q0, q1)</h2>
             <div class="sub" data-en="drag the dot to set the state" data-fr="glisser le point pour fixer l'état">drag the dot to set the state</div>
           </div>
-          <div class="plot-wrap"><canvas id="exPlot"></canvas><div class="badge" data-en="drag the dot" data-fr="glisser le point">drag the dot</div></div>
+          <div class="plot-wrap"><canvas id="exPlot"></canvas><div class="badge" data-en="drag the dot" data-fr="glisser le point">drag the dot</div><button class="btn ghost on" id="exCloud" type="button" data-en="recorded frames" data-fr="images enregistrées">recorded frames</button></div>
           <div class="ex-legend">
             <span class="key"><i class="dot-sel"></i><span data-en="current state" data-fr="état courant">current state</span></span>
             <span class="key"><i class="arr-lat"></i><span data-en="latent effort Jᵀf" data-fr="effort latent Jᵀf">latent effort Jᵀf</span></span>
@@ -305,6 +308,7 @@
 
 <script src="./demo/mpov/zoned3d.js"></script>
 <script src="./demo/mpov/phys.js"></script>
+<script src="./demo/mpov/lnn.js"></script>
 <script src="./demo/mpov/mpov_demo.js"></script>
 <script src="./lang.js"></script>
 </body>
