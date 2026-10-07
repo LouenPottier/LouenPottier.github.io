@@ -287,7 +287,9 @@
         xyz[3 * g + k] += d[d0 + k];
         const dl = scaleQ ? d[d0 + 3 + k] : 0;           // zone s : taille fixe en s
         logs[3 * g + k] = eff(P.logs[3 * g + k] + dl, P.floor[g]);
-        col[3 * g + k] = sg(P.col[3 * g + k] + 4 * d[d0 + 9 + k]);
+        // 2026-10-07 : couleur de la zone q FIGEE a sa valeur en q = 0 (aucune dependance a q) ;
+        // la zone s garde sa couleur fonction de s
+        col[3 * g + k] = scaleQ ? sg(P.col[3 * g + k]) : sg(P.col[3 * g + k] + 4 * d[d0 + 9 + k]);
       }
     }
 
@@ -322,14 +324,13 @@
       }
       if (pj.out) {
         transport([z[1], z[2]], pj.qb, tr, null, xyz, quat);
-        // couleur et taille : le decodeur est deja degrade au bord du domaine (taches sombres,
-        // marbrure) ; celles de la semelle transportee sont ramenees vers l'apparence de REPOS
-        // (z*), progressivement entre 1 et 1 + SHELL_BLEND rayons (pas de saut au bord)
+        // taille : le decodeur est deja degrade au bord du domaine ; celle de la semelle
+        // transportee est ramenee vers celle du REPOS (z*), progressivement entre 1 et
+        // 1 + SHELL_BLEND rayons (la couleur ne depend plus de q, cf. compose)
         const u = Math.min(1, (pj.ratio - 1) / SHELL_BLEND), w = u * u * (3 - 2 * u);
         for (const g of ATT.ids)
           for (let k = 0; k < 3; k++) {
             const i = 3 * g + k;
-            col[i] = (1 - w) * col[i] + w * sg(P.col[i]);
             logs[i] = (1 - w) * logs[i] + w * eff(P.logs[i], P.floor[g]);
           }
       }
