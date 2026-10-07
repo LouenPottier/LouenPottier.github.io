@@ -31,6 +31,13 @@
  * Borne de l'effort latent : valeur reglee dans la demo PC (mpov/demo3d_page.html), reprise
  * par l'application XR (xr/xr_native_zoned.py) ; raideur et dissipation : celles du pincement
  * de l'application XR. Les memes pour les trois vues.
+ *
+ * Coque hors des donnees (2026-10-07, bouton « coque hors des données », actif par defaut) :
+ * la physique reste lineaire, mais au-dela du domaine des donnees (rayon R(theta) en q) la
+ * geometrie de la semelle 3D vient d'une coque elastique (zoned3d.js, shell_ext.js,
+ * code_new_3D/demoxrdays/mpov/elastic/hybrid.py). La barriere est repoussee a EXT x R(theta),
+ * le plafond d'effort multiplie par SHELL_FMAX pour pouvoir y tirer la semelle ; les vues 2D,
+ * sans coque, restent au bord du domaine. 2026-10-07 : EXT 2 -> 3, SHELL_FMAX 4 -> 10.
  */
 (function () {
   'use strict';
@@ -53,7 +60,12 @@
   const FMAX = Math.pow(10, -0.4) * FREF;
   // 2026-10-05 : plafond divise par 2 pour les vues 2D (FMAX inchange en 3D)
   const FMAX2D = 0.5 * FMAX;
-  const fmaxOf = v => (v && v.fmax) || FMAX;
+  // coque hors des donnees : etat (SH = Zoned3D.shell, null tant que non charge), plafond
+  // d'effort multiplie par SHELL_FMAX quand elle est active
+  const SHELL = {SH: null, on: true};
+  const SHELL_FMAX = 10.0;
+  const shellOn = () => !!(SHELL.SH && SHELL.on);
+  const fmaxOf = v => ((v && v.fmax) || FMAX) * (shellOn() ? SHELL_FMAX : 1);
   // kc, cc : raideur et dissipation du couplage, en multiples de KREF et de 2 sqrt(KREF)
   // 2026-10-05 : gain divise par 2 (2.0 -> 1.0), dissipation doublee (1.0 -> 2.0)
   const G = {kc: 1.0, cc: 2.0, barrier: 8, margin: 0.02};
@@ -76,6 +88,16 @@
   // ── barriere (cf. serve_deform_demo.py) ──
   const BR = P.barrier;
   function distAt(q) {
+    if (shellOn()) {
+      // coque active : distance a la limite EXT x R(theta), et au bord de la grille de la variete
+      const SM = SHELL.SH.meta, r = Math.hypot(q[0], q[1]), R = SHELL.SH.radius(q);
+      let d = Math.max(0, r - SM.ext * R);
+      for (let k = 0; k < 2; k++) {
+        const lo = SM.lo[k], hi = SM.lo[k] + (SM.n[k] - 1) * SM.hs[k];
+        d = Math.max(d, lo - q[k], q[k] - hi);
+      }
+      return d;
+    }
     const n = BR.n;
     const t = [0, 1].map(k => Math.max(0, Math.min(n - 1, (q[k] - BR.lo[k]) / (BR.hi[k] - BR.lo[k]) * (n - 1))));
     const i = t.map(v => Math.max(0, Math.min(n - 2, Math.floor(v)))), f = t.map((v, k) => v - i[k]);
@@ -288,9 +310,12 @@
       v.W = () => v.D.W; v.H = () => v.D.H;
       v.ready = true;
     };
-    v.draw = z => { v.st = v.D.state([z[0], z[1], z[2]]); v.R.draw(v.st); };
+    // sans coque en 2D : hors du domaine, la vue reste au point du bord q_b
+    const zb = z => { if (!shellOn()) return [z[0], z[1], z[2]];
+      const pj = SHELL.SH.project([z[0], z[1]]); return [pj.qb[0], pj.qb[1], z[2]]; };
+    v.draw = z => { v.st = v.D.state(zb(z)); v.R.draw(v.st); };
     v.select = (x, y) => v.st ? v.D.select(v.st, x, y, v.radius, false) : null;
-    v.jac = (z, sel) => v.D.jacobian([z[0], z[1], z[2]], sel);
+    v.jac = (z, sel) => v.D.jacobian(zb(z), sel);
     attachGrab(v);
     return v;
   }
@@ -302,6 +327,7 @@
     v.init = (pack, q, side) => {
       if (!v.byQ[q]) { const M = Zoned3D.load(pack); v.byQ[q] = {M, R: Zoned3D.renderer(v.canvas, M)}; }
       v.M = v.byQ[q].M; v.R = v.byQ[q].R; v.lastZ = null;
+      if (SHELL.SH && !v.M.nShell) v.M.setShell(SHELL.SH);
       // fenetre CARREE de cote `side` : pose, focale et axe optique de l'iphone3 a t ~ 273 s
       // (un quart de tour de l'iphone1 autour de la languette, web/add_i3_view.py), mis a
       // l'echelle side / H ; le champ horizontal est elargi au lieu de deformer l'image.
@@ -498,7 +524,26 @@
   const EX = (() => {
     const X = {visible: false, drag: false, hover: null};
     const cv = $('exPlot'), ctx = cv.getContext('2d');
-    const lo = P.q_lo, hi = P.q_hi;
+    let lo = P.q_lo, hi = P.q_hi;
+    // coque chargee : plan elargi a la limite EXT x R(theta) (contour du domaine des donnees en
+    // tirets, limite en pointilles)
+    function shellCurve(f) {
+      const out = [];
+      for (let i = 0; i <= 144; i++) {
+        const th = -Math.PI + 2 * Math.PI * i / 144, u = [Math.cos(th), Math.sin(th)];
+        const R = f * SHELL.SH.radius(u);
+        out.push([R * u[0], R * u[1]]);
+      }
+      return out;
+    }
+    function relayout() {
+      if (SHELL.SH) {
+        const c = shellCurve(SHELL.SH.meta.ext);
+        lo = [Math.min(P.q_lo[0], ...c.map(p => p[0])), Math.min(P.q_lo[1], ...c.map(p => p[1]))];
+        hi = [Math.max(P.q_hi[0], ...c.map(p => p[0])), Math.max(P.q_hi[1], ...c.map(p => p[1]))];
+      }
+      geo = null;
+    }
     // enveloppe convexe des q mesures (chaine monotone d'Andrew), non affichee : un etat
     // hors d'elle est une extrapolation des decodeurs
     const HULL = (() => {
@@ -548,6 +593,14 @@
       g.save(); g.beginPath(); g.rect(ox, oy, inner, inner); g.clip();
       g.fillStyle = DATA;
       for (const c of P.cloud) { g.beginPath(); g.arc(geo.px(c[1]), geo.py(c[2]), 2, 0, 6.284); g.fill(); }
+      if (SHELL.SH) {
+        for (const [f, dash] of [[1, [5, 4]], [SHELL.SH.meta.ext, [1.5, 3]]]) {
+          g.strokeStyle = LABEL; g.lineWidth = 1.2; g.setLineDash(dash); g.beginPath();
+          shellCurve(f).forEach((p, i) => i ? g.lineTo(geo.px(p[0]), geo.py(p[1])) : g.moveTo(geo.px(p[0]), geo.py(p[1])));
+          g.stroke();
+        }
+        g.setLineDash([]);
+      }
       g.restore();
       return true;
     }
@@ -593,7 +646,9 @@
       return [Math.max(lo[0], Math.min(hi[0], geo.qx(x))), Math.max(lo[1], Math.min(hi[1], geo.qy(y)))];
     }
     function hoverText(q) {
-      return 'q = (' + q[0].toFixed(2) + ', ' + q[1].toFixed(2) + ')' + (inHull(q) ? '' : ' · extrapolation');
+      const sh = shellOn() && SHELL.SH.project(q).out;
+      return 'q = (' + q[0].toFixed(2) + ', ' + q[1].toFixed(2) + ')'
+        + (sh ? (lang() === 'fr' ? ' · géométrie de la coque' : ' · shell geometry') : inHull(q) ? '' : ' · extrapolation');
     }
     function place(q) { S.q[0] = q[0]; S.q[1] = q[1]; S.v[0] = 0; S.v[1] = 0; }
     cv.addEventListener('pointerdown', e => {
@@ -614,6 +669,7 @@
       .observe(document.querySelector('#lags-demo .ex-grid'));
 
     return {
+      relayout,
       frame() {
         if (!X.visible) return;
         drawPlot();
@@ -652,7 +708,8 @@
       if (!S.replay && document.activeElement !== $(id)) $(id).value = S.target;
     $('mpStats').textContent = (quality === 'high' ? 'high' : 'low') + ' resolution · ' + fps.toFixed(0) + ' fps · ' + Object.entries(ms)
       .map(([k, v]) => k.replace('cv', '') + ' ' + v.toFixed(1) + ' ms').join(' · ')
-      + (distAt(Array.from(S.q)) > 0 ? ' · edge of the explored domain' : '');
+      + (distAt(Array.from(S.q)) > 0 ? ' · edge of the explored domain' : '')
+      + (shellOn() && v3.M && v3.M.shellOut ? ' · beyond the data, shell geometry (r/R ' + v3.M.shellRatio.toFixed(2) + ')' : '');
     requestAnimationFrame(loop);
   }
 
@@ -682,6 +739,24 @@
   };
   $('mpRest').onclick = () => { S.q.fill(0); S.v.fill(0); };
   $('mpHi').onclick = () => { if (started) useQuality(quality === 'high' ? 'low' : 'high'); };
+  $('mpShell').onclick = () => {
+    if (!SHELL.SH) return;
+    SHELL.on = !SHELL.on; SHELL.SH.on = SHELL.on;
+    $('mpShell').classList.toggle('on', SHELL.on);
+    // coque desactivee : retour dans le domaine par la barriere d'origine
+    for (const r of Object.values(v3.byQ)) r.M.update(r.M.z || [P.s_rest, 0, 0]);
+    v3.lastZ = null;
+  };
+  // variete de coque : chargee apres les decodeurs, attachee a chaque decodeur 3D
+  async function loadShell() {
+    try { if (!window.MPOV_SHELL) await loadScript('./demo/mpov/shell_ext.js'); }
+    catch (e) { console.error(e); return; }
+    SHELL.SH = Zoned3D.shell(window.MPOV_SHELL); SHELL.SH.on = SHELL.on;
+    for (const r of Object.values(v3.byQ)) r.M.setShell(SHELL.SH);
+    v3.lastZ = null;
+    $('mpShell').classList.toggle('on', SHELL.on);
+    EX.relayout();
+  }
 
   // ── videos de comparaison : lecture quand elles sont a l'ecran ──
   const vids = Array.from(document.querySelectorAll('#lags-demo video.cmp'));
@@ -707,6 +782,7 @@
     }
     requestAnimationFrame(loop);
     await useQuality('low');
+    await loadShell();
   }
   // ── auto-test (?selftest) : cherche la languette dans chaque vue, saisit et tire ──
   if (/selftest/.test(location.search)) {

@@ -22,6 +22,15 @@
  *                                         convention OpenCV), K (3x3), W, H, color (option)}
  *   M.select(cam, x, y, radius, uniform) -> selection (px ecran)
  *   M.jacobian(z, cam, sel)             -> {pt, J (2x2 px par unite de q), neff, coh}
+ *
+ * Prolongement par la coque (2026-10-07, elastic/hybrid.py) :
+ *   const SH = Zoned3D.shell(window.MPOV_SHELL); M.setShell(SH); SH.on = true
+ * Dans le domaine des donnees (rayon R(theta) en q), rien ne change. Au-dela, le champ q est
+ * evalue au point du bord q_b (meme direction), puis les gaussiennes de la semelle sont
+ * TRANSPORTEES par la deformation de la coque de x(q_b) a x(q) : position dans le repere du
+ * triangle, rotation du triangle appliquee a l orientation ; couleur et taille ramenees vers
+ * celles du repos entre 1 et 1.3 rayon (le decodeur est deja degrade au bord).
+ * Continu au bord. qPositions (donc J) suit la meme regle : l'effort reste defini dehors.
  */
 (function (root) {
   'use strict';
@@ -55,6 +64,124 @@
     }
     return t;
   })();
+
+  // ── variete de coque etendue (web/export_web_shell.py) ──
+  function shell(pack) {
+    const meta = pack.meta, buf = b64ToBytes(pack.b64).buffer, P = {};
+    for (const p of meta.parts) {
+      const n = p.shape.reduce((a, b) => a * b, 1);
+      if (p.dtype === 'f32') P[p.name] = new Float32Array(buf, p.off, n);
+      else if (p.dtype === 'f16') {
+        const h = new Uint16Array(buf, p.off, n), f = new Float32Array(n);
+        for (let i = 0; i < n; i++) f[i] = H2F[h[i]];
+        P[p.name] = f;
+      }
+    }
+    const n1 = meta.n[1], nf = meta.nf, NN = meta.n_nodes;
+    const free = meta.free, fix = meta.fix, R = meta.dom_R, nb = meta.dom_nbin;
+    const tris = Int32Array.from(P.tris), m = tris.length / 3, X = P.X, X2 = P.X2;
+    // inverse des aretes de repos (2 x 2, par lignes) de chaque triangle : F = [e1 e2] Dm^-1
+    const Dmi = new Float64Array(4 * m);
+    for (let t = 0; t < m; t++) {
+      const a = tris[3 * t], b = tris[3 * t + 1], c = tris[3 * t + 2];
+      const m00 = X2[2 * b] - X2[2 * a], m10 = X2[2 * b + 1] - X2[2 * a + 1];
+      const m01 = X2[2 * c] - X2[2 * a], m11 = X2[2 * c + 1] - X2[2 * a + 1];
+      const det = m00 * m11 - m01 * m10;
+      Dmi[4 * t] = m11 / det; Dmi[4 * t + 1] = -m01 / det; Dmi[4 * t + 2] = -m10 / det; Dmi[4 * t + 3] = m00 / det;
+    }
+    const md = k => ((k % nb) + nb) % nb;
+    function radius(q) {
+      const th = Math.atan2(q[1], q[0]), u = (th + Math.PI) / (2 * Math.PI) * nb - 0.5;
+      const i0 = Math.floor(u), f = u - i0;
+      return (1 - f) * R[md(i0)] + f * R[md(i0 + 1)];
+    }
+    // q_b : q ramene sur le bord du domaine s'il est dehors ; ratio = |q| / R(theta)
+    function project(q) {
+      const r = Math.hypot(q[0], q[1]), ratio = r / radius(q);
+      if (ratio <= 1) return {qb: [q[0], q[1]], out: false, ratio};
+      return {qb: [q[0] / ratio, q[1] / ratio], out: true, ratio};
+    }
+    // noeuds (NN x 3) a l'etat q (bilineaire sur la grille), pince translatee de tr
+    function mesh(q, tr, out) {
+      const u = [0, 1].map(k => Math.max(0, Math.min(meta.n[k] - 1 - 1e-4, (q[k] - meta.lo[k]) / meta.hs[k])));
+      const i = Math.floor(u[0]), j = Math.floor(u[1]), f0 = u[0] - i, f1 = u[1] - j;
+      const w0 = (1 - f0) * (1 - f1), w1 = f0 * (1 - f1), w2 = (1 - f0) * f1, w3 = f0 * f1;
+      const b0 = (i * n1 + j) * nf * 3, b1 = ((i + 1) * n1 + j) * nf * 3;
+      const b2 = (i * n1 + j + 1) * nf * 3, b3 = ((i + 1) * n1 + j + 1) * nf * 3, x = P.x;
+      for (let a = 0; a < nf; a++) {
+        const g = free[a];
+        for (let k = 0; k < 3; k++) {
+          const o = 3 * a + k;
+          out[3 * g + k] = w0 * x[b0 + o] + w1 * x[b1 + o] + w2 * x[b2 + o] + w3 * x[b3 + o] + tr[k];
+        }
+      }
+      for (const g of fix) for (let k = 0; k < 3; k++) out[3 * g + k] = X[3 * g + k] + tr[k];
+      return out;
+    }
+    // repere de chaque triangle deforme, colonnes (r1, r2, n) rangees par lignes : polaire de F
+    function frames(x, out) {
+      for (let t = 0; t < m; t++) {
+        const a = 3 * tris[3 * t], b = 3 * tris[3 * t + 1], c = 3 * tris[3 * t + 2], D = 4 * t;
+        const F0 = [0, 0, 0], F1 = [0, 0, 0];
+        for (let k = 0; k < 3; k++) {
+          const e1 = x[b + k] - x[a + k], e2 = x[c + k] - x[a + k];
+          F0[k] = e1 * Dmi[D] + e2 * Dmi[D + 2]; F1[k] = e1 * Dmi[D + 1] + e2 * Dmi[D + 3];
+        }
+        // A = F^T F ; A^1/2 = (A + s I) / sqrt(tr A + 2 s), s = sqrt(det A) ; R2 = F A^-1/2
+        const A00 = F0[0] * F0[0] + F0[1] * F0[1] + F0[2] * F0[2], A11 = F1[0] * F1[0] + F1[1] * F1[1] + F1[2] * F1[2];
+        const A01 = F0[0] * F1[0] + F0[1] * F1[1] + F0[2] * F1[2];
+        const s = Math.sqrt(Math.max(1e-20, A00 * A11 - A01 * A01)), tq = Math.sqrt(A00 + A11 + 2 * s);
+        const S00 = (A00 + s) / tq, S11 = (A11 + s) / tq, S01 = A01 / tq, dS = S00 * S11 - S01 * S01;
+        const I00 = S11 / dS, I11 = S00 / dS, I01 = -S01 / dS;
+        const r1 = [0, 1, 2].map(k => F0[k] * I00 + F1[k] * I01), r2 = [0, 1, 2].map(k => F0[k] * I01 + F1[k] * I11);
+        const nn = [r1[1] * r2[2] - r1[2] * r2[1], r1[2] * r2[0] - r1[0] * r2[2], r1[0] * r2[1] - r1[1] * r2[0]];
+        const ln = Math.hypot(nn[0], nn[1], nn[2]) || 1;
+        for (let k = 0; k < 3; k++) {
+          out[9 * t + 3 * k] = r1[k]; out[9 * t + 3 * k + 1] = r2[k]; out[9 * t + 3 * k + 2] = nn[k] / ln;
+        }
+      }
+      return out;
+    }
+    // attaches des gaussiennes de zone q (positions de repos xyz, n_q premieres) a la semelle :
+    // triangle, coordonnees barycentriques dans le plan de repos, decalage normal
+    function attach(xyz, nq) {
+      const c = meta.center, V = meta.axes, ids = [], tri = [], bar = [], off = [];
+      for (let g = 0; g < nq; g++) {
+        const d = [0, 1, 2].map(k => xyz[3 * g + k] - c[k]);
+        const pr = V.map(r => r[0] * d[0] + r[1] * d[1] + r[2] * d[2]);
+        if (!(pr[0] < meta.x_max && Math.abs(pr[2]) < meta.plane_tol)) continue;
+        let best = -1e9, bt = 0, bb = null;
+        for (let t = 0; t < m; t++) {
+          const a = tris[3 * t], D = 4 * t, px = pr[0] - X2[2 * a], py = pr[1] - X2[2 * a + 1];
+          const l1 = Dmi[D] * px + Dmi[D + 1] * py, l2 = Dmi[D + 2] * px + Dmi[D + 3] * py;
+          const mn = Math.min(1 - l1 - l2, l1, l2);
+          if (mn > best) { best = mn; bt = t; bb = [1 - l1 - l2, l1, l2]; }
+        }
+        ids.push(g); tri.push(bt); bar.push(...bb); off.push(pr[2]);
+      }
+      return {ids: Int32Array.from(ids), tri: Int32Array.from(tri), bar: Float64Array.from(bar),
+              off: Float64Array.from(off)};
+    }
+    // point materiel de l'attache j sur le maillage x de reperes Fr
+    function matPoint(A, j, x, Fr, out) {
+      const t = A.tri[j], d = A.off[j];
+      const ia = 3 * tris[3 * t], ib = 3 * tris[3 * t + 1], ic = 3 * tris[3 * t + 2];
+      const b0 = A.bar[3 * j], b1 = A.bar[3 * j + 1], b2 = A.bar[3 * j + 2];
+      for (let k = 0; k < 3; k++)
+        out[k] = b0 * x[ia + k] + b1 * x[ib + k] + b2 * x[ic + k] + d * Fr[9 * t + 3 * k + 2];
+    }
+    return {meta, on: true, radius, project, mesh, frames, attach, matPoint, ntri: m};
+  }
+
+  // rotation 3 x 3 (par lignes) -> quaternion (w, x, y, z)
+  function rotQuat(R) {
+    const tr = R[0] + R[4] + R[8];
+    if (tr > 0) { const s = 2 * Math.sqrt(tr + 1); return [0.25 * s, (R[7] - R[5]) / s, (R[2] - R[6]) / s, (R[3] - R[1]) / s]; }
+    if (R[0] > R[4] && R[0] > R[8]) { const s = 2 * Math.sqrt(1 + R[0] - R[4] - R[8]); return [(R[7] - R[5]) / s, 0.25 * s, (R[1] + R[3]) / s, (R[2] + R[6]) / s]; }
+    if (R[4] > R[8]) { const s = 2 * Math.sqrt(1 + R[4] - R[0] - R[8]); return [(R[2] - R[6]) / s, (R[1] + R[3]) / s, 0.25 * s, (R[5] + R[7]) / s]; }
+    const s = 2 * Math.sqrt(1 + R[8] - R[0] - R[4]);
+    return [(R[3] - R[1]) / s, (R[2] + R[6]) / s, (R[5] + R[7]) / s, 0.25 * s];
+  }
 
   function load(pack) {
     const meta = pack.meta, buf = b64ToBytes(pack.b64).buffer, P = {};
@@ -171,17 +298,20 @@
         for (let i = 0; i < NS * 12; i++) dS[i] = o[i] - refS[i];
         lastS = z[0];
       }
-      if (z[1] !== lastQ[0] || z[2] !== lastQ[1]) {
+      const pj = (SH && SH.on) ? SH.project([z[1], z[2]]) : {qb: [z[1], z[2]], out: false, ratio: 0};
+      M.shellRatio = pj.ratio; M.shellOut = pj.out;
+      if (pj.qb[0] !== lastQ[0] || pj.qb[1] !== lastQ[1]) {
         // delta = g * full, full = split(field_q(s*, q)) - split(field_q(z*)), dont la part
         // log-demi-axes passe par 0.5 x^2 (contrainte exacte : jamais sous la taille a q = 0).
         // La reference sans q de la porte vaut z*, donc sa contribution est nulle.
-        const o = splitAll('field_q', [zs[0], z[1], z[2]], NQ), gt = P.q_gate;
+        // Avec la coque : champ evalue au point du bord q_b (= q dans le domaine).
+        const o = splitAll('field_q', [zs[0], pj.qb[0], pj.qb[1]], NQ), gt = P.q_gate;
         for (let g = 0; g < NQ; g++)
           for (let p = 0; p < 12; p++) {
             const v = o[g * 12 + p] - refQ[g * 12 + p];
             dQ[g * 12 + p] = gt[g] * (p >= 3 && p < 6 ? 0.5 * v * v : v);
           }
-        lastQ = [z[1], z[2]];
+        lastQ = pj.qb.slice();
       }
       const cs = carrier(z[0]), tr = [cs[0] - c0[0], cs[1] - c0[1], cs[2] - c0[2]];
       for (let g = 0; g < NM; g++) {
@@ -189,12 +319,70 @@
         if (g < NQ) compose(g, dQ, g * 12, true);
         else if (g < NQ + NS) compose(g, dS, (g - NQ) * 12, false);
       }
+      if (pj.out) {
+        transport([z[1], z[2]], pj.qb, tr, null, xyz, quat);
+        // couleur et taille : le decodeur est deja degrade au bord du domaine (taches sombres,
+        // marbrure) ; celles de la semelle transportee sont ramenees vers l'apparence de REPOS
+        // (z*), progressivement entre 1 et 1 + SHELL_BLEND rayons (pas de saut au bord)
+        const u = Math.min(1, (pj.ratio - 1) / SHELL_BLEND), w = u * u * (3 - 2 * u);
+        for (const g of ATT.ids)
+          for (let k = 0; k < 3; k++) {
+            const i = 3 * g + k;
+            col[i] = (1 - w) * col[i] + w * sg(P.col[i]);
+            logs[i] = (1 - w) * logs[i] + w * eff(P.logs[i], P.floor[g]);
+          }
+      }
       M.z = z.slice();
+    }
+    const SHELL_BLEND = 0.3;
+
+    // ── prolongement par la coque : transport des gaussiennes de la semelle de x(q_b) a x(q)
+    let SH = null, ATT = null, attPos = null, XB = null, XQ = null, FB = null, FQ = null;
+    const tmpA = [0, 0, 0], tmpB = [0, 0, 0], Rr = new Float64Array(9);
+    function setShell(sh) {
+      SH = sh; ATT = sh ? sh.attach(P.xyz, NQ) : null; lastQ = [NaN, NaN];
+      if (sh) {
+        XB = new Float64Array(3 * sh.meta.n_nodes); XQ = new Float64Array(3 * sh.meta.n_nodes);
+        FB = new Float64Array(9 * sh.ntri); FQ = new Float64Array(9 * sh.ntri);
+        attPos = new Int32Array(NQ).fill(-1);
+        for (let j = 0; j < ATT.ids.length; j++) attPos[ATT.ids[j]] = j;
+      }
+      M.nShell = ATT ? ATT.ids.length : 0;
+    }
+    // pos : positions (3 par entree). ids = null : toutes les attaches, pos indexe par gaussienne
+    // (etat complet, quaternions qt mis a jour) ; sinon liste de gaussiennes de zone q, pos[3 m]
+    // etant la position de ids[m] (qPositions, sans quaternions)
+    function transport(q, qb, tr, ids, pos, qt) {
+      SH.mesh(qb, tr, XB); SH.mesh(q, tr, XQ); SH.frames(XB, FB); SH.frames(XQ, FQ);
+      const nl = ids ? ids.length : ATT.ids.length;
+      for (let m = 0; m < nl; m++) {
+        const j = ids ? attPos[ids[m]] : m;
+        if (j < 0) continue;
+        const o = ids ? 3 * m : 3 * ATT.ids[j], t = ATT.tri[j];
+        SH.matPoint(ATT, j, XB, FB, tmpA); SH.matPoint(ATT, j, XQ, FQ, tmpB);
+        // Rrel = Rq Rb^T, reperes du triangle en colonnes (r1, r2, n), stockes par lignes
+        for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) {
+          let v = 0;
+          for (let c = 0; c < 3; c++) v += FQ[9 * t + 3 * a + c] * FB[9 * t + 3 * b + c];
+          Rr[3 * a + b] = v;
+        }
+        const d0 = pos[o] - tmpA[0], d1 = pos[o + 1] - tmpA[1], d2 = pos[o + 2] - tmpA[2];
+        for (let a = 0; a < 3; a++) pos[o + a] = tmpB[a] + Rr[3 * a] * d0 + Rr[3 * a + 1] * d1 + Rr[3 * a + 2] * d2;
+        if (qt) {
+          const b4 = 4 * ATT.ids[j], r = rotQuat(Rr);
+          const bw = qt[b4], bx = qt[b4 + 1], by = qt[b4 + 2], bz = qt[b4 + 3];
+          const w = r[0] * bw - r[1] * bx - r[2] * by - r[3] * bz, x = r[0] * bx + r[1] * bw + r[2] * bz - r[3] * by;
+          const y = r[0] * by - r[1] * bz + r[2] * bw + r[3] * bx, zz = r[0] * bz + r[1] * by - r[2] * bx + r[3] * bw;
+          const nq = Math.hypot(w, x, y, zz) || 1;
+          qt[b4] = w / nq; qt[b4 + 1] = x / nq; qt[b4 + 2] = y / nq; qt[b4 + 3] = zz / nq;
+        }
+      }
     }
 
     // position monde des gaussiennes de zone q `ids` (< n_q) a l'etat z (pour J)
     function qPositions(z, ids) {
-      const raw = head('field_q', field('field_q', [zs[0], z[1], z[2]]), ids);
+      const pj = (SH && SH.on) ? SH.project([z[1], z[2]]) : {qb: [z[1], z[2]], out: false};
+      const raw = head('field_q', field('field_q', [zs[0], pj.qb[0], pj.qb[1]]), ids);
       const cs = carrier(z[0]), out = new Float64Array(3 * ids.length), tmp = new Float32Array(12);
       for (let j = 0; j < ids.length; j++) {
         const g = ids[j];
@@ -203,6 +391,7 @@
           out[3 * j + k] = P.xyz[3 * g + k] + P.carrier_w[g] * (cs[k] - c0[k])
                          + P.q_gate[g] * (tmp[k] - refQ[g * 12 + k]);
       }
+      if (pj.out) transport([z[1], z[2]], pj.qb, [cs[0] - c0[0], cs[1] - c0[1], cs[2] - c0[2]], ids, out, null);
       return out;
     }
 
@@ -286,7 +475,7 @@
     }
 
     const M = {meta, N, NM, xyz, quat, logs, col, alpha, update, select, jacobian, project,
-               z: null};
+               setShell, z: null, shellRatio: 0, shellOut: false, nShell: 0};
     return M;
   }
 
@@ -502,5 +691,5 @@
     return {draw, refresh, gl, floatTarget: !!fl};
   }
 
-  root.Zoned3D = {load, renderer};
+  root.Zoned3D = {load, renderer, shell};
 })(typeof window !== 'undefined' ? window : this);
