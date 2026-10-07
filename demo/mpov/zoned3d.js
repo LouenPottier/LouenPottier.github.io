@@ -309,7 +309,8 @@
         for (let g = 0; g < NQ; g++)
           for (let p = 0; p < 12; p++) {
             const v = o[g * 12 + p] - refQ[g * 12 + p];
-            dQ[g * 12 + p] = gt[g] * (p >= 3 && p < 6 ? 0.5 * v * v : v);
+            // 2026-10-07 : couleur (p >= 9) independante de q, celle de q = 0 (variation nulle)
+            dQ[g * 12 + p] = p >= 9 ? 0 : gt[g] * (p >= 3 && p < 6 ? 0.5 * v * v : v);
           }
         lastQ = pj.qb.slice();
       }
