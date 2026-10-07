@@ -342,7 +342,8 @@
         // 2026-10-05 : position par defaut rapprochee d'UN cran de molette (deltaY = -100 px,
         // meme loi que wheel() : facteur exp(-100 x 0.0015)), homothetie autour du pivot
         // 2026-10-07 : rapprochee aussi du facteur FOCAL (grossissement f / d inchange)
-        const k1 = Math.exp(-100 * 0.0015) * FOCAL;
+        // 2026-10-07 : deux crans de molette au lieu d'un
+        const k1 = Math.exp(-200 * 0.0015) * FOCAL;
         for (let j = 0; j < 3; j++) pos[j] = p[j] + (pos[j] - p[j]) * k1;
         [x, y, z].forEach((a, i) => { for (let j = 0; j < 3; j++) E[i][j] = a[j]; E[i][3] = -dot3(a, pos); });
       }
