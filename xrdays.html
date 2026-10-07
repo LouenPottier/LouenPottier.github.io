@@ -13,7 +13,7 @@
   gtag('config', 'G-FLKK795BKL');
 </script>
 <meta charset="utf-8"/>
-<meta name="description" content="LaGSplat on a soft tab held by a robot arm: held-out video against the network reconstruction, and an interactive demo with two 2D views and one 3D view driven by the same latent state."/>
+<meta name="description" content="LaGSplat on a soft tab held by a robot arm: held-out video against the network reconstruction, and an interactive 3D demo driven by the latent state, extended beyond the recorded states by an elastic shell."/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Louen Pottier - LaGSplat XR Days</title>
 <link rel="stylesheet" href="./style.css"/>
@@ -111,22 +111,13 @@
 #lags-demo .live-grid canvas.view{display:block;touch-action:none;cursor:grab;}
 #lags-demo .live-grid canvas.view.grabbing{cursor:grabbing}
 #lags-demo .live-grid canvas.ovl{position:absolute;pointer-events:none;}
-/* camera fixe recadree en carre (mpov_demo.js, view2D crop) */
-#lags-demo .live-col .stage.sq{flex:none;aspect-ratio:1/1;height:auto;min-height:0;overflow:hidden;display:block;}
-#lags-demo .live-col .stage.sq canvas.view{position:absolute;left:0;}
-@media(max-width:880px){#lags-demo .live-col .stage.sq{height:auto}}
 #lags-demo .live-warn{display:none;font-size:.86rem;color:var(--text-muted);
   border-left:2px solid var(--border);padding-left:11px;margin:0 0 1.2rem;}
-/* espace latent interpretable */
-#lags-demo .ex-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start;}
-@media(max-width:880px){#lags-demo .ex-grid{grid-template-columns:1fr}}
-#lags-demo .ex-grid .stage.sq{aspect-ratio:1/1;overflow:hidden;display:block;}
-#lags-demo .ex-grid .stage.sq canvas.view{display:block;position:absolute;left:0;touch-action:none;cursor:grab;}
-#lags-demo .ex-grid canvas.view.grabbing{cursor:grabbing}
-#lags-demo .ex-grid canvas.ovl{position:absolute;pointer-events:none;}
+/* plans latents (q(t) et plan (q0, q1)) */
 #lags-demo .plot-wrap{position:relative;width:100%;aspect-ratio:1/1;
   background:radial-gradient(130% 120% at 50% 12%,#ffffff 0%,#eef0f3 100%);}
 #lags-demo #exPlot{display:block;width:100%;height:100%;cursor:crosshair;touch-action:none;}
+#lags-demo #qtPlot{display:block;width:100%;height:100%;}
 #lags-demo .ex-legend{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;
   font-family:var(--mono);font-size:.6rem;letter-spacing:.04em;color:var(--text-muted);
   padding:8px 15px 0;border-top:1px solid var(--border-soft);}
@@ -135,7 +126,6 @@
   background:#d23b3b;box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(154,166,180,.6);}
 #lags-demo .ex-legend .arr-lat{display:inline-block;width:16px;height:3px;background:#e8380d;border-radius:2px;}
 #lags-demo .ex-legend .dot-rec{display:inline-block;width:6px;height:6px;border-radius:50%;background:rgba(91,143,199,.6);}
-#lags-demo .ex-grid .badge.ext{display:none;z-index:2;color:var(--navy);font-weight:600;}
 #lags-demo .ex-hover{font-family:var(--mono);font-size:.6rem;color:var(--text-muted);margin:0;padding:4px 15px 10px;}
 #lags-demo .stats{font-family:var(--mono);font-size:.62rem;letter-spacing:.04em;color:var(--text-muted);
   margin:.8rem 0 0;}
@@ -210,8 +200,8 @@
   <div id="lags-demo">
 
     <p class="thesis"
-       data-en="A UR robot arm moves a soft hyperelastic tab held in its gripper. The scene was filmed by four synchronised phones. An encoder reads one camera and returns the deformation of the tab as two latent coordinates <b>q = (q0, q1)</b>; the position of the arm along its path, <b>s</b>, is measured. The same state <b>(s, q)</b> drives three Gaussian Splatting decoders: a 2D decoder in a window that follows the gripper, a 2D decoder of the full camera frame, and a 3D decoder trained on all four views. A linear dynamics identified on q(t) makes the tab move, and a force applied with the mouse enters it through the decoder Jacobian."
-       data-fr="Un bras robot UR déplace une languette hyperélastique tenue dans sa pince. La scène a été filmée par quatre téléphones synchronisés. Un encodeur lit une caméra et rend la déformation de la languette sous la forme de deux coordonnées latentes <b>q = (q0, q1)</b> ; la position du bras le long de sa trajectoire, <b>s</b>, est mesurée. Le même état <b>(s, q)</b> pilote trois décodeurs Gaussian Splatting : un décodeur 2D dans une fenêtre qui suit la pince, un décodeur 2D de l'image entière de la caméra, et un décodeur 3D entraîné sur les quatre vues. Une dynamique linéaire identifiée sur q(t) met la languette en mouvement, et un effort appliqué à la souris y entre par la jacobienne du décodeur.">
+       data-en="A UR robot arm moves a soft hyperelastic tab held in its gripper. The scene was filmed by four synchronised phones. An encoder reads one camera and returns the deformation of the tab as two latent coordinates <b>q = (q0, q1)</b>; the position of the arm along its path, <b>s</b>, is measured. The same state <b>(s, q)</b> drives three Gaussian Splatting decoders: a 2D decoder in a window that follows the gripper, a 2D decoder of the full camera frame, and a 3D decoder trained on all four views. The videos below compare the two 2D decoders with the filmed images; the interactive demo uses the 3D decoder."
+       data-fr="Un bras robot UR déplace une languette hyperélastique tenue dans sa pince. La scène a été filmée par quatre téléphones synchronisés. Un encodeur lit une caméra et rend la déformation de la languette sous la forme de deux coordonnées latentes <b>q = (q0, q1)</b> ; la position du bras le long de sa trajectoire, <b>s</b>, est mesurée. Le même état <b>(s, q)</b> pilote trois décodeurs Gaussian Splatting : un décodeur 2D dans une fenêtre qui suit la pince, un décodeur 2D de l'image entière de la caméra, et un décodeur 3D entraîné sur les quatre vues. Les vidéos ci-dessous comparent les deux décodeurs 2D aux images filmées ; la démo interactive utilise le décodeur 3D.">
       A UR robot arm moves a soft hyperelastic tab held in its gripper.
     </p>
 
@@ -247,8 +237,13 @@
 
     <div class="exp-head">
       <p class="exp-tag" data-en="interactive simulation" data-fr="simulation interactive">interactive simulation</p>
-      <h2 class="exp-title" data-en="One latent state, three decoders" data-fr="Un état latent, trois décodeurs">One latent state, three decoders</h2>
+      <h2 class="exp-title" data-en="Latent state and 3D decoder" data-fr="État latent et décodeur 3D">Latent state and 3D decoder</h2>
     </div>
+    <p class="vid-note"
+       data-en="A linear dynamics identified on q(t) moves the state; the 3D decoder renders it. The dominant mode q0 is a &ldquo;bending&rdquo; of the tab, the secondary mode q1 a &ldquo;twist&rdquo;. Push the tab with the mouse in the 3D scene: the force enters the dynamics through the decoder Jacobian, J&#7488;f. In the latent plane, each dot is one recorded frame placed at its encoded state; dragging the red dot holds the state while time keeps running, and releasing it lets the dynamics start again from there (unless the simulation is paused). Beyond the recorded states (dashed contour), the 3D geometry of the tab comes from an elastic shell while the dynamics stays linear; the dotted contour is the limit of the state."
+       data-fr="Une dynamique linéaire identifiée sur q(t) fait évoluer l'état ; le décodeur 3D le rend. Le mode dominant q0 est une « flexion » de la languette, le mode secondaire q1 une « torsion ». Poussez la languette à la souris dans la scène 3D : l'effort entre dans la dynamique par la jacobienne du décodeur, J&#7488;f. Dans le plan latent, chaque point est une image enregistrée, placée à son état encodé ; glisser le point rouge tient l'état pendant que le temps continue, et le lâcher relance la dynamique depuis cet état (sauf si la simulation est en pause). Au-delà des états enregistrés (contour en tirets), la géométrie 3D de la languette vient d'une coque élastique, la dynamique restant linéaire ; le contour en pointillés est la limite de l'état.">
+      A linear dynamics identified on q(t) moves the state; the 3D decoder renders it.
+    </p>
 
     <p class="live-warn" id="liveWarn"></p>
 
@@ -273,26 +268,30 @@
       <div class="live-col">
         <section class="panel q">
           <div class="phead">
-            <div class="tag" id="tagCrop" data-en="2D decoder · 5 000 Gaussians" data-fr="décodeur 2D · 5 000 gaussiennes">2D decoder · 5 000 Gaussians</div>
-            <h2 data-en="Tracking window" data-fr="Fenêtre suiveuse">Tracking window</h2>
-            <div class="sub" data-en="drag on the tab to push it" data-fr="glisser sur la languette pour la pousser">drag on the tab to push it</div>
+            <div class="tag" data-en="linear dynamics · latent state" data-fr="dynamique linéaire · état latent">linear dynamics · latent state</div>
+            <h2 data-en="Latent state and arm position over time" data-fr="État latent et position du bras au cours du temps">Latent state and arm position over time</h2>
+            <div class="sub" data-en="shaded band: range covered by the recording" data-fr="bande grisée : étendue couverte par l'enregistrement">shaded band: range covered by the recording</div>
           </div>
-          <div class="stage sq"><canvas class="view" id="cvCrop"></canvas><canvas class="ovl" id="ovCrop"></canvas>
-            <div class="loading" data-en="loading" data-fr="chargement">loading</div></div>
+          <div class="plot-wrap"><canvas id="qtPlot"></canvas></div>
         </section>
         <section class="panel q">
           <div class="phead">
-            <div class="tag" id="tagFixed" data-en="2D decoder · 5 000 Gaussians" data-fr="décodeur 2D · 5 000 gaussiennes">2D decoder · 5 000 Gaussians</div>
-            <h2 data-en="Fixed camera" data-fr="Caméra fixe">Fixed camera</h2>
-            <div class="sub" data-en="drag on the tab to push it" data-fr="glisser sur la languette pour la pousser">drag on the tab to push it</div>
+            <div class="tag" data-en="dataset · encoded states" data-fr="jeu de données · états encodés">dataset · encoded states</div>
+            <h2 data-en="Latent plane (q0, q1)" data-fr="Plan latent (q0, q1)">Latent plane (q0, q1)</h2>
+            <div class="sub" data-en="drag the dot to set the state" data-fr="glisser le point pour fixer l'état">drag the dot to set the state</div>
           </div>
-          <div class="stage sq"><canvas class="view" id="cvFixed"></canvas><canvas class="ovl" id="ovFixed"></canvas>
-            <div class="loading" data-en="loading" data-fr="chargement">loading</div></div>
+          <div class="plot-wrap"><canvas id="exPlot"></canvas><div class="badge" data-en="drag the dot" data-fr="glisser le point">drag the dot</div></div>
+          <div class="ex-legend">
+            <span class="key"><i class="dot-sel"></i><span data-en="current state" data-fr="état courant">current state</span></span>
+            <span class="key"><i class="arr-lat"></i><span data-en="latent effort Jᵀf" data-fr="effort latent Jᵀf">latent effort Jᵀf</span></span>
+            <span class="key"><i class="dot-rec"></i><span data-en="recorded frames" data-fr="images enregistrées">recorded frames</span></span>
+          </div>
+          <p class="ex-hover" id="exHover">&nbsp;</p>
         </section>
       </div>
       <section class="panel q">
         <div class="phead">
-          <div class="tag" id="tag3d" data-en="3D decoder · 20 000 Gaussians · four views" data-fr="décodeur 3D · 20 000 gaussiennes · quatre vues">3D decoder · 20 000 Gaussians · four views</div>
+          <div class="tag" id="tag3d" data-en="3D decoder · 85 000 Gaussians · four views" data-fr="décodeur 3D · 85 000 gaussiennes · quatre vues">3D decoder · 85 000 Gaussians · four views</div>
           <h2 data-en="3D scene" data-fr="Scène 3D">3D scene</h2>
           <div class="sub" data-en="left-drag on the tab to push it · right-drag to rotate · scroll to zoom" data-fr="glisser au clic gauche sur la languette pour la pousser · glisser au clic droit pour tourner · molette pour zoomer">left-drag on the tab to push it · right-drag to rotate · scroll to zoom</div>
         </div>
@@ -301,69 +300,9 @@
       </section>
     </div>
     <p class="stats" id="mpStats"></p>
-
-    <hr class="exp-divider">
-
-    <div class="exp-head">
-      <p class="exp-tag" data-en="latent space" data-fr="espace latent">latent space</p>
-      <h2 class="exp-title" data-en="Interpretable latent space" data-fr="Espace latent interprétable">Interpretable latent space</h2>
-    </div>
-    <p class="vid-note"
-       data-en="Each dot is one frame of the recording, placed at its encoded state q = (q0, q1). The red dot is the current state, shared with the demo above: the arm slider, the play button and the effort applied in any view act on the same state. Dragging the dot sets the state and freezes the simulation; the play button restarts it. While the tab is pushed in a 2D view, the arrow shows the effort brought back into the latent space, J&#7488;f. Outside the convex hull of the dots, the decoders extrapolate."
-       data-fr="Chaque point est une image de l'enregistrement, placée à son état encodé q = (q0, q1). Le point rouge est l'état courant, partagé avec la démo ci-dessus : le curseur du bras, le bouton lecture et l'effort appliqué dans n'importe quelle vue agissent sur le même état. Glisser le point fixe l'état et fige la simulation ; le bouton lecture la relance. Pendant qu'on pousse la languette dans une vue 2D, la flèche montre l'effort ramené dans l'espace latent, J&#7488;f. Hors de l'enveloppe convexe des points, les décodeurs extrapolent.">
-      Each dot is one frame of the recording, placed at its encoded state q = (q0, q1).
-    </p>
-
-    <div class="controls">
-      <button class="btn" id="exPlay" type="button">▶</button>
-      <div class="ctl">
-        <label data-en="arm position s" data-fr="position du bras s">arm position s</label>
-        <input type="range" id="exS" step="0.001"/>
-      </div>
-      <div class="ctl">
-        <label data-en="latent state q" data-fr="état latent q">latent state q</label>
-        <span class="valbig" id="exQ">0.00, 0.00</span>
-      </div>
-    </div>
-
-    <div class="ex-grid">
-      <section class="panel q">
-        <div class="phead">
-          <div class="tag" data-en="dataset · encoded states" data-fr="jeu de données · états encodés">dataset · encoded states</div>
-          <h2 data-en="Latent plane (q0, q1)" data-fr="Plan latent (q0, q1)">Latent plane (q0, q1)</h2>
-          <div class="sub" data-en="drag the dot to set the state" data-fr="glisser le point pour fixer l'état">drag the dot to set the state</div>
-        </div>
-        <div class="plot-wrap"><canvas id="exPlot"></canvas><div class="badge" data-en="drag the dot" data-fr="glisser le point">drag the dot</div></div>
-        <div class="ex-legend">
-          <span class="key"><i class="dot-sel"></i><span data-en="current state" data-fr="état courant">current state</span></span>
-          <span class="key"><i class="arr-lat"></i><span data-en="latent effort Jᵀf" data-fr="effort latent Jᵀf">latent effort Jᵀf</span></span>
-          <span class="key"><i class="dot-rec"></i><span data-en="recorded frames" data-fr="images enregistrées">recorded frames</span></span>
-        </div>
-        <p class="ex-hover" id="exHover">&nbsp;</p>
-      </section>
-      <section class="panel q">
-        <div class="phead">
-          <div class="tag" data-en="2D decoder" data-fr="décodeur 2D">2D decoder</div>
-          <h2 data-en="Tracking window" data-fr="Fenêtre suiveuse">Tracking window</h2>
-          <div class="sub" data-en="drag on the tab to push it" data-fr="glisser sur la languette pour la pousser">drag on the tab to push it</div>
-        </div>
-        <div class="stage sq"><canvas class="view" id="cvExCrop"></canvas><canvas class="ovl" id="ovExCrop"></canvas><span class="badge ext">extrapolation</span>
-          <div class="loading" data-en="loading" data-fr="chargement">loading</div></div>
-      </section>
-      <section class="panel q">
-        <div class="phead">
-          <div class="tag" data-en="2D decoder" data-fr="décodeur 2D">2D decoder</div>
-          <h2 data-en="Fixed camera" data-fr="Caméra fixe">Fixed camera</h2>
-          <div class="sub" data-en="drag on the tab to push it" data-fr="glisser sur la languette pour la pousser">drag on the tab to push it</div>
-        </div>
-        <div class="stage sq"><canvas class="view" id="cvExFixed"></canvas><canvas class="ovl" id="ovExFixed"></canvas><span class="badge ext">extrapolation</span>
-          <div class="loading" data-en="loading" data-fr="chargement">loading</div></div>
-      </section>
-    </div>
   </div>
 </main>
 
-<script src="./demo/mpov/deform_splat.js"></script>
 <script src="./demo/mpov/zoned3d.js"></script>
 <script src="./demo/mpov/phys.js"></script>
 <script src="./demo/mpov/mpov_demo.js"></script>

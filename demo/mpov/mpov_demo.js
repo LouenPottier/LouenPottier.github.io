@@ -1,22 +1,15 @@
 /*
  * mpov_demo.js : demo interactive de xrdays.html.
  *
- * Un seul etat (s, q) pilote trois decodeurs :
- *   - 2D, fenetre suiveuse (deform_splat.js, mpov_crop.js)
- *   - 2D, camera fixe       (deform_splat.js, mpov_fixed.js)
- *   - 3D par zones          (zoned3d.js, mpov_3d.js), vu au depart depuis une pose de l'iphone3
- *     (t ~ 273 s, un quart de tour de l'iphone1 ; meme focale, meme axe optique, champ elargi a
- *     un carre), avec la correction de couleur apprise de l'iphone1 (memes couleurs que le 2D).
- *     Controle de la camera identique a demo/3d.html (lagsplat.html, experience 2)
+ * L'etat (s, q) pilote le decodeur 3D par zones (zoned3d.js, mpov_3d.js), vu au depart depuis
+ * une pose de l'iphone3 (t ~ 273 s, un quart de tour de l'iphone1), avec la correction de
+ * couleur apprise de l'iphone1. Controle de la camera identique a demo/3d.html.
+ * 2026-10-07 : les deux decodeurs 2D de la demo sont retires (les videos de comparaison de la
+ * page restent). Colonne de gauche : q(t) (meme trace que l'experience 4 de lagsplat.html) et
+ * plan latent (q0, q1), dont le point est l'etat partage avec la demo.
  *
- * Deux jeux de decodeurs, choisis par l'interrupteur « haute resolution » (basse par defaut) :
- *   basse : 2D 5 000 gaussiennes, 3D 20 000 gaussiennes rendue en 512 px
- *   haute : 2D 20 000 gaussiennes, 3D 85 000 gaussiennes rendue en 640 px
- * Le jeu haute resolution n'est telecharge qu'au premier passage ; chaque jeu reste en memoire.
- *
- * Espace latent interpretable (section suivante) : nuage des q mesures et ETAT PARTAGE avec la
- * demo (point a deplacer a la souris, « extrapolation » hors de l'enveloppe convexe du nuage,
- * fleche de l'effort latent applique), et deux vues 2D de plus, saisissables comme les autres.
+ * Deux jeux de decodeurs 3D, choisis par l'interrupteur « haute resolution » (haute par defaut) :
+ * 85 000 gaussiennes rendues en 640 px, ou 20 000 en 512 px (telecharge au premier passage).
  *
  * Dynamique (phys.js) : q'' = -K q - C q' + G s'' + b, identifiee sur q(t) ; B est mis a
  * zero, la position de repos ne depend pas de s. s suit le curseur avec une inertie
@@ -58,8 +51,6 @@
     const s = a * a + b * b + c * c + d * d, t = a * d - b * c;
     return Math.sqrt(0.5 * (s + Math.sqrt(Math.max(0, s * s - 4 * t * t)))); })() * P.q_disk.r;
   const FMAX = Math.pow(10, -0.4) * FREF;
-  // 2026-10-05 : plafond divise par 2 pour les vues 2D (FMAX inchange en 3D)
-  const FMAX2D = 0.5 * FMAX;
   // coque hors des donnees : etat (SH = Zoned3D.shell, null tant que non charge), plafond
   // d'effort multiplie par SHELL_FMAX quand elle est active
   const SHELL = {SH: null, on: true};
@@ -69,13 +60,12 @@
   // kc, cc : raideur et dissipation du couplage, en multiples de KREF et de 2 sqrt(KREF)
   // 2026-10-05 : gain divise par 2 (2.0 -> 1.0), dissipation doublee (1.0 -> 2.0)
   const G = {kc: 1.0, cc: 2.0, barrier: 8, margin: 0.02};
-  // porte (n_eff, coherence) : par vue, n_eff dependant de la densite de gaussiennes du
-  // decodeur. 3D : valeurs de la demo PC (meme decodeur) ; 2D : inchangees.
-  const GATE2D = {nmin: Math.pow(10, 0.7), cmin: 0.5}, GATE3D = {nmin: Math.pow(10, 1.3), cmin: 0.8};
+  // porte (n_eff, coherence) de la saisie : valeurs de la demo PC (meme decodeur 3D)
+  const GATE3D = {nmin: Math.pow(10, 1.3), cmin: 0.8};
 
   const S = {q: new Float64Array(dq), v: new Float64Array(dq),
              s: P.s_rest, sd: 0, sdd: 0, target: P.s_rest,
-             running: true, replay: false, k: 0, grab: null, cursor: null, gate: 0, Fq: 0};
+             running: true, hold: false, replay: false, k: 0, grab: null, cursor: null, gate: 0, Fq: 0};
 
   // ── rejeu : s(t) enregistre, derivees centrees ──
   const RS = P.replay_s, NR = RS.length;
@@ -163,6 +153,8 @@
       S.sdd = Math.max(-P.sdd_max, Math.min(P.sdd_max, kp * (S.target - S.s) - kd * S.sd));
       S.sd += dt * S.sdd; S.s += dt * S.sd;
     }
+    // point du plan latent tenu : etat fixe, vitesse nulle ; le bras continue (S.hold)
+    if (S.hold) { S.v[0] = 0; S.v[1] = 0; S.Fq = 0; S.F = [0, 0]; return; }
     const Fb = barrierForce(Array.from(S.q), Array.from(S.v)), a = [0, 0];
     for (let i = 0; i < dq; i++) {
       a[i] = P.b[i] + Fb[i] + P.G[i] * S.sdd;
@@ -296,31 +288,8 @@
     if (v.orbit) c.addEventListener('wheel', e => { e.preventDefault(); v.orbit.wheel(e); }, {passive: false});
   }
 
-  // share : autre vue 2D dont on reprend les poids decodes (D) ; seul le contexte WebGL est propre
-  function view2D(name, cvId, ovId, radius, crop, share) {
-    const v = {canvas: $(cvId), ovl: $(ovId), radius, crop, share, gate: GATE2D, fmax: FMAX2D, ready: false, visible: true,
-               st: null, byQ: {}};
-    v.init = (pack, q) => {
-      if (!v.byQ[q]) {
-        const D = share ? share.byQ[q].D : DeformSplat.load(pack);
-        v.byQ[q] = {D, R: DeformSplat.renderer(v.canvas, D)};
-      }
-      v.D = v.byQ[q].D; v.R = v.byQ[q].R; v.st = null;
-      v.canvas.width = v.D.W; v.canvas.height = v.D.H;
-      v.W = () => v.D.W; v.H = () => v.D.H;
-      v.ready = true;
-    };
-    // sans coque en 2D : hors du domaine, la vue reste au point du bord q_b
-    const zb = z => { if (!shellOn()) return [z[0], z[1], z[2]];
-      const pj = SHELL.SH.project([z[0], z[1]]); return [pj.qb[0], pj.qb[1], z[2]]; };
-    v.draw = z => { v.st = v.D.state(zb(z)); v.R.draw(v.st); };
-    v.select = (x, y) => v.st ? v.D.select(v.st, x, y, v.radius, false) : null;
-    v.jac = (z, sel) => v.D.jacobian(zb(z), sel);
-    attachGrab(v);
-    return v;
-  }
-
-  const DOLLY0 = 0.5;     // recul de la vue 3D de depart, x distance camera - pivot
+  const DOLLY0 = 0.5;      // recul de la vue 3D de depart, x distance camera - pivot
+  const FOCAL = 0.7;       // focale de la vue 3D, en multiple de celle de l'iphone3 (2026-10-07)
   function view3D(cvId, ovId, radius640) {
     const v = {canvas: $(cvId), ovl: $(ovId), radius: radius640, gate: GATE3D, ready: false, visible: true,
                lastZ: null, byQ: {}};
@@ -335,8 +304,13 @@
       // qualite, la pose courante de la camera est conservee.
       const cams = v.M.meta.cams, c0 = cams.iphone3 || cams.iphone1, k = side / c0.H;
       const E = v.cam ? v.cam.E : c0.E.map(r => r.slice());
-      v.cam = {E, K: [[c0.K[0][0] * k, 0, side / 2 + (c0.K[0][2] - c0.W / 2) * k],
-                      [0, c0.K[1][1] * k, c0.K[1][2] * k], [0, 0, 1]],
+      // focale : celle de l'iphone3 mise a l'echelle, multipliee par FOCAL (point principal
+      // inchange). FOCAL < 1 elargit le champ ; la camera de depart est rapprochee d'autant (cf.
+      // plus bas) pour garder le meme grossissement de la languette.
+      v.f0 = [c0.K[0][0] * k, c0.K[1][1] * k];
+      v.focal = FOCAL;
+      v.cam = {E, K: [[v.f0[0] * v.focal, 0, side / 2 + (c0.K[0][2] - c0.W / 2) * k],
+                      [0, v.f0[1] * v.focal, c0.K[1][2] * k], [0, 0, 1]],
                W: side, H: side, color: cams.iphone1.color};
       v.radius = radius640 * side / 640;
       v.W = () => v.cam.W; v.H = () => v.cam.H;
@@ -367,7 +341,8 @@
         for (let j = 0; j < 3; j++) pos[j] -= z[j] * pull;
         // 2026-10-05 : position par defaut rapprochee d'UN cran de molette (deltaY = -100 px,
         // meme loi que wheel() : facteur exp(-100 x 0.0015)), homothetie autour du pivot
-        const k1 = Math.exp(-100 * 0.0015);
+        // 2026-10-07 : rapprochee aussi du facteur FOCAL (grossissement f / d inchange)
+        const k1 = Math.exp(-100 * 0.0015) * FOCAL;
         for (let j = 0; j < 3; j++) pos[j] = p[j] + (pos[j] - p[j]) * k1;
         [x, y, z].forEach((a, i) => { for (let j = 0; j < 3; j++) E[i][j] = a[j]; E[i][3] = -dot3(a, pos); });
       }
@@ -453,20 +428,10 @@
     return v;
   }
 
-  // fenetre suiveuse : image carree (256 x 256) dans une scene carree, montree entiere
-  const vCrop = view2D('crop', 'cvCrop', 'ovCrop', 18);
-  // camera fixe (270 x 480) : carre des lignes 120 a 390, bras, pince et languette
-  const vFixed = view2D('fixed', 'cvFixed', 'ovFixed', 14, {y0: 120});
   const v3 = view3D('cv3d', 'ov3d', 22);
-  // section « espace latent » : les memes deux vues 2D (poids partages, saisie identique)
-  const vExCrop = view2D('crop', 'cvExCrop', 'ovExCrop', 18, null, vCrop);
-  const vExFixed = view2D('fixed', 'cvExFixed', 'ovExFixed', 14, {y0: 120}, vFixed);
-  views.push(vCrop, vFixed, v3, vExCrop, vExFixed);
+  views.push(v3);
 
-  // ── qualites : fichiers, cote du rendu 3D (agrandi par le navigateur) et etiquettes ──
-  // Seule la 3D change de qualite ; les deux vues 2D gardent le decodeur 5 000 gaussiennes.
-  const DEC2D = {crop: ['./demo/mpov/mpov_crop.js', 'crop'], fixed: ['./demo/mpov/mpov_fixed.js', 'fixed'],
-                 n2: '5 000'};
+  // ── qualites : fichier et cote du rendu 3D (agrandi par le navigateur) ──
   const QUAL = {
     low: {d3: './demo/mpov/mpov_3d.js', side: 512, n3: '20 000'},
     high: {d3: './demo/mpov/mpov_3d_hi.js', side: 640, n3: '85 000'}};
@@ -478,8 +443,6 @@
   }
   function labels(q) {
     const Q = QUAL[q];
-    for (const id of ['tagCrop', 'tagFixed'])
-      setLabel($(id), '2D decoder · ' + DEC2D.n2 + ' Gaussians', 'décodeur 2D · ' + DEC2D.n2 + ' gaussiennes');
     setLabel($('tag3d'), '3D decoder · ' + Q.n3 + ' Gaussians · four views',
              'décodeur 3D · ' + Q.n3 + ' gaussiennes · quatre vues');
   }
@@ -492,16 +455,6 @@
     switching = true;
     const Q = QUAL[q];
     S.grab = null; S.cursor = null;          // les selections portent des indices de gaussiennes
-    // vues 2D : chargees une seule fois, sous la cle 'low', quelle que soit la qualite 3D
-    for (const [v, [src, key]] of [[vCrop, DEC2D.crop], [vFixed, DEC2D.fixed]]) {
-      if (v.byQ.low) continue;
-      loadingShow(v, true);
-      try { if (!(window.MPOV_DEC2D && window.MPOV_DEC2D[key])) await loadScript(src); }
-      catch (e) { console.error(e); loadingShow(v, false); continue; }
-      v.init(window.MPOV_DEC2D[key], 'low');
-      loadingShow(v, false);
-    }
-    for (const v of [vExCrop, vExFixed]) if (v.share.byQ.low && !v.byQ.low) { v.init(null, 'low'); loadingShow(v, false); }
     if (!v3.byQ[q]) {
       loadingShow(v3, true);
       try { await loadScript(Q.d3); packs3d[q] = window.MPOV_DEC3D; }
@@ -516,15 +469,24 @@
 
   function zNow() { return [S.q[0], S.q[1], S.s]; }
 
+  // ── convention d'AFFICHAGE (2026-10-07) : le mode dominant (q[1] de l'encodeur, une flexion)
+  // est affiche q0 « flexion », le mode secondaire (q[0], une torsion) q1 « torsion ». L'etat
+  // interne, la dynamique (phys.js) et les decodeurs gardent l'ordre de l'encodeur ; seuls le
+  // plan latent, q(t) et la valeur affichee echangent les deux coordonnees.
+  const D = q => [q[1], q[0]];
+  const QNAME = () => lang() === 'fr' ? ['q₀ « flexion »', 'q₁ « torsion »'] : ['q₀ “bending”', 'q₁ “twist”'];
+
   // ── espace latent interpretable : nuage des q mesures (phys.js, cloud = (s, q0, q1) une
   // image sur 12) et etat PARTAGE (S) avec la demo : le point est S.q, le curseur pilote s,
-  // « lecture » est celle de la demo. Saisir le point fige la simulation (vitesse nulle) ; le
-  // lacher la laisse figee. Fleche : effort latent applique F_q = J^T f (borne comprise), comme
+  // « lecture » est celle de la demo. Tenir le point fixe l'etat (vitesse nulle) sans arreter
+  // le temps : le bras et q(t) continuent d'avancer ; le lacher relance la dynamique depuis cet
+  // etat, sauf si la simulation est en pause (bouton lecture, independant de la saisie). Fleche : effort latent applique F_q = J^T f (borne comprise), comme
   // le plan de phase du sac de lagsplat.html (longueur 3 F / KREF en unites de q, plafonnee).
   const EX = (() => {
     const X = {visible: false, drag: false, hover: null};
     const cv = $('exPlot'), ctx = cv.getContext('2d');
-    let lo = P.q_lo, hi = P.q_hi;
+    // lo, hi, X.hover, qAt : coordonnees d'AFFICHAGE (D) ; S.q, inHull, le domaine : internes
+    let lo = D(P.q_lo), hi = D(P.q_hi);
     // coque chargee : plan elargi a la limite EXT x R(theta) (contour du domaine des donnees en
     // tirets, limite en pointilles)
     function shellCurve(f) {
@@ -532,15 +494,16 @@
       for (let i = 0; i <= 144; i++) {
         const th = -Math.PI + 2 * Math.PI * i / 144, u = [Math.cos(th), Math.sin(th)];
         const R = f * SHELL.SH.radius(u);
-        out.push([R * u[0], R * u[1]]);
+        out.push(D([R * u[0], R * u[1]]));
       }
       return out;
     }
     function relayout() {
       if (SHELL.SH) {
         const c = shellCurve(SHELL.SH.meta.ext);
-        lo = [Math.min(P.q_lo[0], ...c.map(p => p[0])), Math.min(P.q_lo[1], ...c.map(p => p[1]))];
-        hi = [Math.max(P.q_hi[0], ...c.map(p => p[0])), Math.max(P.q_hi[1], ...c.map(p => p[1]))];
+        const l0 = D(P.q_lo), h0 = D(P.q_hi);
+        lo = [Math.min(l0[0], ...c.map(p => p[0])), Math.min(l0[1], ...c.map(p => p[1]))];
+        hi = [Math.max(h0[0], ...c.map(p => p[0])), Math.max(h0[1], ...c.map(p => p[1]))];
       }
       geo = null;
     }
@@ -588,11 +551,12 @@
       const g = cache.getContext('2d'); g.scale(dpr, dpr);
       g.strokeStyle = FRAME; g.lineWidth = 1; g.strokeRect(ox, oy, inner, inner);
       g.fillStyle = LABEL; g.font = "600 12px 'JetBrains Mono', monospace"; g.textAlign = 'center';
-      g.fillText('q₀', ox + inner / 2, oy + inner + 16);
-      g.save(); g.translate(ox - 14, oy + inner / 2); g.rotate(-Math.PI / 2); g.fillText('q₁', 0, 0); g.restore();
+      const nm = QNAME();
+      g.fillText(nm[0], ox + inner / 2, oy + inner + 16);
+      g.save(); g.translate(ox - 14, oy + inner / 2); g.rotate(-Math.PI / 2); g.fillText(nm[1], 0, 0); g.restore();
       g.save(); g.beginPath(); g.rect(ox, oy, inner, inner); g.clip();
       g.fillStyle = DATA;
-      for (const c of P.cloud) { g.beginPath(); g.arc(geo.px(c[1]), geo.py(c[2]), 2, 0, 6.284); g.fill(); }
+      for (const c of P.cloud) { g.beginPath(); g.arc(geo.px(c[2]), geo.py(c[1]), 2, 0, 6.284); g.fill(); }
       if (SHELL.SH) {
         for (const [f, dash] of [[1, [5, 4]], [SHELL.SH.meta.ext, [1.5, 3]]]) {
           g.strokeStyle = LABEL; g.lineWidth = 1.2; g.setLineDash(dash); g.beginPath();
@@ -627,9 +591,9 @@
         ctx.beginPath(); ctx.moveTo(hx, geo.oy); ctx.lineTo(hx, geo.oy + geo.inner);
         ctx.moveTo(geo.ox, hy); ctx.lineTo(geo.ox + geo.inner, hy); ctx.stroke(); ctx.setLineDash([]);
       }
-      const sx = geo.px(S.q[0]), sy = geo.py(S.q[1]);
+      const qd = D(S.q), sx = geo.px(qd[0]), sy = geo.py(qd[1]);
       // effort latent applique, pendant une saisie
-      const F = S.F || [0, 0];
+      const F = D(S.F || [0, 0]);
       if (S.grab && (F[0] || F[1])) {
         const k = LAT_ARROW_GAIN * geo.sc / KREF;
         let vx = F[0] * k, vy = -F[1] * k;
@@ -645,17 +609,17 @@
       const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
       return [Math.max(lo[0], Math.min(hi[0], geo.qx(x))), Math.max(lo[1], Math.min(hi[1], geo.qy(y)))];
     }
-    function hoverText(q) {
-      const sh = shellOn() && SHELL.SH.project(q).out;
-      return 'q = (' + q[0].toFixed(2) + ', ' + q[1].toFixed(2) + ')'
+    function hoverText(d) {
+      const q = D(d), sh = shellOn() && SHELL.SH.project(q).out;
+      return 'q = (' + d[0].toFixed(2) + ', ' + d[1].toFixed(2) + ')'
         + (sh ? (lang() === 'fr' ? ' · géométrie de la coque' : ' · shell geometry') : inHull(q) ? '' : ' · extrapolation');
     }
-    function place(q) { S.q[0] = q[0]; S.q[1] = q[1]; S.v[0] = 0; S.v[1] = 0; }
+    function place(d) { const q = D(d); S.q[0] = q[0]; S.q[1] = q[1]; S.v[0] = 0; S.v[1] = 0; }
     cv.addEventListener('pointerdown', e => {
       if (!geo) return;
       X.drag = true; cv.setPointerCapture(e.pointerId);
       S.grab = null; S.cursor = null;
-      setRunning(false); place(qAt(e));
+      S.hold = true; place(qAt(e));
     });
     cv.addEventListener('pointermove', e => {
       if (!geo) return;
@@ -663,20 +627,69 @@
       $('exHover').textContent = hoverText(q);
       if (X.drag) place(q);
     });
-    for (const ev of ['pointerup', 'pointercancel']) cv.addEventListener(ev, () => { X.drag = false; });
+    for (const ev of ['pointerup', 'pointercancel']) cv.addEventListener(ev, () => { X.drag = false; S.hold = false; S.v[0] = 0; S.v[1] = 0; });
     cv.addEventListener('pointerleave', () => { X.hover = null; $('exHover').innerHTML = '&nbsp;'; });
-    new IntersectionObserver(es => { X.visible = es.some(e => e.isIntersecting); })
-      .observe(document.querySelector('#lags-demo .ex-grid'));
+    new IntersectionObserver(es => { X.visible = es.some(e => e.isIntersecting); }).observe(cv);
+    // changement de langue (lang.js) : etiquettes des axes
+    new MutationObserver(() => { geo = null; }).observe(document.documentElement, {attributes: true, attributeFilter: ['lang']});
 
     return {
       relayout,
+      bounds: () => [lo, hi],
       frame() {
         if (!X.visible) return;
         drawPlot();
-        $('exQ').textContent = S.q[0].toFixed(2) + ', ' + S.q[1].toFixed(2);
-        const ext = !inHull(S.q);
-        for (const b of document.querySelectorAll('#lags-demo .ex-grid .ext')) b.style.display = ext ? 'block' : 'none';
       }};
+  })();
+
+  // ── q(t) et s(t) : meme trace que l'experience 4 de lagsplat.html (drawState) : une piste par
+  // coordonnee (s, puis q0 « flexion » et q1 « torsion » dans la convention d'affichage), bande
+  // grisee = etendue de l'enregistrement (centiles 1 et 99 du nuage), historique defilant (un point
+  // par pas physique, y compris quand le point du plan latent est tenu), etat courant a droite.
+  // Echelle verticale de q : celle du plan latent (elargie a la limite de la coque quand elle est
+  // chargee) ; de s : la course du curseur. ──
+  const QT = (() => {
+    const cv = $('qtPlot'), HIST = 720, hist = [], COLS = ['#118a6e', '#1b3a6b', '#d23b3b'];
+    const col = [c => c[0], c => c[2], c => c[1]];                 // s, puis (q0, q1) d'affichage
+    const pct = (k, f) => { const v = P.cloud.map(col[k]).sort((a, b) => a - b);
+      return v[Math.round(f * (v.length - 1))]; };
+    const BAND = [0, 1, 2].map(k => [pct(k, 0.01), pct(k, 0.99)]);
+    let visible = false;
+    new IntersectionObserver(es => { visible = es.some(e => e.isIntersecting); }).observe(cv);
+    function push() { const d = D(S.q); hist.push([S.s, d[0], d[1]]); if (hist.length > HIST) hist.splice(0, hist.length - HIST); }
+    function draw() {
+      if (!visible) return;
+      const dpr = Math.min(devicePixelRatio || 1, 2), w = cv.clientWidth, h = cv.clientHeight;
+      if (!w || !h) return;
+      if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+      const x = cv.getContext('2d'); x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, w, h);
+      const [lo, hi] = EX.bounds(), pad = 6, lane = (h - 2 * pad) / 3;
+      const rng = [[P.s_lo, P.s_hi], [lo[0], hi[0]], [lo[1], hi[1]]], names = ['s'].concat(QNAME());
+      for (let k = 0; k < 3; k++) {
+        const y0 = pad + k * lane, y1 = y0 + lane;
+        const c = 0.5 * (rng[k][0] + rng[k][1]), sp = 0.5 * (rng[k][1] - rng[k][0]) * 1.05;
+        const Y = v => y1 - 4 - (v - (c - sp)) / (2 * sp) * (lane - 8);
+        x.fillStyle = 'rgba(27,58,107,0.07)';
+        x.fillRect(0, Y(BAND[k][1]), w, Y(BAND[k][0]) - Y(BAND[k][1]));
+        x.strokeStyle = 'rgba(0,0,0,0.10)'; x.lineWidth = 1;
+        const yref = k === 0 ? P.s_rest : 0;
+        x.beginPath(); x.moveTo(0, Y(yref)); x.lineTo(w, Y(yref)); x.stroke();
+        if (hist.length > 1) {
+          x.save(); x.beginPath(); x.rect(0, y0, w, lane); x.clip();
+          x.strokeStyle = COLS[k]; x.lineWidth = 1.6; x.beginPath();
+          for (let i = 0; i < hist.length; i++) {
+            const px = w - (hist.length - 1 - i) / (HIST - 1) * w, py = Y(hist[i][k]);
+            if (i === 0) x.moveTo(px, py); else x.lineTo(px, py);
+          }
+          x.stroke();
+          x.fillStyle = COLS[k]; x.beginPath(); x.arc(w - 1, Y(hist[hist.length - 1][k]), 2.6, 0, 6.284); x.fill();
+          x.restore();
+        }
+        x.fillStyle = COLS[k]; x.font = '600 11px ui-monospace,monospace';
+        x.fillText(names[k], 6, y0 + 13);
+      }
+    }
+    return {push, draw};
   })();
 
   // ── boucle ────────────────────────────────────────────────────────────────
@@ -692,7 +705,7 @@
       // accumulateur : a 144 ou 240 Hz une image dure moins qu'un pas physique, un arrondi
       // de el / dt y vaudrait 0 et la simulation resterait figee
       S.acc = Math.min((S.acc || 0) + el, 40 * dt);
-      while (S.acc >= dt) { stepOnce(); S.acc -= dt; }
+      while (S.acc >= dt) { stepOnce(); QT.push(); S.acc -= dt; }
     }
     const z = zNow();
     for (const v of views) {
@@ -703,9 +716,9 @@
       drawOverlay(v);
     }
     EX.frame();
-    $('mpQ').textContent = S.q[0].toFixed(2) + ', ' + S.q[1].toFixed(2);
-    for (const id of ['mpS', 'exS'])
-      if (!S.replay && document.activeElement !== $(id)) $(id).value = S.target;
+    QT.draw();
+    $('mpQ').textContent = D(S.q).map(v => v.toFixed(2)).join(', ');
+    if (!S.replay && document.activeElement !== $('mpS')) $('mpS').value = S.target;
     $('mpStats').textContent = (quality === 'high' ? 'high' : 'low') + ' resolution · ' + fps.toFixed(0) + ' fps · ' + Object.entries(ms)
       .map(([k, v]) => k.replace('cv', '') + ' ' + v.toFixed(1) + ' ms').join(' · ')
       + (distAt(Array.from(S.q)) > 0 ? ' · edge of the explored domain' : '')
@@ -716,11 +729,11 @@
   // ── commandes ───────────────────────────────────────────────────────────
   function setRunning(r) {
     S.running = r;
-    for (const id of ['mpPlay', 'exPlay']) $(id).textContent = r ? '\u275a\u275a' : '\u25b6';
+    $('mpPlay').textContent = r ? '\u275a\u275a' : '\u25b6';
   }
-  $('mpPlay').onclick = $('exPlay').onclick = () => setRunning(!S.running);
-  for (const id of ['mpS', 'exS']) {
-    const sl = $(id);
+  $('mpPlay').onclick = () => setRunning(!S.running);
+  {
+    const sl = $('mpS');
     sl.min = P.s_lo; sl.max = P.s_hi; sl.value = S.target;
     sl.addEventListener('input', () => {
       S.target = +sl.value;
@@ -781,7 +794,8 @@
       return;
     }
     requestAnimationFrame(loop);
-    await useQuality('low');
+    // 2026-10-07 : haute resolution par defaut
+    await useQuality('high');
     await loadShell();
   }
   // ── auto-test (?selftest) : cherche la languette dans chaque vue, saisit et tire ──
@@ -794,7 +808,7 @@
       await waitReady();
       await new Promise(r => setTimeout(r, 500));
       for (const q of ['low', 'high']) {
-      if (q === 'high') await useQuality('high');
+      await useQuality(q);
       out.push('== ' + q + ' : ' + views.map(v => v.canvas.id + ' ' + v.W() + 'x' + v.H()).join(', '));
       for (const v of views) {
         let best = null;
@@ -833,24 +847,25 @@
   const lio = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { start(); lio.disconnect(); } },
                                        {rootMargin: '300px'});
   lio.observe(document.querySelector('#lags-demo .live-grid'));
-  lio.observe(document.querySelector('#lags-demo .ex-grid'));
   // une vue hors ecran n'est pas rendue
   const vio2 = new IntersectionObserver(es => es.forEach(en => {
     const v = views.find(x => x.canvas === en.target); if (v) v.visible = en.isIntersecting;
   }));
   views.forEach(v => vio2.observe(v.canvas));
 
-  // ── alignement : la scene 3D (carree) a la hauteur des deux vues 2D (carrees) empilees ──
-  // largeur a de la colonne de gauche telle que 2 (a + hL) + g = (T - g - a) + hR, avec hL, hR
-  // la hauteur des panneaux hors image (en-tetes, bordures), T la largeur totale, g l'espacement
+  // ── alignement : la scene 3D (carree) a la hauteur des deux panneaux carres de gauche
+  // (q(t), plan latent) empiles. Largeur a de la colonne de gauche telle que
+  // (a + h1) + (a + h2) + g = (T - g - a) + hR, avec h1, h2, hR la hauteur des panneaux hors
+  // image (en-tetes, legende), T la largeur totale, g l'espacement ──
   const grid = document.querySelector('#lags-demo .live-grid');
   function align() {
     if (window.matchMedia('(max-width:880px)').matches) { grid.style.gridTemplateColumns = ''; return; }
     const pan = id => $(id).closest('.panel'), stg = id => $(id).parentElement;
-    const hL = pan('cvCrop').offsetHeight - stg('cvCrop').offsetHeight;
+    const h1 = pan('qtPlot').offsetHeight - stg('qtPlot').offsetHeight;
+    const h2 = pan('exPlot').offsetHeight - stg('exPlot').offsetHeight;
     const hR = pan('cv3d').offsetHeight - stg('cv3d').offsetHeight;
     const g = parseFloat(getComputedStyle(grid).columnGap) || 14, T = grid.clientWidth;
-    const a = Math.round((T - 2 * g + hR - 2 * hL) / 3);
+    const a = Math.round((T - 2 * g + hR - h1 - h2) / 3);
     const cols = a + 'px minmax(0,1fr)';
     if (a > 120 && grid.style.gridTemplateColumns !== cols) grid.style.gridTemplateColumns = cols;
   }
