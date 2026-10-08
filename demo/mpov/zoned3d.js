@@ -476,7 +476,44 @@
       return {pt, J, neff: 1 / s2, coh: Math.hypot(...mean) / Math.max(den, 1e-12), n};
     }
 
-    const M = {meta, N, NM, xyz, quat, logs, col, alpha, update, select, jacobian, project,
+    // position monde des gaussiennes de zone s `ids` (NQ <= g < NQ + NS) a l'abscisse s
+    function sPositions(s, ids) {
+      const raw = head('field_s', field('field_s', [s]), Int32Array.from(ids, g => g - NQ));
+      const cs = carrier(s), out = new Float64Array(3 * ids.length), tmp = new Float32Array(12);
+      for (let j = 0; j < ids.length; j++) {
+        const g = ids[j], r = (g - NQ) * 12;
+        split(raw, j * 12, tmp, 0);
+        for (let k = 0; k < 3; k++)
+          out[3 * j + k] = P.xyz[3 * g + k] + P.carrier_w[g] * (cs[k] - c0[k]) + (tmp[k] - refS[r + k]);
+      }
+      return out;
+    }
+
+    // saisie du BRAS (2026-10-08, cf. arm_follow de xr/xr_native_zoned.py) : gaussiennes opaques
+    // de la zone s parmi la selection, point saisi (px) et d(point)/ds (px par unite de s),
+    // differences centrees de pas h ; null s'il en reste moins de 3
+    function armJacobian(z, cam, sel, h) {
+      const ids = [], w = [];
+      for (let j = 0; j < sel.idx.length; j++) {
+        const g = sel.idx[j];
+        if (g >= NQ && g < NQ + NS && alpha[g] > 0.3) { ids.push(g); w.push(sel.w[j]); }
+      }
+      if (ids.length < 3) return null;
+      let sw = w.reduce((a, b) => a + b, 0);
+      if (!(sw > 0)) { w.fill(1); sw = w.length; }
+      const X0 = sPositions(z[0], ids), Xp = sPositions(z[0] + h, ids), Xm = sPositions(z[0] - h, ids);
+      const pt = [0, 0], dp = [0, 0];
+      for (let j = 0; j < ids.length; j++) {
+        const wj = w[j] / sw, o = 3 * j;
+        const p = project(cam, [X0[o], X0[o + 1], X0[o + 2]]);
+        const a = project(cam, [Xp[o], Xp[o + 1], Xp[o + 2]]), b = project(cam, [Xm[o], Xm[o + 1], Xm[o + 2]]);
+        pt[0] += wj * p[0]; pt[1] += wj * p[1];
+        dp[0] += wj * (a[0] - b[0]) / (2 * h); dp[1] += wj * (a[1] - b[1]) / (2 * h);
+      }
+      return {idx: Int32Array.from(ids), w: Float64Array.from(w, v => v / sw), pt, dp, n: ids.length};
+    }
+
+    const M = {meta, N, NM, xyz, quat, logs, col, alpha, update, select, jacobian, armJacobian, project,
                setShell, z: null, shellRatio: 0, shellOut: false, nShell: 0};
     return M;
   }

@@ -216,6 +216,13 @@
       const i = 1 + (S.k % (NR - 2));
       S.s = RS[i]; S.sd = RSd[i]; S.sdd = Math.max(-P.sdd_max, Math.min(P.sdd_max, RSdd[i]));
       S.k += 1;
+    } else if (S.grab && S.grab.arm) {
+      // bras saisi au clic (2026-10-08, comme xr_native_zoned.py) : il suit la consigne sans
+      // inertie ; l'acceleration qui force la languette (G s'') est bornee a 3 fois le maximum
+      const sd0 = S.sd;
+      S.sd = (S.target - S.s) / dt;
+      S.sdd = Math.max(-3 * P.sdd_max, Math.min(3 * P.sdd_max, (S.sd - sd0) / dt));
+      S.s = S.target;
     } else {
       const kp = 400, kd = 40;
       S.sdd = Math.max(-P.sdd_max, Math.min(P.sdd_max, kp * (S.target - S.s) - kd * S.sd));
@@ -336,8 +343,19 @@
       const sel = v.select(p[0], p[1]);
       S.cursor = p;
       if (!sel) return;
-      const j = v.jac(z, sel);
-      S.grab = Object.assign({view: v, sel, qref: [S.q[0], S.q[1]]}, j);
+      // languette (zone q) sous le curseur : effort J^T f ; sinon bras (zone s) : il suit le curseur
+      // (2026-10-08, comme le pincement de xr_native_zoned.py)
+      let nq = 0;
+      if (v.armJac) for (const g of sel.idx) if (g < v.M.meta.n_q && v.M.alpha[g] > 0.3) nq++;
+      const arm = v.armJac && nq < 3 ? v.armJac(z, sel) : null;
+      if (arm) {
+        S.grab = {view: v, arm: true, sel: {idx: arm.idx, w: arm.w}, pt: arm.pt,
+                  off: [p[0] - arm.pt[0], p[1] - arm.pt[1]]};
+        if (S.replay) { S.replay = false; $('mpReplay').classList.remove('on'); S.target = S.s; S.sd = 0; }
+      } else {
+        const j = v.jac(z, sel);
+        S.grab = Object.assign({view: v, sel, qref: [S.q[0], S.q[1]]}, j);
+      }
       c.setPointerCapture(e.pointerId); c.classList.add('grabbing');
       if (!S.running) setRunning(true);
     });
@@ -355,7 +373,10 @@
     for (const ev of ['pointerup', 'pointercancel']) c.addEventListener(ev, e => {
       touches.delete(e.pointerId);
       if (v.orbit) v.orbit.active = false;
-      if (S.grab && S.grab.view === v) { S.grab = null; S.cursor = null; }
+      if (S.grab && S.grab.view === v) {
+        if (S.grab.arm) { S.target = S.s; S.sd = 0; S.sdd = 0; }
+        S.grab = null; S.cursor = null;
+      }
       c.classList.remove('grabbing');
     });
     if (v.orbit) c.addEventListener('wheel', e => { e.preventDefault(); v.orbit.wheel(e); }, {passive: false});
@@ -384,7 +405,10 @@
       v.focal = FOCAL;
       v.cam = {E, K: [[v.f0[0] * v.focal, 0, side / 2 + (c0.K[0][2] - c0.W / 2) * k],
                       [0, v.f0[1] * v.focal, c0.K[1][2] * k], [0, 0, 1]],
-               W: side, H: side, color: cams.iphone1.color};
+               // couleur : correction apprise de l'iphone3 pour la haute resolution (la vue de depart
+               // EST une pose de l'iphone3 ; rapport G/B 1.035 comme l'image reelle, contre 1.076,
+               // trop vert, avec celle de l'iphone1), celle de l'iphone1 pour la basse (2026-10-07)
+               W: side, H: side, color: (q === 'high' && cams.iphone3 && cams.iphone3.color) || cams.iphone1.color};
       v.radius = radius640 * side / 640;
       v.W = () => v.cam.W; v.H = () => v.cam.H;
       // pivot de l'orbite et du zoom : barycentre de la zone q (la languette) a l'etat de repos.
@@ -429,6 +453,9 @@
     };
     v.select = (x, y) => v.M.select(v.cam, x, y, v.radius, false);
     v.jac = (z, sel) => v.M.jacobian([z[2], z[0], z[1]], v.cam, sel);
+    // v.M n'existe qu'apres le chargement du decodeur : test a l'appel
+    v.armJac = (z, sel) => v.M && v.M.armJacobian
+      ? v.M.armJacobian([z[2], z[0], z[1]], v.cam, sel, 0.005 * (P.s_hi - P.s_lo)) : null;
     // ── camera : meme controle que demo/3d.html (orbitAroundPivot, zoomBy, panBy) ──
     // E est monde -> camera (OpenCV : visee +Z, Y vers le bas). Les lignes de sa rotation sont
     // les axes camera exprimes dans le monde, soit les colonnes de camToWorld dans 3d.html.
@@ -780,11 +807,30 @@
 
   // ── boucle ────────────────────────────────────────────────────────────────
   let last = performance.now(), fps = 0, ms = {};
+  // saisie du bras (cf. arm_follow de xr_native_zoned.py) : s tel que le point saisi suive le
+  // curseur au premier ordre, ds = (dp/ds) . (curseur - decalage - p) / |dp/ds|^2, borne a 20 %
+  // de la course par image ; en pause le bras suit tout de suite (temps fige)
+  function armFollow() {
+    const g = S.grab;
+    if (!g.view.ready || !S.cursor) return;
+    const a = g.view.armJac(zNow(), g.sel);
+    if (!a) return;
+    g.pt = [a.pt[0] + g.off[0], a.pt[1] + g.off[1]];
+    const den = a.dp[0] * a.dp[0] + a.dp[1] * a.dp[1];
+    if (!(den > 1e-12)) return;
+    const R = P.s_hi - P.s_lo;
+    let ds = (a.dp[0] * (S.cursor[0] - g.pt[0]) + a.dp[1] * (S.cursor[1] - g.pt[1])) / den;
+    ds = Math.max(-0.2 * R, Math.min(0.2 * R, ds));
+    S.target = Math.max(P.s_lo, Math.min(P.s_hi, S.s + ds));
+    if (!S.running) { S.s = S.target; S.sd = 0; S.sdd = 0; }
+  }
+
   function loop(now) {
     const el = Math.min(0.25, (now - last) / 1000); last = now;
     fps = 0.9 * fps + 0.1 / Math.max(el, 1e-4);
     if (S.running) {
-      if (S.grab && S.grab.view.ready) {
+      if (S.grab && S.grab.arm) armFollow();
+      else if (S.grab && S.grab.view.ready) {
         const j = S.grab.view.jac(zNow(), S.grab.sel);
         Object.assign(S.grab, j, {qref: [S.q[0], S.q[1]]});
       }
@@ -793,6 +839,7 @@
       S.acc = Math.min((S.acc || 0) + el, 40 * dt);
       while (S.acc >= dt) { stepOnce(); QT.push(); S.acc -= dt; }
     }
+    if (!S.running && S.grab && S.grab.arm) armFollow();
     const z = zNow();
     for (const v of views) {
       if (!v.ready || !v.visible) continue;
