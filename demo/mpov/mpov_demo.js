@@ -176,7 +176,7 @@
   // boite : pose de depart dans le repere de la table, a cote de la pointe de la languette au repos
   // (mesure sur le decodeur haute resolution v5_c05 : decalee le long de sa direction principale de
   // balayage en q), 0.02 au-dessus du plateau du meuble (COLL_DEF.cab.top)
-  const BOX_HALF = [0.22, 0.22, 0.32];      // 2026-10-08 : hauteur 0.755 -> 0.64
+  const BOX_HALF = [0.22, 0.22, 0.29];      // 2026-10-08 : hauteur 0.755 -> 0.64 -> 0.58
   const BOX = window.MpovBox ? MpovBox.create({
     center: tfPoint([-0.134, 0.70, COLL_DEF.cab.top + BOX_HALF[2] + 0.02]), up: TF.ez,
     dir: [-0.88796, 0.04672, -0.45753], half: BOX_HALF}) : null;
@@ -193,28 +193,20 @@
   // de 0.8 : au debut du contact peu de gaussiennes touchent et la porte fermee laissait passer), et
   // plafond de l'effort latent x BOX_FMAX pendant un contact (celui de la saisie a la souris l'arretait)
   // ctMax 10 -> 50 (2026-10-08) : frottement de la languette sur la boite trop faible
-  // 2026-10-08 : raideur 40 -> 150, dissipation 2 -> 4, plafond x 20 -> x 100 (la languette
-  // traversait le carton et n'en ressortait que lentement) ; PEN_ARM : enfoncement maximal de la
-  // languette dans la boite que le BRAS peut imposer (au-dela il s'arrete : la boite fait obstacle
-  // au bras a travers la languette, dont la deformation q est bornee au domaine des donnees)
-  const BOXC = {kcol: 150, ccol: 4, nmin: 1, cmin: 0.5, h: 0.05, vEps: 0.02, ctMax: 50, penArm: 0.02};
-  const BOX_FMAX = 100;
-  // deplacement du bras ds borne par le contact de la languette sur la boite : pour chaque paire,
-  // l'enfoncement linearise apres le pas, pen - Jsn ds, ne doit pas depasser penArm (s'il augmente)
-  function armContactLimit(ds) {
-    const cd = S.cdata;
-    if (!cd || !ds) return ds;
-    const dq0 = [S.q[0] - cd.q0[0], S.q[1] - cd.q0[1]];
-    for (let m = 0; m < cd.pen.length; m++) {
-      const a = -cd.Jsn[m];                                   // d pen / ds
-      if (a * ds <= 0) continue;
-      const J = cd.Jn[m];
-      const pen = cd.pen[m] + cd.vn[m] * cd.t - (J[0] * dq0[0] + J[1] * dq0[1]) - cd.Jsn[m] * (S.s - cd.s0);
-      const room = Math.max(0, BOXC.penArm - pen) / Math.abs(a);
-      if (Math.abs(ds) > room) ds = Math.sign(ds) * room;
-    }
-    return ds;
-  }
+  // 2026-10-08 : raideur 40 -> 150, dissipation 2 -> 4, plafond x 20 -> x 100 -> x 300 (la languette
+  // traversait le carton et n'en ressortait que lentement)
+  // plus strict encore (2026-10-08) : raideur 150 -> 300 -> 800, dissipation 4 -> 6. s est une
+  // CONSIGNE STRICTE de l'utilisateur : la boite ne freine jamais le bras (aucun retour sur s) ;
+  // c'est s qui agit sur la languette et sur la boite
+  // slop : enfoncement toleré par la projection (le ressort s'en charge) ; projMax : correction de q
+  // maximale par pas
+  // gapNear : ecart jusqu'auquel une paire est suivie (contact anticipe) ; sous-pas : fraction de
+  // l'ecart parcourue par sous-pas, ecart plancher, minimum quand une paire est enfoncee, maximum
+  // frottement plus fort (2026-10-08) : mu languette 1.2 -> 3 -> 8 (box3d.js), ctMax 50 -> 200 -> 1000,
+  // vEps 0.02 -> 0.008 -> 0.003
+  const BOXC = {kcol: 800, ccol: 6, nmin: 1, cmin: 0.5, h: 0.05, vEps: 0.003, ctMax: 1000, slop: 0.002, projMax: 0.5,
+                gapNear: 0.05, subFrac: 0.3, subGap: 0.002, subIn: 4, subMax: 24};
+  const BOX_FMAX = 300;
   // porte (n_eff, coherence) de la saisie : valeurs de la demo PC (meme decodeur 3D)
   const GATE3D = {nmin: Math.pow(10, 1.3), cmin: 0.8};
 
@@ -302,26 +294,25 @@
     return {k, c, JtJ, F0, p};
   }
 
-  function stepOnce() {
+  // pas de duree h (2026-10-08 : sous-pas adaptatifs pres du contact, cf. substeps())
+  function stepOnce(h) {
     if (S.replay) {
       const i = 1 + (S.k % (NR - 2));
       S.s = RS[i]; S.sd = RSd[i]; S.sdd = Math.max(-P.sdd_max, Math.min(P.sdd_max, RSdd[i]));
-      S.k += 1;
+      S.kr = (S.kr || 0) + h / dt;
+      if (S.kr > 1 - 1e-9) { S.kr -= 1; S.k += 1; }
     } else if (S.grab && S.grab.arm) {
       // bras saisi au clic (2026-10-08, comme xr_native_zoned.py) : il suit la consigne sans
       // inertie ; l'acceleration qui force la languette (G s'') est bornee a 3 fois le maximum
       // vitesse plafonnee a SD_MAX (2026-10-08)
-      const sd0 = S.sd, ds = armContactLimit(Math.max(-SD_MAX * dt, Math.min(SD_MAX * dt, S.target - S.s)));
-      S.sd = ds / dt;
-      S.sdd = Math.max(-3 * P.sdd_max, Math.min(3 * P.sdd_max, (S.sd - sd0) / dt));
+      const sd0 = S.sd, ds = Math.max(-SD_MAX * h, Math.min(SD_MAX * h, S.target - S.s));
+      S.sd = ds / h;
+      S.sdd = Math.max(-3 * P.sdd_max, Math.min(3 * P.sdd_max, (S.sd - sd0) / h));
       S.s += ds;
     } else {
       const kp = 400, kd = 40;
       S.sdd = Math.max(-P.sdd_max, Math.min(P.sdd_max, kp * (S.target - S.s) - kd * S.sd));
-      const sdNew = S.sd + dt * S.sdd, ds = armContactLimit(dt * sdNew);
-      // bloque par la boite : vitesse ramenee a ce qui passe
-      if (ds !== dt * sdNew) { S.sd = ds / dt; S.sdd = 0; } else S.sd = sdNew;
-      S.s += ds;
+      S.sd += h * S.sdd; S.s += h * S.sd;
     }
     // point du plan latent tenu : etat fixe, vitesse nulle ; le bras continue (S.hold)
     if (S.hold) { S.v[0] = 0; S.v[1] = 0; S.Fq = 0; S.F = [0, 0]; return; }
@@ -333,7 +324,7 @@
     const cp = coupling(), cd = S.cdata, F0 = [0, 0], Wm = [[0, 0], [0, 0]];
     let on = false, cOn = false;
     if (cp) {
-      const w = cp.c + dt * cp.k;
+      const w = cp.c + h * cp.k;
       for (let i = 0; i < 2; i++) { F0[i] += cp.F0[i]; for (let j = 0; j < 2; j++) Wm[i][j] += w * cp.JtJ[i][j]; }
       on = true;
     }
@@ -347,7 +338,7 @@
         const vrel = cd.vn[m] - cd.Jsn[m] * S.sd;               // vitesse d'approche hors q'
         // une paire ne fait que POUSSER : enfoncee, et effort positif le long de la normale
         if (!(pen > 0 && cd.k * pen + cd.c * (vrel - J[0] * S.v[0] - J[1] * S.v[1]) > 0)) continue;
-        const f = cd.w[m] * (cd.k * pen + cd.c * vrel), ww = cd.w[m] * (cd.c + dt * cd.k);
+        const f = cd.w[m] * (cd.k * pen + cd.c * vrel), ww = cd.w[m] * (cd.c + h * cd.k);
         for (let i = 0; i < 2; i++) { F0[i] += f * J[i]; for (let j = 0; j < 2; j++) Wm[i][j] += ww * J[i] * J[j]; }
         // frottement : ct Jt' (v_boite,t - Ts s' - Jt q'), implicite en q' (Ts s' : glissement du
         // au bras)
@@ -360,17 +351,17 @@
         Wm[0][0] += wc * T00; Wm[0][1] += wc * T01; Wm[1][0] += wc * T01; Wm[1][1] += wc * T11;
         on = true; cOn = true;
       }
-      cd.t += dt;
+      cd.t += h;
     }
-    if (!on) { S.Fq = 0; S.F = [0, 0]; for (let i = 0; i < dq; i++) S.v[i] += dt * a[i]; }
+    if (!on) { S.Fq = 0; S.F = [0, 0]; for (let i = 0; i < dq; i++) S.v[i] += h * a[i]; }
     else {
-      // implicite avec la masse du LNN : (M + dt Wm) v1 = M (v + dt a) + dt F0
+      // implicite avec la masse du LNN : (M + h Wm) v1 = M (v + h a) + h F0
       const A = [[0, 0], [0, 0]], r = [0, 0], Mm = LN.M;
       for (let i = 0; i < 2; i++) {
-        r[i] = dt * F0[i];
+        r[i] = h * F0[i];
         for (let j = 0; j < 2; j++) {
-          r[i] += Mm[i][j] * (S.v[j] + dt * a[j]);
-          A[i][j] = Mm[i][j] + dt * Wm[i][j];
+          r[i] += Mm[i][j] * (S.v[j] + h * a[j]);
+          A[i][j] = Mm[i][j] + h * Wm[i][j];
         }
       }
       const det = A[0][0] * A[1][1] - A[0][1] * A[1][0];
@@ -384,11 +375,65 @@
       if (nF <= FMAX) { S.v[0] = v1[0]; S.v[1] = v1[1]; }
       else {
         const Fc = F.map(x => x * FMAX / nF), aF = [0, 1].map(i => LN.Minv[i][0] * Fc[0] + LN.Minv[i][1] * Fc[1]);
-        for (let i = 0; i < 2; i++) S.v[i] += dt * (a[i] + aF[i]);
+        for (let i = 0; i < 2; i++) S.v[i] += h * (a[i] + aF[i]);
       }
     }
-    for (let i = 0; i < dq; i++) S.q[i] += dt * S.v[i];
+    for (let i = 0; i < dq; i++) S.q[i] += h * S.v[i];
+    boxProject(h);
     wallProject();
+  }
+
+  // sous-pas adaptatifs (2026-10-08) : pour chaque paire de contact (S.cdata, paires proches
+  // comprises), vitesse d'enfoncement a = vn - Jn q' - Jsn s' et ecart g = -pen (linearises) ;
+  // n = max ceil(a dt / (BOXC.subFrac max(g, BOXC.subGap))), borne a BOXC.subMax ; paire deja
+  // enfoncee : au moins BOXC.subIn sous-pas
+  function substeps() {
+    const cd = S.cdata;
+    if (!cd) return 1;
+    const dq0 = [S.q[0] - cd.q0[0], S.q[1] - cd.q0[1]];
+    let n = 1;
+    for (let m = 0; m < cd.pen.length; m++) {
+      const J = cd.Jn[m];
+      const pen = cd.pen[m] + cd.vn[m] * cd.t - (J[0] * dq0[0] + J[1] * dq0[1]) - cd.Jsn[m] * (S.s - cd.s0);
+      const a = cd.vn[m] - J[0] * S.v[0] - J[1] * S.v[1] - cd.Jsn[m] * S.sd;
+      if (pen > 0) n = Math.max(n, BOXC.subIn);
+      if (a > 0) n = Math.max(n, Math.ceil(a * dt / (BOXC.subFrac * Math.max(-pen, BOXC.subGap))));
+    }
+    return Math.min(n, BOXC.subMax);
+  }
+
+  // projection de la languette hors de la boite (2026-10-08) : apres le pas, enfoncement linearise
+  // des paires de contact pen_m = pen0 + vn t - Jn (q - q0) - Jsn (s - s0) ; dq minimise
+  // sum w (pen_m - Jn_m dq)^2 sur les paires enfoncees (+ eps |dq|^2), applique d'un coup, et la
+  // composante de la vitesse qui rentrait dans la boite est retiree. Sans elle la languette ne
+  // sortait que par l'effort du ressort de contact : relachement lent et visible.
+  function boxProject(h) {
+    const cd = S.cdata;
+    if (!cd) return;
+    const dq0 = [S.q[0] - cd.q0[0], S.q[1] - cd.q0[1]];
+    let A00 = 0, A01 = 0, A11 = 0, b0 = 0, b1 = 0;
+    for (let m = 0; m < cd.pen.length; m++) {
+      const J = cd.Jn[m];
+      const pen = cd.pen[m] + cd.vn[m] * cd.t - (J[0] * dq0[0] + J[1] * dq0[1]) - cd.Jsn[m] * (S.s - cd.s0) - BOXC.slop;
+      if (pen <= 0) continue;
+      const w = cd.w[m];
+      A00 += w * J[0] * J[0]; A01 += w * J[0] * J[1]; A11 += w * J[1] * J[1];
+      b0 += w * J[0] * pen; b1 += w * J[1] * pen;
+    }
+    if (A00 + A11 > 0) {
+      const eps = 1e-3 * (A00 + A11), a = A00 + eps, d = A11 + eps, det = a * d - A01 * A01;
+      if (det > 0) {
+        let x = [(d * b0 - A01 * b1) / det, (a * b1 - A01 * b0) / det];
+        const nx = Math.hypot(x[0], x[1]), cap = BOXC.projMax;
+        if (nx > cap) x = [x[0] * cap / nx, x[1] * cap / nx];
+        S.q[0] += x[0]; S.q[1] += x[1];
+        const nn = Math.hypot(x[0], x[1]);
+        if (nn > 1e-12) {
+          const u = [x[0] / nn, x[1] / nn], vu = S.v[0] * u[0] + S.v[1] * u[1];
+          if (vu < 0) { S.v[0] -= vu * u[0]; S.v[1] -= vu * u[1]; }
+        }
+      }
+    }
   }
 
   // ── vues ──────────────────────────────────────────────────────────────────
@@ -977,6 +1022,10 @@
     S.cdata = null;
     if (!BOX || !BOX.on || !v3.ready) { if (BOX) { BOX.setGaussians(null); BOX.prev = null; } return; }
     const M = v3.M, NQ = M.meta.n_q, NM = M.NM, N = M.N, X = M.xyz, al = M.alpha, lg = M.logs;
+    // centres des mobiles : ceux du MODELE pour la languette (sans le deplacement local de contact,
+    // qui n'est qu'un rendu : la dynamique et la boite voient la languette du modele)
+    const Xmov = X.slice(0, 3 * NM);
+    Xmov.set(M.xyzM);
     // gaussiennes opaques a portee de la boite : languette (0), bras (1), et fixes hors des
     // collisionneurs (2, liste recalculee quand le decodeur ou les collisionneurs changent)
     const R = BOX.radius + 0.1 + 0.1 * Math.hypot(BOX.v[0], BOX.v[1], BOX.v[2]), R2 = R * R;
@@ -1013,7 +1062,7 @@
     }
     for (let g = 0; g < NM; g++) {
       if (al[g] < am) continue;
-      const x = X[3 * g], y = X[3 * g + 1], z = X[3 * g + 2];
+      const x = Xmov[3 * g], y = Xmov[3 * g + 1], z = Xmov[3 * g + 2];
       const dx = x - BOX.x[0], dy = y - BOX.x[1], dz = z - BOX.x[2];
       if (dx * dx + dy * dy + dz * dz > R2) continue;
       pts.push(x, y, z);
@@ -1023,10 +1072,10 @@
       if (g < NM && prev && el > 0) vel.push((x - prev[3 * g]) / el, (y - prev[3 * g + 1]) / el, (z - prev[3 * g + 2]) / el);
       else vel.push(0, 0, 0);
     }
-    BOX.prev = {M, X: X.slice(0, 3 * NM)};
+    BOX.prev = {M, X: Xmov};
     BOX.setGaussians({pts: Float64Array.from(pts), rad, w, kind, vel: Float64Array.from(vel)});
     // reaction sur la languette
-    const cs = BOX.contacts().filter(c => kind[c.i] === 0);
+    const cs = BOX.contacts(BOXC.gapNear).filter(c => kind[c.i] === 0);
     if (!cs.length) return;
     const ids = Int32Array.from(cs, c => gid[c.i]), z = [S.s, S.q[0], S.q[1]], h = BOXC.h;
     const Xd = [];
@@ -1069,18 +1118,131 @@
     const neff = 1 / s2, coh = Math.hypot(...mean) / Math.max(den, 1e-12);
     const cl = x => Math.min(1, Math.max(0, x));
     const gc = cl((neff - 0.5 * BOXC.nmin) / (0.5 * BOXC.nmin)) * cl((coh - (BOXC.cmin - 0.1)) / 0.1);
-    if (!(lam > 1e-12) || gc <= 0) return;
+    // porte fermee : ni ressort ni frottement (k = c = 0), mais la projection (boxProject) agit
+    if (!(lam > 1e-12)) return;
     const k = gc * BOXC.kcol * KREF / lam, c = gc * BOXC.ccol * 2 * Math.sqrt(KREF) / lam;
     // frottement : visqueux ct (vitesse relative tangentielle) borne par mu x effort normal, evalue
     // en debut d'image : ct = min(ctMax c, mu k pen / max(|v_t|, vEps))
+    // effort normal pour la borne de Coulomb (2026-10-08) : la projection (boxProject) garde
+    // l'enfoncement sous slop, le ressort k pen ne porte presque plus rien et le frottement s'effondrait.
+    // On prend aussi la CHARGE de la languette sur la boite : effort generalise libre F = M a (LNN :
+    // elasticite, gravite apprise, forcage du bras s''), ramene a un effort normal au monde par paire,
+    // fn = max(0, -Jn . F / |Jn|^2) (moindres carres) ; fn = max(k pen, fn)
+    const aL = LN.accel(S.q, S.v, S.sdd), Mm = LN.M;
+    const Ff = [Mm[0][0] * aL[0] + Mm[0][1] * aL[1], Mm[1][0] * aL[0] + Mm[1][1] * aL[1]];
     const mu = BOX.P.mu[0], ct = [];
     for (let m = 0; m < n; m++) {
       const t = Jt[m], vt = [0, 1, 2].map(a => vbt[m][a] - t[a] * S.v[0] - t[3 + a] * S.v[1] - Ts[m][a] * S.sd);
-      ct.push(Math.min(BOXC.ctMax * c, mu * k * pen[m] / Math.max(Math.hypot(vt[0], vt[1], vt[2]), BOXC.vEps)));
+      const J = Jn[m], j2 = J[0] * J[0] + J[1] * J[1];
+      const load = j2 > 1e-12 ? Math.max(0, -(J[0] * Ff[0] + J[1] * Ff[1]) / j2) : 0;
+      const fn = pen[m] > -BOXC.slop ? Math.max(k * Math.max(pen[m], 0), load) : 0;
+      ct.push(Math.min(BOXC.ctMax * c, mu * fn / Math.max(Math.hypot(vt[0], vt[1], vt[2]), BOXC.vEps)));
     }
     S.cdata = {Jn, Jt, vbt, ct, pen, vn, Jsn, Ts, w: ww, k, c, q0: [S.q[0], S.q[1]], s0: S.s, t: 0};
   }
 
+
+  // ── DEPLACEMENT LOCAL DE CONTACT (2026-10-08) : la languette n'a que 2 degres de liberte (q) ; elle
+  // ne peut ni adherer localement au carton ni s'y arreter exactement. Un deplacement par gaussienne
+  // de zone q, ajoute au rendu seulement (Zoned3D setLocal ; la dynamique, la boite et l'effort J^T f
+  // voient la languette du modele) :
+  //   - ADHERENCE : une gaussienne qui touche le carton (ecart < stickGap) y est ancree (point fixe
+  //     dans le repere de la boite) ; son deplacement la garde sur l'ancrage tant que le modele ne s'en
+  //     ecarte pas de plus de releaseGap le long de la normale ; au-dela de slipMax en tangentiel elle
+  //     glisse (l'ancrage suit) ;
+  //   - NON PENETRATION : une gaussienne non ancree dans le carton est ramenee a sa surface ;
+  //   - continuite : deplacements des sources diffuses aux voisines par un noyau gaussien (sigma),
+  //     suivi temporel (tau), puis non-penetration stricte des centres affiches.
+  // sigma 0.025 -> 0.08 -> 0.15 -> 0.25 -> 0.12 -> 0.09 (2026-10-08) ; adherence renforcee (stickGap 0.008,
+  // releaseGap 0.03) et DIRECTIONNELLE, comme un poil de brosse : u = direction racine -> point de la
+  // languette dans le plan tangent ; le modele s'ecarte de l'ancrage de e (tangentiel) ; e . u > 0 (le
+  // bras pousse vers la pointe) : adherence jusqu'a slipFwd ; e . u < 0 (le bras recule) : glissement
+  // au-dela de slipBack ; transversal : glissement au-dela de slipSide
+  const LOC = {stickGap: 0.008, releaseGap: 0.03, slipFwd: 0.3, slipBack: 0.005, slipSide: 0.03, sigma: 0.09, kappa: 3, tau: 0.04, rad: 0.004};
+  const LOCS = {anch: new Map(), u: null, M: null};
+  function localContact(el) {
+    const M = v3.M, NQ = M.meta.n_q, X = M.xyzM;
+    if (!LOCS.u || LOCS.M !== M) { LOCS.u = new Float32Array(3 * NQ); LOCS.anch = new Map(); LOCS.M = M; }
+    const u = LOCS.u, an = LOCS.anch, a = 1 - Math.exp(-el / LOC.tau);
+    if (!BOX || !BOX.on) {
+      an.clear();
+      let mx = 0;
+      for (let i = 0; i < 3 * NQ; i++) { u[i] *= 1 - a; mx = Math.max(mx, Math.abs(u[i])); }
+      M.setLocal(mx > 1e-5 ? u : null);
+      return;
+    }
+    const Rb = BOX.R, c0 = BOX.x;
+    const toL = P => [0, 1, 2].map(j => Rb[j] * (P[0] - c0[0]) + Rb[3 + j] * (P[1] - c0[1]) + Rb[6 + j] * (P[2] - c0[2]));
+    const toW = L => [0, 1, 2].map(i => c0[i] + Rb[3 * i] * L[0] + Rb[3 * i + 1] * L[1] + Rb[3 * i + 2] * L[2]);
+    const R = BOX.radius + 0.15 + 3 * LOC.sigma, cand = [], src = [];
+    // racine de la languette : barycentre des 10 % de ses gaussiennes les plus hautes (verticale TF.ez)
+    const hq = [];
+    for (let g = 0; g < NQ; g++) hq.push(X[3 * g] * TF.ez[0] + X[3 * g + 1] * TF.ez[1] + X[3 * g + 2] * TF.ez[2]);
+    const thr = hq.slice().sort((x, y) => y - x)[Math.max(0, Math.floor(0.1 * NQ) - 1)];
+    const root = [0, 0, 0];
+    let nr = 0;
+    for (let g = 0; g < NQ; g++) if (hq[g] >= thr) { root[0] += X[3 * g]; root[1] += X[3 * g + 1]; root[2] += X[3 * g + 2]; nr++; }
+    for (let k = 0; k < 3; k++) root[k] /= Math.max(nr, 1);
+    for (let g = 0; g < NQ; g++) {
+      const Xg = [X[3 * g], X[3 * g + 1], X[3 * g + 2]];
+      if (Math.hypot(Xg[0] - c0[0], Xg[1] - c0[1], Xg[2] - c0[2]) > R) { an.delete(g); continue; }
+      cand.push(g);
+      const sd = BOX.sdf(Xg), pen = LOC.rad - sd.d, n = sd.n;
+      let A = an.get(g);
+      if (A && sd.d > LOC.rad + LOC.releaseGap) { an.delete(g); A = null; }
+      else if (!A && pen > -LOC.stickGap) {
+        const pp = Math.max(pen, 0);
+        A = toL([Xg[0] + pp * n[0], Xg[1] + pp * n[1], Xg[2] + pp * n[2]]);
+        an.set(g, A);
+      }
+      if (A) {
+        const Aw = toW(A);
+        // e : ecart du modele a l'ancrage, decompose en normal, le long de u (racine -> point, plan
+        // tangent) et transversal ; borne directionnelle, l'ancrage suit au-dela
+        const e = [Xg[0] - Aw[0], Xg[1] - Aw[1], Xg[2] - Aw[2]], en = e[0] * n[0] + e[1] * n[1] + e[2] * n[2];
+        const et = [e[0] - en * n[0], e[1] - en * n[1], e[2] - en * n[2]];
+        const r = [Xg[0] - root[0], Xg[1] - root[1], Xg[2] - root[2]], rn = r[0] * n[0] + r[1] * n[1] + r[2] * n[2];
+        let uu = [r[0] - rn * n[0], r[1] - rn * n[1], r[2] - rn * n[2]];
+        const lu = Math.hypot(uu[0], uu[1], uu[2]);
+        uu = lu > 1e-9 ? uu.map(v => v / lu) : [0, 0, 0];
+        const ea = et[0] * uu[0] + et[1] * uu[1] + et[2] * uu[2];
+        const ep = [et[0] - ea * uu[0], et[1] - ea * uu[1], et[2] - ea * uu[2]], lp = Math.hypot(ep[0], ep[1], ep[2]);
+        const ea2 = Math.max(-LOC.slipBack, Math.min(LOC.slipFwd, ea)), fp = lp > LOC.slipSide ? LOC.slipSide / lp : 1;
+        const e2 = [0, 1, 2].map(k => en * n[k] + ea2 * uu[k] + fp * ep[k]);
+        if (ea2 !== ea || fp < 1) an.set(g, toL([Xg[0] - e2[0], Xg[1] - e2[1], Xg[2] - e2[2]]));
+        src.push([g, [-e2[0], -e2[1], -e2[2]]]);
+      } else if (pen > 0) src.push([g, [pen * n[0], pen * n[1], pen * n[2]]]);
+    }
+    // cible : diffusion des sources aux voisines, noyau gaussien (support 4 sigma). Raccordement
+    // PROGRESSIF (2026-10-08) : moyenne ponderee des deplacements des sources, multipliee par un
+    // facteur qui monte doucement avec le poids cumule, b = smoothstep(1 - exp(-sum w / kappa)) ;
+    // avant, max(sum w, 1) donnait un plateau a bord franc
+    const tgt = new Float32Array(3 * NQ), s2 = 2 * LOC.sigma * LOC.sigma, r2 = 16 * LOC.sigma * LOC.sigma;
+    if (src.length) for (const g of cand) {
+      let sw = 0, ax = 0, ay = 0, az = 0;
+      for (const [c, d] of src) {
+        const dx = X[3 * g] - X[3 * c], dy = X[3 * g + 1] - X[3 * c + 1], dz = X[3 * g + 2] - X[3 * c + 2];
+        const q2 = dx * dx + dy * dy + dz * dz;
+        if (q2 > r2) continue;
+        const w = Math.exp(-q2 / s2);
+        sw += w; ax += w * d[0]; ay += w * d[1]; az += w * d[2];
+      }
+      if (sw > 0) {
+        const b0 = 1 - Math.exp(-sw / LOC.kappa), b = b0 * b0 * (3 - 2 * b0), k = b / sw;
+        tgt[3 * g] = ax * k; tgt[3 * g + 1] = ay * k; tgt[3 * g + 2] = az * k;
+      }
+    }
+    // suivi temporel, puis non-penetration stricte des centres affiches
+    let mx = 0;
+    for (let i = 0; i < 3 * NQ; i++) u[i] += a * (tgt[i] - u[i]);
+    for (const g of cand) {
+      const Y = [X[3 * g] + u[3 * g], X[3 * g + 1] + u[3 * g + 1], X[3 * g + 2] + u[3 * g + 2]];
+      const sd = BOX.sdf(Y), pen = LOC.rad - sd.d;
+      if (pen > 0) for (let k = 0; k < 3; k++) u[3 * g + k] += pen * sd.n[k];
+    }
+    for (let i = 0; i < 3 * NQ; i++) mx = Math.max(mx, Math.abs(u[i]));
+    M.setLocal(mx > 1e-5 ? u : null);
+  }
 
   // saisie du bras (cf. arm_follow de xr_native_zoned.py) : s tel que le point saisi suive le
   // curseur au premier ordre, ds = (dp/ds) . (curseur - decalage - p) / |dp/ds|^2, borne a 20 %
@@ -1115,9 +1277,19 @@
       // de el / dt y vaudrait 0 et la simulation resterait figee
       S.acc = Math.min((S.acc || 0) + el, 40 * dt);
       boxPrepare(el);
-      while (S.acc >= dt) { stepOnce(); if (BOX) BOX.step(dt); QT.push(); S.acc -= dt; }
+      while (S.acc >= dt) {
+        const ns = substeps();
+        for (let i = 0; i < ns; i++) stepOnce(dt / ns);
+        if (BOX) BOX.step(dt); QT.push(); S.acc -= dt;
+      }
     }
     if (!S.running && S.grab && S.grab.arm) armFollow();
+    // deplacement local de contact : modele a l'etat courant, puis champ local, puis rendu
+    if (v3.ready && v3.M && v3.M.setLocal && (BOX && BOX.on || v3.M.uLocalOn())) {
+      v3.M.update([S.s, S.q[0], S.q[1]]);
+      localContact(el);
+      v3.lastZ = null;
+    }
     const z = zNow();
     for (const v of views) {
       if (!v.ready || !v.visible) continue;
@@ -1266,7 +1438,7 @@
         for (let i = 0; i < Math.round(1.5 / dt); i++) {
           if (i % 4 === 0) Object.assign(S.grab, v.jac(zNow(), S.grab.sel), {qref: [S.q[0], S.q[1]]});
           if (v === v3 && i % 4 === 0) { v3.M.update([S.s, S.q[0], S.q[1]]); }
-          stepOnce();
+          stepOnce(dt);
         }
         const cpl = coupling();
         out.push('   point saisi ' + (cpl ? cpl.p.map(x => x.toFixed(1)) : '-') + ' px, consigne '

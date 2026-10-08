@@ -293,6 +293,13 @@
       }
     }
 
+    // DEPLACEMENT LOCAL de contact (2026-10-08) : deplacement uL (3 par gaussienne de zone q) ajoute
+    // aux centres APRES le decodeur, pose par la page (contact de la boite : adherence et non
+    // penetration, sans passer par q). xyzM : centres du modele seul (sans uL), pour la physique.
+    const uL = new Float32Array(3 * NQ), xyzM = new Float32Array(3 * NQ);
+    let uOn = false;
+    function setLocal(u) { if (u) { uL.set(u); uOn = true; } else if (uOn) { uL.fill(0); uOn = false; } }
+
     // met a jour les n_move premieres gaussiennes a l'etat z = (s, q0, q1)
     function update(z) {
       if (z[0] !== lastS) {
@@ -334,6 +341,8 @@
             logs[i] = (1 - w) * logs[i] + w * eff(P.logs[i], P.floor[g]);
           }
       }
+      xyzM.set(xyz.subarray(0, 3 * NQ));
+      if (uOn) for (let i = 0; i < 3 * NQ; i++) xyz[i] += uL[i];
       M.z = z.slice();
     }
     const SHELL_BLEND = 0.3;
@@ -514,7 +523,7 @@
     }
 
     const M = {meta, N, NM, xyz, quat, logs, col, alpha, update, select, jacobian, armJacobian, project,
-               qPositions, sPositions,
+               qPositions, sPositions, setLocal, xyzM, uLocalOn: () => uOn,
                setShell, z: null, shellRatio: 0, shellOut: false, nShell: 0};
     return M;
   }

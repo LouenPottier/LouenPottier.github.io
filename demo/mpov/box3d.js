@@ -61,19 +61,24 @@
    *      dir (3, axe x local, horizontal), half [hx, hy, hz] (demi-cotes, z vertical)}
    */
   function create(o) {
-    // 2026-10-08 : masse x 10 (la languette poussait la boite trop facilement, x 4 puis x 10) ;
+    // 2026-10-08 : masse x 60 (la languette poussait la boite trop facilement, x 4, x 10, x 20 puis x 60) ;
     // raideurs du bras, des gaussiennes fixes, des collisionneurs, de la saisie, frottement visqueux
-    // et amortissement angulaire x 10 avec elle (memes frequences, meme stabilite) ; la raideur de
-    // la languette sur la boite reste 600 : son effet est divise par 10
-    const P = Object.assign({mass: 10.0, g: 23.9,
-                             K: [600, 30000, 200000],        // languette, bras, gaussiennes fixes
-                             wMin: [5, 5, 30], mu: [1.2, 0.5, 0.5], cFric: 600, zContact: 0.7,
-                             kPt: 40000, zPt: 0.7,           // collisionneurs : par point de contact
-                             kGrab: 4000, zGrab: 1.0, cAng: 15, drag: 0.3, substep: 1 / 960,
+    // et amortissement angulaire x 60 avec elle (memes frequences, meme stabilite) ; la raideur de
+    // la languette sur la boite reste 600 (et kDeep) : son effet est divise par 60
+    const P = Object.assign({mass: 60.0, g: 23.9,
+                             K: [600, 180000, 1200000],        // languette, bras, gaussiennes fixes
+                             wMin: [5, 5, 30], mu: [8.0, 0.5, 1.2], cFric: 3600,   // carton / table et decor 0.5 -> 1.2 ; languette 1.2 -> 3 -> 8
+                             zContact: 0.7,
+                             kPt: 240000, zPt: 0.7,           // collisionneurs : par point de contact
+                             kGrab: 24000, zGrab: 1.0, cAng: 90, drag: 0.3, substep: 1 / 960,
                              ellK: 1.5, rMax: 0.03, alphaMin: 0.3,
                              // aretes et coins arrondis (rayon), meme forme au rendu (zoned3d.js) ;
                              // marge de contact de la languette (contact actif avant la surface)
-                             round: 0.012, skin: [0.008, 0, 0]}, o);
+                             round: 0.012, skin: [0.008, 0, 0],
+                             // enfoncement PROFOND (au-dela de penDeep) : raideur supplementaire kDeep par
+                             // classe. La deformation q de la languette est bornee au domaine des donnees :
+                             // poussee plus loin elle ne cede plus, seule la boite peut alors se degager
+                             penDeep: 0.005, kDeep: [150000, 0, 0]}, o);
     const up = norm(P.up), h = P.half;
     const B = {P, up, half: h, on: false, target: null, grab: null, gauss: {}};
     const m = P.mass;
@@ -150,14 +155,16 @@
                            return [B.v[0] + wr[0], B.v[1] + wr[1], B.v[2] + wr[2]]; };
 
     // contacts courants (pour la reaction sur la languette) : indice, normale (de la boite vers la
-    // gaussienne), enfoncement, vitesse de la surface de la boite au point (vecteur) et normale
-    B.contacts = () => {
+    // gaussienne), enfoncement (negatif : ecart, avec gapMax), vitesse de la surface de la boite au
+    // point (vecteur) et normale
+    B.contacts = (gapMax = 0) => {
       const G = B.gauss, out = [];
       if (!B.on || !G.pts) return out;
       for (let i = 0; i < G.rad.length; i++) {
         const X = [G.pts[3 * i], G.pts[3 * i + 1], G.pts[3 * i + 2]];
         const s = sdf(X), pen = G.rad[i] + P.skin[G.kind[i]] - s.d;
-        if (pen <= 0) continue;
+        // gapMax > 0 : paires PROCHES aussi (pen negatif = ecart), contacts anticipes de la page
+        if (pen <= -gapMax) continue;
         const vb = pointVel(X);
         out.push({i, n: s.n, pen, vb, vn: dot(vb, s.n)});
       }
@@ -210,7 +217,7 @@
           // vitesse relative boite - gaussienne au point ; > 0 le long de n : la boite avance
           const vb = pointVel(X), vr = [vb[0] - G.vel[3 * i], vb[1] - G.vel[3 * i + 1], vb[2] - G.vel[3 * i + 2]];
           const vn = dot(vr, nn);
-          const f = Math.max(0, wi * (K * pen + C * vn));
+          const f = Math.max(0, wi * (K * pen + P.kDeep[k] * Math.max(0, pen - P.penDeep) + C * vn));
           if (f <= 0) continue;
           // effort normal sur la boite : -n ; frottement oppose au glissement tangentiel
           const vt = [vr[0] - vn * nn[0], vr[1] - vn * nn[1], vr[2] - vn * nn[2]];
