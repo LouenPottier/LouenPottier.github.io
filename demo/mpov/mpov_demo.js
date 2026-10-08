@@ -127,7 +127,94 @@
   const fmaxOf = v => ((v && v.fmax) || FMAX) * (shellOn() ? SHELL_FMAX : 1);
   // kc, cc : raideur et dissipation du couplage, en multiples de KREF et de 2 sqrt(KREF)
   // 2026-10-05 : gain divise par 2 (2.0 -> 1.0), dissipation doublee (1.0 -> 2.0)
-  const G = {kc: 1.0, cc: 2.0, barrier: 8, margin: 0.02};
+  // 2026-10-08 : dissipation doublee encore (2.0 -> 4.0) : le point d'application se deplace
+  // avec la languette, la saisie oscillait
+  const G = {kc: 1.0, cc: 4.0, barrier: 8, margin: 0.02};
+  // suivi du bras : fraction de la correction ds appliquee par image (1 = correction entiere,
+  // comme xr_native_zoned.py) ; avec le jacobien fige la correction est lineaire, 0.5 la lisse
+  const ARM_GAIN = 0.5;
+
+  // ── boite en carton (box3d.js, 2026-10-08), dans le repere du decodeur 3D ──
+  // REPERE DE LA TABLE (runs/static_i3/zones.json, zone s, zones_static.py) : origine au centre du
+  // rectangle de la table S4 S1 S1' S4' (points suivis sur les images et reconstruits), x = S3 -> S2,
+  // y = S1 -> S4, z = verticale S14 -> S15. Le plateau est z = 0 et fait 2 x 1.341 par 2 x 0.929.
+  const TF = {c: [-0.23598, 1.53084, 3.96277], ex: [0.8348, -0.04555, 0.54866],
+              ey: [0.54957, 0.00964, -0.83539], ez: [-0.03276, -0.99892, -0.03308]};
+  const tfPoint = l => [0, 1, 2].map(a => TF.c[a] + l[0] * TF.ex[a] + l[1] * TF.ey[a] + l[2] * TF.ez[a]);
+  const tfVec = l => [0, 1, 2].map(a => l[0] * TF.ex[a] + l[1] * TF.ey[a] + l[2] * TF.ez[a]);
+  // COLLISIONNEURS de la scene fixe, parametres dans le repere de la table (ajustes a la main avec
+  // l'editeur de mpov/web/mpov_demo_planes_editor.js, non publie) :
+  //   meuble du robot : pave, centre (dx, dy), plateau a z = top, bas a z = bottom, demi-cotes hx,
+  //     hy, lacet yaw (deg) autour de z ;
+  //   sol : plan a z = h, inclinaisons tx, ty (deg) autour de x et y ;
+  //   mur du fond : normale vers la piece d'angle phi (deg) dans le plan de la table, inclinee de
+  //     tilt (deg), a la distance D du centre.
+  // Valeurs AJUSTEES A LA MAIN dans l'editeur (2026-10-08), parties de : le rectangle de la table
+  // jusqu'au sol, la couche de gaussiennes fixes la plus dense (2.19 sous la table) et le plan
+  // vertical de gaussiennes le plus peuple (RANSAC).
+  const COLL_DEF = {cab: {dx: 0.05, dy: 0.065, top: 0.056, bottom: -2.19, hx: 1.54, hy: 1.185, yaw: 0},
+                    floor: {h: -2.19, tx: 0, ty: 0},
+                    wall: {phi: 89.69, D: 2.795, tilt: 0}};
+  const deg = Math.PI / 180;
+  // (aides locales : dot3 / norm3 sont definis plus bas dans le fichier, apres cet appel)
+  const cDot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const cNorm = a => { const n = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / n, a[1] / n, a[2] / n]; };
+  function buildColliders(C) {
+    const cy = Math.cos(C.cab.yaw * deg), sy = Math.sin(C.cab.yaw * deg);
+    const cab = {type: 'obb', c: tfPoint([C.cab.dx, C.cab.dy, 0.5 * (C.cab.top + C.cab.bottom)]),
+                 ax: [tfVec([cy, sy, 0]), tfVec([-sy, cy, 0]), tfVec([0, 0, 1])],
+                 h: [C.cab.hx, C.cab.hy, 0.5 * (C.cab.top - C.cab.bottom)]};
+    const nf = tfVec(cNorm([Math.tan(C.floor.ty * deg), -Math.tan(C.floor.tx * deg), 1]));
+    const pf = tfPoint([0, 0, C.floor.h]);
+    const ph = C.wall.phi * deg, ct = Math.cos(C.wall.tilt * deg), st = Math.sin(C.wall.tilt * deg);
+    const nw = tfVec([Math.cos(ph) * ct, Math.sin(ph) * ct, st]);
+    const pw = tfPoint([-C.wall.D * Math.cos(ph), -C.wall.D * Math.sin(ph), 0]);
+    return [cab, {type: 'plane', n: nf, off: cDot(nf, pf), name: 'floor'},
+            {type: 'plane', n: nw, off: cDot(nw, pw), name: 'wall'}];
+  }
+  const COLL = COLL_DEF;
+  // boite : pose de depart dans le repere de la table, a cote de la pointe de la languette au repos
+  // (mesure sur le decodeur haute resolution v5_c05 : decalee le long de sa direction principale de
+  // balayage en q), 0.02 au-dessus du plateau du meuble (COLL_DEF.cab.top)
+  const BOX_HALF = [0.22, 0.22, 0.32];      // 2026-10-08 : hauteur 0.755 -> 0.64
+  const BOX = window.MpovBox ? MpovBox.create({
+    center: tfPoint([-0.134, 0.70, COLL_DEF.cab.top + BOX_HALF[2] + 0.02]), up: TF.ez,
+    dir: [-0.88796, 0.04672, -0.45753], half: BOX_HALF}) : null;
+  // gaussiennes fixes qui comptent pour le contact : opaques et a plus de STATIC_MARGIN de tout
+  // collisionneur (ni dans le meuble, ni sous le sol, ni derriere le mur, ni sur leurs surfaces :
+  // celles-la sont deja representees par les plans)
+  const STATIC_MARGIN = 0.05;
+  if (BOX) BOX.setColliders(buildColliders(COLL));
+  // reaction de la boite sur la languette : celle des mains de xr_native_zoned.py (--kcol 10,
+  // --ccol 1, porte n_eff >= 5, coherence >= 0.8), contact unilateral linearise sur l'image ;
+  // frottement de la languette sur la boite (mu = BOX.P.mu[0]) en visqueux borne, implicite
+  // 2026-10-08 : contact plus strict (la languette traversait) : raideur x 4 (10 -> 40), dissipation
+  // x 2, porte ouverte des la premiere gaussienne (n_eff >= 1 au lieu de 5, coherence >= 0.5 au lieu
+  // de 0.8 : au debut du contact peu de gaussiennes touchent et la porte fermee laissait passer), et
+  // plafond de l'effort latent x BOX_FMAX pendant un contact (celui de la saisie a la souris l'arretait)
+  // ctMax 10 -> 50 (2026-10-08) : frottement de la languette sur la boite trop faible
+  // 2026-10-08 : raideur 40 -> 150, dissipation 2 -> 4, plafond x 20 -> x 100 (la languette
+  // traversait le carton et n'en ressortait que lentement) ; PEN_ARM : enfoncement maximal de la
+  // languette dans la boite que le BRAS peut imposer (au-dela il s'arrete : la boite fait obstacle
+  // au bras a travers la languette, dont la deformation q est bornee au domaine des donnees)
+  const BOXC = {kcol: 150, ccol: 4, nmin: 1, cmin: 0.5, h: 0.05, vEps: 0.02, ctMax: 50, penArm: 0.02};
+  const BOX_FMAX = 100;
+  // deplacement du bras ds borne par le contact de la languette sur la boite : pour chaque paire,
+  // l'enfoncement linearise apres le pas, pen - Jsn ds, ne doit pas depasser penArm (s'il augmente)
+  function armContactLimit(ds) {
+    const cd = S.cdata;
+    if (!cd || !ds) return ds;
+    const dq0 = [S.q[0] - cd.q0[0], S.q[1] - cd.q0[1]];
+    for (let m = 0; m < cd.pen.length; m++) {
+      const a = -cd.Jsn[m];                                   // d pen / ds
+      if (a * ds <= 0) continue;
+      const J = cd.Jn[m];
+      const pen = cd.pen[m] + cd.vn[m] * cd.t - (J[0] * dq0[0] + J[1] * dq0[1]) - cd.Jsn[m] * (S.s - cd.s0);
+      const room = Math.max(0, BOXC.penArm - pen) / Math.abs(a);
+      if (Math.abs(ds) > room) ds = Math.sign(ds) * room;
+    }
+    return ds;
+  }
   // porte (n_eff, coherence) de la saisie : valeurs de la demo PC (meme decodeur 3D)
   const GATE3D = {nmin: Math.pow(10, 1.3), cmin: 0.8};
 
@@ -142,6 +229,10 @@
     RSd[i] = (RS[i + 1] - RS[i - 1]) / (2 * dt);
     RSdd[i] = (RS[i + 1] - 2 * RS[i] + RS[i - 1]) / (dt * dt);
   }
+
+  // vitesse maximale du bras pilote a la souris : celle du mouvement enregistre (2026-10-08)
+  let SD_MAX = 0;
+  for (let i = 1; i < NR - 1; i++) SD_MAX = Math.max(SD_MAX, Math.abs(RSd[i]));
 
   // ── barriere (cf. serve_deform_demo.py) ──
   const BR = P.barrier;
@@ -219,37 +310,74 @@
     } else if (S.grab && S.grab.arm) {
       // bras saisi au clic (2026-10-08, comme xr_native_zoned.py) : il suit la consigne sans
       // inertie ; l'acceleration qui force la languette (G s'') est bornee a 3 fois le maximum
-      const sd0 = S.sd;
-      S.sd = (S.target - S.s) / dt;
+      // vitesse plafonnee a SD_MAX (2026-10-08)
+      const sd0 = S.sd, ds = armContactLimit(Math.max(-SD_MAX * dt, Math.min(SD_MAX * dt, S.target - S.s)));
+      S.sd = ds / dt;
       S.sdd = Math.max(-3 * P.sdd_max, Math.min(3 * P.sdd_max, (S.sd - sd0) / dt));
-      S.s = S.target;
+      S.s += ds;
     } else {
       const kp = 400, kd = 40;
       S.sdd = Math.max(-P.sdd_max, Math.min(P.sdd_max, kp * (S.target - S.s) - kd * S.sd));
-      S.sd += dt * S.sdd; S.s += dt * S.sd;
+      const sdNew = S.sd + dt * S.sdd, ds = armContactLimit(dt * sdNew);
+      // bloque par la boite : vitesse ramenee a ce qui passe
+      if (ds !== dt * sdNew) { S.sd = ds / dt; S.sdd = 0; } else S.sd = sdNew;
+      S.s += ds;
     }
     // point du plan latent tenu : etat fixe, vitesse nulle ; le bras continue (S.hold)
     if (S.hold) { S.v[0] = 0; S.v[1] = 0; S.Fq = 0; S.F = [0, 0]; return; }
     // LNN : a = M^-1 (-grad V - C v + G s''), plus la barriere (en acceleration)
     const Fb = barrierForce(Array.from(S.q), Array.from(S.v));
     const aL = LN.accel(S.q, S.v, S.sdd), a = [aL[0] + Fb[0], aL[1] + Fb[1]];
-    const cp = coupling();
-    if (!cp) { S.Fq = 0; S.F = [0, 0]; for (let i = 0; i < dq; i++) S.v[i] += dt * a[i]; }
+    // couplages lineaires F0 - Wm v : saisie (coupling) et contact de la boite (S.cdata, comme le
+    // contact de la main dans xr_native_zoned.py : unilateral, reevalue a chaque pas)
+    const cp = coupling(), cd = S.cdata, F0 = [0, 0], Wm = [[0, 0], [0, 0]];
+    let on = false, cOn = false;
+    if (cp) {
+      const w = cp.c + dt * cp.k;
+      for (let i = 0; i < 2; i++) { F0[i] += cp.F0[i]; for (let j = 0; j < 2; j++) Wm[i][j] += w * cp.JtJ[i][j]; }
+      on = true;
+    }
+    if (cd) {
+      const dq0 = [S.q[0] - cd.q0[0], S.q[1] - cd.q0[1]];
+      for (let m = 0; m < cd.pen.length; m++) {
+        const J = cd.Jn[m];
+        // enfoncement linearise : la boite avance de vn t, la languette recule de Jn dq et de Jsn ds
+        // (deplacement du au bras)
+        const pen = cd.pen[m] + cd.vn[m] * cd.t - (J[0] * dq0[0] + J[1] * dq0[1]) - cd.Jsn[m] * (S.s - cd.s0);
+        const vrel = cd.vn[m] - cd.Jsn[m] * S.sd;               // vitesse d'approche hors q'
+        // une paire ne fait que POUSSER : enfoncee, et effort positif le long de la normale
+        if (!(pen > 0 && cd.k * pen + cd.c * (vrel - J[0] * S.v[0] - J[1] * S.v[1]) > 0)) continue;
+        const f = cd.w[m] * (cd.k * pen + cd.c * vrel), ww = cd.w[m] * (cd.c + dt * cd.k);
+        for (let i = 0; i < 2; i++) { F0[i] += f * J[i]; for (let j = 0; j < 2; j++) Wm[i][j] += ww * J[i] * J[j]; }
+        // frottement : ct Jt' (v_boite,t - Ts s' - Jt q'), implicite en q' (Ts s' : glissement du
+        // au bras)
+        const t = cd.Jt[m], wc = cd.w[m] * cd.ct[m], ts = cd.Ts[m];
+        const vb = [0, 1, 2].map(a => cd.vbt[m][a] - ts[a] * S.sd);
+        const Jtv = [t[0] * vb[0] + t[1] * vb[1] + t[2] * vb[2], t[3] * vb[0] + t[4] * vb[1] + t[5] * vb[2]];
+        const T00 = t[0] * t[0] + t[1] * t[1] + t[2] * t[2], T01 = t[0] * t[3] + t[1] * t[4] + t[2] * t[5];
+        const T11 = t[3] * t[3] + t[4] * t[4] + t[5] * t[5];
+        F0[0] += wc * Jtv[0]; F0[1] += wc * Jtv[1];
+        Wm[0][0] += wc * T00; Wm[0][1] += wc * T01; Wm[1][0] += wc * T01; Wm[1][1] += wc * T11;
+        on = true; cOn = true;
+      }
+      cd.t += dt;
+    }
+    if (!on) { S.Fq = 0; S.F = [0, 0]; for (let i = 0; i < dq; i++) S.v[i] += dt * a[i]; }
     else {
-      // couplage implicite avec la masse du LNN : (M + w J^T J) v1 = M (v + dt a) + dt F0
-      const w = dt * (cp.c + dt * cp.k), A = [[0, 0], [0, 0]], r = [0, 0], Mm = LN.M;
+      // implicite avec la masse du LNN : (M + dt Wm) v1 = M (v + dt a) + dt F0
+      const A = [[0, 0], [0, 0]], r = [0, 0], Mm = LN.M;
       for (let i = 0; i < 2; i++) {
-        r[i] = dt * cp.F0[i];
+        r[i] = dt * F0[i];
         for (let j = 0; j < 2; j++) {
           r[i] += Mm[i][j] * (S.v[j] + dt * a[j]);
-          A[i][j] = Mm[i][j] + w * cp.JtJ[i][j];
+          A[i][j] = Mm[i][j] + dt * Wm[i][j];
         }
       }
       const det = A[0][0] * A[1][1] - A[0][1] * A[1][0];
       const v1 = [(A[1][1] * r[0] - A[0][1] * r[1]) / det, (-A[1][0] * r[0] + A[0][0] * r[1]) / det];
-      const F = [0, 1].map(i => cp.F0[i] - (cp.c + dt * cp.k) * (cp.JtJ[i][0] * v1[0] + cp.JtJ[i][1] * v1[1]));
+      const F = [0, 1].map(i => F0[i] - (Wm[i][0] * v1[0] + Wm[i][1] * v1[1]));
       const nF = Math.hypot(F[0], F[1]);
-      const FMAX = fmaxOf(S.grab.view);
+      const FMAX = fmaxOf(S.grab ? S.grab.view : v3) * (cOn ? BOX_FMAX : 1);
       S.Fq = Math.min(nF, FMAX);
       // effort latent effectivement applique (borne comprise) : fleche du plan latent
       S.F = nF <= FMAX ? F : F.map(x => x * FMAX / nF);
@@ -342,6 +470,19 @@
       const p = toImg(v, e), z = zNow();
       const sel = v.select(p[0], p[1]);
       S.cursor = p;
+      if (v === v3 && BOX && BOX.on) {
+        const ry = camRay(v.cam, p), tb = BOX.rayHit(ry.o, ry.d);
+        let front = false;
+        if (tb > 0 && sel) for (const g of sel.idx)
+          if (g < v.M.NM && v.M.alpha[g] > 0.3 && v.M.project(v.cam, [v.M.xyz[3 * g], v.M.xyz[3 * g + 1], v.M.xyz[3 * g + 2]])[2] < tb) { front = true; break; }
+        if (tb > 0 && !front) {
+          BOX.startGrab([0, 1, 2].map(k => ry.o[k] + tb * ry.d[k]));
+          S.grab = {view: v, box: true, d0: tb, pt: p};
+          c.setPointerCapture(e.pointerId); c.classList.add('grabbing');
+          if (!S.running) setRunning(true);
+          return;
+        }
+      }
       if (!sel) return;
       // languette (zone q) sous le curseur : effort J^T f ; sinon bras (zone s) : il suit le curseur
       // (2026-10-08, comme le pincement de xr_native_zoned.py)
@@ -349,8 +490,10 @@
       if (v.armJac) for (const g of sel.idx) if (g < v.M.meta.n_q && v.M.alpha[g] > 0.3) nq++;
       const arm = v.armJac && nq < 3 ? v.armJac(z, sel) : null;
       if (arm) {
-        S.grab = {view: v, arm: true, sel: {idx: arm.idx, w: arm.w}, pt: arm.pt,
-                  off: [p[0] - arm.pt[0], p[1] - arm.pt[1]]};
+        // jacobien d(point)/ds FIGE a la saisie (2026-10-08) : recalcule a chaque image, il suivait
+        // un point qui bouge avec le bras et faisait osciller la saisie en certains endroits
+        S.grab = {view: v, arm: true, sel: {idx: arm.idx, w: arm.w}, pt: p, pt0: arm.pt, dp: arm.dp,
+                  s0: S.s, off: [p[0] - arm.pt[0], p[1] - arm.pt[1]]};
         if (S.replay) { S.replay = false; $('mpReplay').classList.remove('on'); S.target = S.s; S.sd = 0; }
       } else {
         const j = v.jac(z, sel);
@@ -375,6 +518,7 @@
       if (v.orbit) v.orbit.active = false;
       if (S.grab && S.grab.view === v) {
         if (S.grab.arm) { S.target = S.s; S.sd = 0; S.sdd = 0; }
+        if (S.grab.box) BOX.release();
         S.grab = null; S.cursor = null;
       }
       c.classList.remove('grabbing');
@@ -388,7 +532,11 @@
     const v = {canvas: $(cvId), ovl: $(ovId), radius: radius640, gate: GATE3D, ready: false, visible: true,
                lastZ: null, byQ: {}};
     v.init = (pack, q, side) => {
-      if (!v.byQ[q]) { const M = Zoned3D.load(pack); v.byQ[q] = {M, R: Zoned3D.renderer(v.canvas, M)}; }
+      if (!v.byQ[q]) {
+        const M = Zoned3D.load(pack), R = Zoned3D.renderer(v.canvas, M);
+        if (BOX && BOX.img) R.setBoxTexture(BOX.img);
+        v.byQ[q] = {M, R};
+      }
       v.M = v.byQ[q].M; v.R = v.byQ[q].R; v.lastZ = null;
       if (SHELL.SH && !v.M.nShell) v.M.setShell(SHELL.SH);
       // fenetre CARREE de cote `side` : pose, focale et axe optique de l'iphone3 a t ~ 273 s
@@ -449,7 +597,7 @@
     v.draw = z => {
       const z3 = [z[2], z[0], z[1]];
       if (!v.lastZ || z3.some((x, i) => x !== v.lastZ[i])) { v.M.update(z3); v.R.refresh(); v.lastZ = z3; }
-      v.R.draw(v.cam);
+      v.R.draw(v.cam, null, BOX && BOX.on ? BOX.renderInfo(v.cam.E) : null);
     };
     v.select = (x, y) => v.M.select(v.cam, x, y, v.radius, false);
     v.jac = (z, sel) => v.M.jacobian([z[2], z[0], z[1]], v.cam, sel);
@@ -807,19 +955,146 @@
 
   // ── boucle ────────────────────────────────────────────────────────────────
   let last = performance.now(), fps = 0, ms = {};
+  // rayon camera du pixel px : origine (centre optique) et direction monde de composante z camera 1
+  function camRay(cam, px) {
+    const E = cam.E, K = cam.K;
+    const dc = [(px[0] - K[0][2]) / K[0][0], (px[1] - K[1][2]) / K[1][1], 1];
+    const o = [0, 1, 2].map(j => -(E[0][j] * E[0][3] + E[1][j] * E[1][3] + E[2][j] * E[2][3]));
+    const d = [0, 1, 2].map(j => E[0][j] * dc[0] + E[1][j] * dc[1] + E[2][j] * dc[2]);
+    return {o, d};
+  }
+  // saisie de la boite : consigne = point du rayon du curseur a la profondeur camera de la saisie
+  function boxFollow() {
+    const g = S.grab, v = g.view;
+    if (!S.cursor) return;
+    const ry = camRay(v.cam, S.cursor);
+    BOX.target = [0, 1, 2].map(k => ry.o[k] + g.d0 * ry.d[k]);
+    g.pt = v.M.project(v.cam, BOX.grabPoint());
+  }
+  // une fois par image : gaussiennes mobiles (languette, bras) proches de la boite, puis contact
+  // linearise de la boite sur la languette (J = dmu/dq par differences centrees)
+  function boxPrepare(el) {
+    S.cdata = null;
+    if (!BOX || !BOX.on || !v3.ready) { if (BOX) { BOX.setGaussians(null); BOX.prev = null; } return; }
+    const M = v3.M, NQ = M.meta.n_q, NM = M.NM, N = M.N, X = M.xyz, al = M.alpha, lg = M.logs;
+    // gaussiennes opaques a portee de la boite : languette (0), bras (1), et fixes hors des
+    // collisionneurs (2, liste recalculee quand le decodeur ou les collisionneurs changent)
+    const R = BOX.radius + 0.1 + 0.1 * Math.hypot(BOX.v[0], BOX.v[1], BOX.v[2]), R2 = R * R;
+    const prev = BOX.prev && BOX.prev.M === M ? BOX.prev.X : null;
+    const pts = [], rad = [], w = [], kind = [], gid = [], vel = [];
+    const am = BOX.P.alphaMin, rMax = BOX.P.rMax, ek = BOX.P.ellK;
+    if (!BOX.stat || BOX.stat.M !== M || BOX.stat.coll !== BOX.colliders) {
+      const ids = [];
+      for (let g = NM; g < N; g++) {
+        if (al[g] < am) continue;
+        const Xg = [X[3 * g], X[3 * g + 1], X[3 * g + 2]];
+        let far = true;
+        for (const C of BOX.colliders) {
+          let d;
+          if (C.type === 'plane') d = dot3(C.n, Xg) - C.off;
+          else {
+            const r = sub3(Xg, C.c), qd = [0, 1, 2].map(k => Math.abs(dot3(r, C.ax[k])) - C.h[k]);
+            const mx = Math.max(...qd);
+            d = mx > 0 ? Math.hypot(...qd.map(v => Math.max(v, 0))) : mx;
+          }
+          if (d < STATIC_MARGIN) { far = false; break; }
+        }
+        if (far) ids.push(g);
+      }
+      BOX.stat = {M, coll: BOX.colliders, ids: Int32Array.from(ids)};
+    }
+    for (const g of BOX.stat.ids) {
+      const x = X[3 * g], y = X[3 * g + 1], z = X[3 * g + 2];
+      const dx = x - BOX.x[0], dy = y - BOX.x[1], dz = z - BOX.x[2];
+      if (dx * dx + dy * dy + dz * dz > R2) continue;
+      pts.push(x, y, z);
+      rad.push(Math.min(rMax, ek * Math.exp(Math.min(lg[3 * g], lg[3 * g + 1], lg[3 * g + 2]))));
+      w.push(al[g]); kind.push(2); gid.push(g); vel.push(0, 0, 0);
+    }
+    for (let g = 0; g < NM; g++) {
+      if (al[g] < am) continue;
+      const x = X[3 * g], y = X[3 * g + 1], z = X[3 * g + 2];
+      const dx = x - BOX.x[0], dy = y - BOX.x[1], dz = z - BOX.x[2];
+      if (dx * dx + dy * dy + dz * dz > R2) continue;
+      pts.push(x, y, z);
+      rad.push(Math.min(rMax, ek * Math.exp(Math.min(lg[3 * g], lg[3 * g + 1], lg[3 * g + 2]))));
+      w.push(al[g]); kind.push(g < NQ ? 0 : 1); gid.push(g);
+      // vitesse des mobiles : difference des centres entre deux images
+      if (g < NM && prev && el > 0) vel.push((x - prev[3 * g]) / el, (y - prev[3 * g + 1]) / el, (z - prev[3 * g + 2]) / el);
+      else vel.push(0, 0, 0);
+    }
+    BOX.prev = {M, X: X.slice(0, 3 * NM)};
+    BOX.setGaussians({pts: Float64Array.from(pts), rad, w, kind, vel: Float64Array.from(vel)});
+    // reaction sur la languette
+    const cs = BOX.contacts().filter(c => kind[c.i] === 0);
+    if (!cs.length) return;
+    const ids = Int32Array.from(cs, c => gid[c.i]), z = [S.s, S.q[0], S.q[1]], h = BOXC.h;
+    const Xd = [];
+    for (let k = 0; k < 2; k++) {
+      const zp = z.slice(), zm = z.slice();
+      zp[1 + k] += h; zm[1 + k] -= h;
+      Xd.push([M.qPositions(zp, ids), M.qPositions(zm, ids)]);
+    }
+    // d mu / ds : la languette suit aussi le bras (porteur, champ q evalue a s*) ; sans ce terme le
+    // glissement du au bras (recul du bras, languette posee sur la boite) echappait au frottement
+    const hs = 0.005 * (P.s_hi - P.s_lo), zsp = z.slice(), zsm = z.slice();
+    zsp[0] += hs; zsm[0] -= hs;
+    const Xsp = M.qPositions(zsp, ids), Xsm = M.qPositions(zsm, ids);
+    const n = cs.length, Jn = [], Jt = [], vbt = [], pen = [], vn = [], ww = [], mean = [0, 0, 0, 0, 0, 0];
+    const Jsn = [], Ts = [];
+    let sw = 0, den = 0, s2 = 0, G00 = 0, G01 = 0, G11 = 0;
+    for (let m = 0; m < n; m++) sw += al[ids[m]];
+    for (let m = 0; m < n; m++) {
+      const c = cs[m], nn = c.n, wm = al[ids[m]] / sw, Ji = [];
+      // Ji = [dX/dq0 (3), dX/dq1 (3)] ; Jn = n' J ; Jt = (I - n n') J ; vbt = (I - n n') v_boite
+      for (let k = 0; k < 2; k++)
+        for (let a = 0; a < 3; a++) Ji.push((Xd[k][0][3 * m + a] - Xd[k][1][3 * m + a]) / (2 * h));
+      const j0 = nn[0] * Ji[0] + nn[1] * Ji[1] + nn[2] * Ji[2];
+      const j1 = nn[0] * Ji[3] + nn[1] * Ji[4] + nn[2] * Ji[5];
+      const t = [];
+      for (let a = 0; a < 3; a++) t.push(Ji[a] - j0 * nn[a]);
+      for (let a = 0; a < 3; a++) t.push(Ji[3 + a] - j1 * nn[a]);
+      const vb = c.vb, vbn = vb[0] * nn[0] + vb[1] * nn[1] + vb[2] * nn[2];
+      const js = [0, 1, 2].map(a => (Xsp[3 * m + a] - Xsm[3 * m + a]) / (2 * hs));
+      const jsn = js[0] * nn[0] + js[1] * nn[1] + js[2] * nn[2];
+      Jsn.push(jsn); Ts.push([js[0] - jsn * nn[0], js[1] - jsn * nn[1], js[2] - jsn * nn[2]]);
+      Jn.push([j0, j1]); Jt.push(t); vbt.push([vb[0] - vbn * nn[0], vb[1] - vbn * nn[1], vb[2] - vbn * nn[2]]);
+      pen.push(c.pen); vn.push(c.vn); ww.push(wm);
+      G00 += wm * j0 * j0; G01 += wm * j0 * j1; G11 += wm * j1 * j1;
+      let nr = 0;
+      for (let a = 0; a < 6; a++) { mean[a] += wm * Ji[a]; nr += Ji[a] * Ji[a]; }
+      den += wm * Math.sqrt(nr); s2 += wm * wm;
+    }
+    const lam = 0.5 * (G00 + G11) + Math.sqrt(0.25 * (G00 - G11) ** 2 + G01 * G01);
+    const neff = 1 / s2, coh = Math.hypot(...mean) / Math.max(den, 1e-12);
+    const cl = x => Math.min(1, Math.max(0, x));
+    const gc = cl((neff - 0.5 * BOXC.nmin) / (0.5 * BOXC.nmin)) * cl((coh - (BOXC.cmin - 0.1)) / 0.1);
+    if (!(lam > 1e-12) || gc <= 0) return;
+    const k = gc * BOXC.kcol * KREF / lam, c = gc * BOXC.ccol * 2 * Math.sqrt(KREF) / lam;
+    // frottement : visqueux ct (vitesse relative tangentielle) borne par mu x effort normal, evalue
+    // en debut d'image : ct = min(ctMax c, mu k pen / max(|v_t|, vEps))
+    const mu = BOX.P.mu[0], ct = [];
+    for (let m = 0; m < n; m++) {
+      const t = Jt[m], vt = [0, 1, 2].map(a => vbt[m][a] - t[a] * S.v[0] - t[3 + a] * S.v[1] - Ts[m][a] * S.sd);
+      ct.push(Math.min(BOXC.ctMax * c, mu * k * pen[m] / Math.max(Math.hypot(vt[0], vt[1], vt[2]), BOXC.vEps)));
+    }
+    S.cdata = {Jn, Jt, vbt, ct, pen, vn, Jsn, Ts, w: ww, k, c, q0: [S.q[0], S.q[1]], s0: S.s, t: 0};
+  }
+
+
   // saisie du bras (cf. arm_follow de xr_native_zoned.py) : s tel que le point saisi suive le
   // curseur au premier ordre, ds = (dp/ds) . (curseur - decalage - p) / |dp/ds|^2, borne a 20 %
   // de la course par image ; en pause le bras suit tout de suite (temps fige)
   function armFollow() {
     const g = S.grab;
-    if (!g.view.ready || !S.cursor) return;
-    const a = g.view.armJac(zNow(), g.sel);
-    if (!a) return;
-    g.pt = [a.pt[0] + g.off[0], a.pt[1] + g.off[1]];
-    const den = a.dp[0] * a.dp[0] + a.dp[1] * a.dp[1];
+    if (!S.cursor) return;
+    // point saisi predit par le jacobien fige : p(s) = p0 + dp (s - s0)
+    const ps = [g.pt0[0] + g.dp[0] * (S.s - g.s0), g.pt0[1] + g.dp[1] * (S.s - g.s0)];
+    g.pt = [ps[0] + g.off[0], ps[1] + g.off[1]];
+    const den = g.dp[0] * g.dp[0] + g.dp[1] * g.dp[1];
     if (!(den > 1e-12)) return;
     const R = P.s_hi - P.s_lo;
-    let ds = (a.dp[0] * (S.cursor[0] - g.pt[0]) + a.dp[1] * (S.cursor[1] - g.pt[1])) / den;
+    let ds = ARM_GAIN * (g.dp[0] * (S.cursor[0] - g.pt[0]) + g.dp[1] * (S.cursor[1] - g.pt[1])) / den;
     ds = Math.max(-0.2 * R, Math.min(0.2 * R, ds));
     S.target = Math.max(P.s_lo, Math.min(P.s_hi, S.s + ds));
     if (!S.running) { S.s = S.target; S.sd = 0; S.sdd = 0; }
@@ -829,7 +1104,9 @@
     const el = Math.min(0.25, (now - last) / 1000); last = now;
     fps = 0.9 * fps + 0.1 / Math.max(el, 1e-4);
     if (S.running) {
-      if (S.grab && S.grab.arm) armFollow();
+      if (BOX && BOX.grab && !(S.grab && S.grab.box)) BOX.release();
+      if (S.grab && S.grab.box) boxFollow();
+      else if (S.grab && S.grab.arm) armFollow();
       else if (S.grab && S.grab.view.ready) {
         const j = S.grab.view.jac(zNow(), S.grab.sel);
         Object.assign(S.grab, j, {qref: [S.q[0], S.q[1]]});
@@ -837,7 +1114,8 @@
       // accumulateur : a 144 ou 240 Hz une image dure moins qu'un pas physique, un arrondi
       // de el / dt y vaudrait 0 et la simulation resterait figee
       S.acc = Math.min((S.acc || 0) + el, 40 * dt);
-      while (S.acc >= dt) { stepOnce(); QT.push(); S.acc -= dt; }
+      boxPrepare(el);
+      while (S.acc >= dt) { stepOnce(); if (BOX) BOX.step(dt); QT.push(); S.acc -= dt; }
     }
     if (!S.running && S.grab && S.grab.arm) armFollow();
     const z = zNow();
@@ -896,6 +1174,20 @@
     for (let i = 0; i < dq; i++) S.v[i] += (Math.random() * 2 - 1) * 12 * P.q_std[i];
     if (!S.running) setRunning(true);
   };
+  if (BOX && $('mpBox')) {
+    if (window.MPOV_BOX_TEX) {
+      const img = new Image();
+      img.onload = () => { BOX.img = img; for (const r of Object.values(v3.byQ)) r.R.setBoxTexture(img); };
+      img.src = window.MPOV_BOX_TEX;
+    }
+    // presence de la boite : remise a sa place de depart a chaque activation
+    $('mpBox').onclick = () => {
+      BOX.on = !BOX.on;
+      if (BOX.on) BOX.reset(); else BOX.release();
+      $('mpBox').classList.toggle('on', BOX.on);
+      v3.lastZ = null;
+    };
+  }
   $('mpRest').onclick = () => { S.q[0] = LN.q_r[0]; S.q[1] = LN.q_r[1]; S.v.fill(0); };
   $('mpHi').onclick = () => { if (started) useQuality(quality === 'high' ? 'low' : 'high'); };
   $('mpShell').onclick = () => {

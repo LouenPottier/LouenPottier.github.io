@@ -514,11 +514,39 @@
     }
 
     const M = {meta, N, NM, xyz, quat, logs, col, alpha, update, select, jacobian, armJacobian, project,
+               qPositions, sPositions,
                setShell, z: null, shellRatio: 0, shellOut: false, nShell: 0};
     return M;
   }
 
   // ── rendu WebGL2 ─────────────────────────────────────────────────────────────
+  // boite en carton (box3d.js, 2026-10-08) : boite orientee intersectee pixel par pixel. boxM :
+  // camera -> repere de la boite ; boxH : demi-cotes. Le rayon du pixel px (origine en haut a
+  // gauche) a une composante z camera de 1 : t est la profondeur camera du point touche.
+  const BOXGL = `
+  uniform int boxOn; uniform mat4 boxM; uniform vec3 boxH; uniform float boxR;
+  // boite a aretes et coins ARRONDIS (rayon boxR) : distance signee
+  float boxSd(vec3 p){ vec3 q = abs(p) - (boxH - boxR); return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0) - boxR; }
+  // entree par la boite englobante (dalles), puis marche de rayon sur la distance signee
+  float boxHit(vec2 px, vec4 K, out vec3 pl){
+    vec3 dc = vec3((px.x - K.z) / K.x, (px.y - K.w) / K.y, 1.0);
+    vec3 o = boxM[3].xyz, d = mat3(boxM) * dc;
+    vec3 ds = mix(vec3(1e-9), d, step(1e-9, abs(d)));
+    vec3 t1 = (-boxH - o) / ds, t2 = (boxH - o) / ds;
+    vec3 tn3 = min(t1, t2), tf3 = max(t1, t2);
+    float tn = max(max(tn3.x, tn3.y), tn3.z), tf = min(min(tf3.x, tf3.y), tf3.z);
+    pl = vec3(0.0);
+    if (tf < max(tn, 0.0)) return -1.0;
+    float t = max(tn, 0.0), ld = length(d);
+    for (int i = 0; i < 24; i++) {
+      float s = boxSd(o + t * d);
+      if (s < 1e-4) { pl = o + t * d; return t; }
+      t += s / ld;
+      if (t > tf) return -1.0;
+    }
+    pl = o + t * d;
+    return t;
+  }`;
   const VS = `#version 300 es
   precision highp float; precision highp int;
   layout(location=0) in vec2 corner;
@@ -528,7 +556,7 @@
   uniform vec4 intr;              // fx, fy, cx, cy
   uniform vec2 size;
   uniform vec2 nf;                // near, far
-  out vec2 vD; flat out vec3 vCon; flat out float vA; flat out vec3 vC;
+  out vec2 vD; flat out vec3 vCon; flat out float vA; flat out vec3 vC; flat out vec3 vMu; flat out mat3 vSi;
   void main(){
     int i = int(gid);
     ivec2 b = ivec2((i & 1023) * 4, i >> 10);
@@ -546,7 +574,12 @@
     mat3 Jm = mat3(fx * iz, 0.0, 0.0,  0.0, fy * iz, 0.0,  -fx * tx * iz * iz, -fy * ty * iz * iz, 0.0);
     mat3 S = mat3(t1.x, t1.y, t1.z,  t1.y, t1.w, t2.x,  t1.z, t2.x, t2.y);
     mat3 R = mat3(view);
-    mat3 C = Jm * R * S * transpose(R) * transpose(Jm);
+    mat3 Sc = R * S * transpose(R);
+    // gaussienne dont l'etendue (3 sigma le long de l'axe optique) traverse le plan proche : la
+    // projection affine n'y vaut plus rien (empreinte allongee, angle faux), elle n'est pas
+    // affichee (2026-10-08)
+    if (pc.z - 3.0 * sqrt(max(Sc[2][2], 0.0)) < nf.x) return;
+    mat3 C = Jm * Sc * transpose(Jm);
     float a = C[0][0] + 0.3, bb = C[0][1], d = C[1][1] + 0.3;
     float det = a * d - bb * bb;
     if (det <= 0.0) return;
@@ -555,14 +588,39 @@
     vec2 m = vec2(fx * pc.x * iz + cx, fy * pc.y * iz + cy);
     vec2 dd = corner * rad;
     vD = dd; vCon = vec3(d / det, -bb / det, a / det); vA = t0.w; vC = t3.xyz;
+    // centre et inverse de la covariance au repere camera : profondeur de la gaussienne le long du
+    // rayon de chaque pixel (occultation par la boite, cf. FS)
+    vMu = pc.xyz; vSi = inverse(Sc + mat3(1e-10));
     vec2 p = m + dd;
     gl_Position = vec4(p.x / size.x * 2.0 - 1.0, 1.0 - p.y / size.y * 2.0, 0.0, 1.0);
   }`;
   const FS = `#version 300 es
   precision highp float;
-  in vec2 vD; flat in vec3 vCon; flat in float vA; flat in vec3 vC;
+  in vec2 vD; flat in vec3 vCon; flat in float vA; flat in vec3 vC; flat in vec3 vMu; flat in mat3 vSi;
+  uniform vec4 intr; uniform vec2 size;
+  ` + BOXGL + `
   out vec4 o;
   void main(){
+    // boite opaque : le fragment est masque si la gaussienne, le long du rayon du pixel, est
+    // derriere la boite. Profondeur de la gaussienne sur le rayon r = t dc : maximum de densite,
+    // t* = dc' S^-1 mu / dc' S^-1 dc (dc a une composante z de 1 : t* est une profondeur camera).
+    // Le centre seul ne suffit pas : une gaussienne allongee de la table a son centre devant la
+    // boite et sa trainee derriere (2026-10-08).
+    if (boxOn == 1) {
+      vec3 pl;
+      vec2 px = vec2(gl_FragCoord.x, size.y - gl_FragCoord.y);
+      float tb = boxHit(px, intr, pl);
+      if (tb > 0.0) {
+        vec3 dc = vec3((px.x - intr.z) / intr.x, (px.y - intr.w) / intr.y, 1.0);
+        vec3 sd = vSi * dc;
+        float ts = dot(sd, vMu) / max(dot(sd, dc), 1e-20);
+        // centre derriere la boite : masque aussi. Pour une gaussienne en aiguille (deux demi-axes
+        // minuscules) couchee SOUS la boite, le point du rayon le plus dense est le point le plus
+        // proche de l'aiguille, devant la face de la boite quand l'aiguille en depasse : t* seul la
+        // dessinait par-dessus (2026-10-08)
+        if (ts > tb || vMu.z > tb) discard;
+      }
+    }
     float sig = 0.5 * (vCon.x * vD.x * vD.x + vCon.z * vD.y * vD.y) + vCon.y * vD.x * vD.y;
     if (sig < 0.0) discard;
     float a = min(0.99, vA * exp(-sig));
@@ -575,9 +633,37 @@
   const FS2 = `#version 300 es
   precision highp float; in vec2 uv; uniform sampler2D t; uniform vec3 bg;
   uniform mat3 cA; uniform vec3 cb; out vec4 o;
+  uniform vec4 intr; uniform vec2 size; uniform sampler2D boxTex; uniform int texOk; uniform vec3 boxL;
+  ` + BOXGL + `
+  // couleur de la boite au point local pl : texture de carton, bande d'adhesif sur le dessus (le
+  // long de x, qui descend de 0.1 sur les faces +-x), aretes assombries, eclairage de Lambert
+  vec3 boxColor(vec3 pl){
+    vec3 a = abs(pl) / boxH;
+    int ax = a.x > a.y ? (a.x > a.z ? 0 : 2) : (a.y > a.z ? 1 : 2);
+    // normale de la surface arrondie (gradient de la distance), face dominante pour la texture
+    vec3 qn = max(abs(pl) - (boxH - boxR), 0.0) * sign(pl);
+    vec3 n = vec3(0.0); n[ax] = pl[ax] >= 0.0 ? 1.0 : -1.0;
+    if (dot(qn, qn) > 1e-12) n = normalize(qn);
+    vec2 f = ax == 0 ? pl.yz : (ax == 1 ? pl.xz : pl.xy);
+    vec2 hf = ax == 0 ? boxH.yz : (ax == 1 ? boxH.xz : boxH.xy);
+    vec3 c = texOk == 1 ? texture(boxTex, f * 1.6 + 0.5 + float(ax) * 0.37).rgb : vec3(0.72, 0.55, 0.34);
+    bool top = ax == 2 && n.z > 0.0, side = ax == 0 && pl.z > boxH.z - 0.1;
+    if (abs(pl.y) < 0.045 && (top || side)) c = mix(c, vec3(0.80, 0.66, 0.45) * (0.9 + 0.1 * c.r), 0.85);
+    vec2 e = hf - abs(f);
+    float edge = smoothstep(0.0, 0.012, min(e.x, e.y));
+    return c * (0.45 + 0.55 * max(dot(n, boxL), 0.0)) * mix(0.8, 1.0, edge);
+  }
   // correction de couleur de la camera (train_dec3d_zoned.py, color1) : clamp(A rgb + b) sur
-  // l'image composee sur fond noir, comme a l'entrainement ; le fond est ajoute apres
-  void main(){ vec4 c = texture(t, uv); o = vec4(clamp(cA * c.rgb + cb, 0.0, 1.0) + (1.0 - c.a) * bg, 1.0); }`;
+  // l'image composee sur fond noir, comme a l'entrainement ; le fond (ou la boite, couleurs non
+  // corrigees) est ajoute apres, derriere les gaussiennes qui la precedent
+  void main(){
+    vec4 c = texture(t, uv); vec3 back = bg;
+    if (boxOn == 1) {
+      vec3 pl;
+      if (boxHit(vec2(uv.x * size.x, (1.0 - uv.y) * size.y), intr, pl) > 0.0) back = boxColor(pl);
+    }
+    o = vec4(clamp(cA * c.rgb + cb, 0.0, 1.0) + (1.0 - c.a) * back, 1.0);
+  }`;
 
   function prog(gl, vs, fs) {
     const mk = (t, s) => { const h = gl.createShader(t); gl.shaderSource(h, s); gl.compileShader(h);
@@ -684,7 +770,28 @@
       dirty = true;
     }
 
-    function draw(cam, bg) {
+    // texture de la boite (Image chargee), unite 1
+    let btex = null;
+    function setBoxTexture(img) {
+      btex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, btex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+      gl.generateMipmap(gl.TEXTURE_2D);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+    }
+    function boxUniforms(p, box, K, W, H) {
+      gl.uniform1i(gl.getUniformLocation(p, 'boxOn'), box ? 1 : 0);
+      gl.uniform4f(gl.getUniformLocation(p, 'intr'), K[0][0], K[1][1], K[0][2], K[1][2]);
+      gl.uniform2f(gl.getUniformLocation(p, 'size'), W, H);
+      if (!box) return;
+      gl.uniformMatrix4fv(gl.getUniformLocation(p, 'boxM'), false, box.M);
+      gl.uniform3f(gl.getUniformLocation(p, 'boxH'), box.half[0], box.half[1], box.half[2]);
+      gl.uniform1f(gl.getUniformLocation(p, 'boxR'), box.round || 0);
+    }
+
+    function draw(cam, bg, box) {
       const W = cam.W, H = cam.H;
       if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
       target(W, H);
@@ -703,6 +810,7 @@
       gl.uniform4f(gl.getUniformLocation(pS, 'intr'), K[0][0], K[1][1], K[0][2], K[1][2]);
       gl.uniform2f(gl.getUniformLocation(pS, 'size'), W, H);
       gl.uniform2f(gl.getUniformLocation(pS, 'nf'), M.meta.near, M.meta.far);
+      boxUniforms(pS, box, K, W, H);
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, dtex);
       gl.uniform1i(gl.getUniformLocation(pS, 'data'), 0);
@@ -724,10 +832,19 @@
       gl.uniformMatrix3fv(gl.getUniformLocation(pB, 'cA'), false, new Float32Array([
         A[0][0], A[1][0], A[2][0], A[0][1], A[1][1], A[2][1], A[0][2], A[1][2], A[2][2]]));
       gl.uniform3f(gl.getUniformLocation(pB, 'cb'), cb[0], cb[1], cb[2]);
+      boxUniforms(pB, box, K, W, H);
+      if (box) {
+        gl.uniform3f(gl.getUniformLocation(pB, 'boxL'), box.light[0], box.light[1], box.light[2]);
+        gl.uniform1i(gl.getUniformLocation(pB, 'texOk'), btex ? 1 : 0);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, btex);
+        gl.uniform1i(gl.getUniformLocation(pB, 'boxTex'), 1);
+        gl.activeTexture(gl.TEXTURE0);
+      }
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       dirty = false;
     }
-    return {draw, refresh, gl, floatTarget: !!fl};
+    return {draw, refresh, setBoxTexture, gl, floatTarget: !!fl};
   }
 
   root.Zoned3D = {load, renderer, shell};
