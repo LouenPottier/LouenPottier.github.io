@@ -367,10 +367,6 @@
         <label><span class="lbl" data-en="Dissipation" data-fr="Dissipation">Dissipation</span> <span class="val" id="pVd">×1.0</span></label>
         <input id="pDiss" type="range" min="0" max="300" value="100">
       </div>
-      <div class="ctl">
-        <label><span class="lbl" data-en="Release from a filmed take" data-fr="Lâcher depuis une prise filmée">Release from a filmed take</span></label>
-        <select id="pTake" style="font-family:var(--mono);font-size:.8rem;color:var(--text-mid);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:6px 8px;"></select>
-      </div>
       <button id="pReplay"
         data-en="Replay held-out take with its video" data-fr="Rejouer la prise mise de côté avec sa vidéo"
         style="font-family:var(--mono);font-size:.82rem;color:var(--text-mid);background:transparent;border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;cursor:pointer;line-height:1;">Replay held-out take with its video</button>
@@ -543,15 +539,9 @@ function visActive(g) { return !PAGE_HIDDEN && g.on; }
   $('pFreeze').addEventListener('change',e=>{ splat.opts.freeze=e.target.checked; });
   $('pShowMask').addEventListener('change',e=>{ showMask=e.target.checked; });
 
-  // ── état initial : prises filmées, modes ───────────────────────────────────
-  const sel=$('pTake');
-  P.takes.forEach((t,i)=>{
-    const o=document.createElement('option'); o.value=i;
-    o.textContent=t.name.replace('take_','take ')+(t.holdout?' (held-out)':''); sel.appendChild(o);
-  });
+  // ── état initial : la prise mise de côté (seule prise exposée), modes ──────
   const HO=P.takes.findIndex(t=>t.holdout);
   function setTake(i){ const t=P.takes[i]; dyn.set(t.q0,t.v0); hist.length=0; }
-  sel.addEventListener('change',()=>{ setTake(parseInt(sel.value)); st.running=true; $('pPlay').textContent='⏸'; });
   const vidMsg=$('vSapinMsg');
   function showVidMsg(t){ if(vidMsg){ vidMsg.textContent=t; vidMsg.style.display='flex'; } }
   vid.addEventListener('error',()=>{ const e=vid.error; console.error('[tree/sapin] vidéo :', e&&e.code, e&&e.message); showVidMsg('video unavailable (webm/VP9) · code '+(e?e.code:'?')); });
@@ -559,7 +549,7 @@ function visActive(g) { return !PAGE_HIDDEN && g.on; }
   const tryPlay=()=>{ const pr=vid.play(); if(pr&&pr.catch) pr.catch(err=>{ console.warn('[tree/sapin] play() refusé :', err&&err.name); showVidMsg('click the replay button to start the video'); }); };
   vid.addEventListener('canplay',tryPlay,{once:true});
   $('pReplay').addEventListener('click',()=>{
-    sel.value=HO; setTake(HO); st.running=true; $('pPlay').textContent='⏸';
+    setTake(HO); st.running=true; $('pPlay').textContent='⏸';
     try{ vid.currentTime=0; }catch(e){}
     tryPlay();
   });
@@ -682,7 +672,7 @@ function visActive(g) { return !PAGE_HIDDEN && g.on; }
   }
 
   // ── boucle : pas de modèle à FPS fixe, rendu plafonné ──────────────────────
-  sel.value=HO; setTake(HO);
+  setTake(HO);
   let last=performance.now(), acc=0, accR=0;
   const vis5=(typeof watchVisible==='function')? watchVisible(['cPState','cPRecon']) : null;
   function loop(now){
