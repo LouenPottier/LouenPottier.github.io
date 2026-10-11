@@ -75,8 +75,10 @@
 #lags-demo .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start;}
 #lags-demo .grid.two{grid-template-columns:1fr 1fr;}
 @media(max-width:880px){#lags-demo .grid.two{grid-template-columns:1fr}}
-#lags-demo .vid-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;margin:0 0 1rem;}
-@media(max-width:880px){#lags-demo .vid-grid{grid-template-columns:1fr}}
+#lags-demo .vid-grid{display:grid;grid-template-columns:minmax(0,760px);gap:14px;align-items:start;margin:0 0 1rem;}
+#lags-demo .vid-grid video{display:block;width:100%;height:auto;background:#111;}
+#lags-demo .vid-labels{display:grid;grid-template-columns:1fr 1fr;font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);padding:8px 15px 10px;border-top:1px solid var(--border-soft);}
+#lags-demo .vid-labels span:last-child{color:var(--q)}
 #lags-demo .stage.sq{display:flex;justify-content:center;background:#000;}
 #lags-demo .stage.sq .sqwrap{position:relative;height:330px;aspect-ratio:1/1;}
 #lags-demo .stage.sq .sqwrap canvas{display:block;width:100%;height:100%;background:#000;}
@@ -365,36 +367,22 @@
       <h2 class="exp-title" data-en="Filmed video against the decoded rollout" data-fr="Vidéo filmée contre rollout décodé">Filmed video against the decoded rollout</h2>
     </div>
     <p class="vid-note"
-       data-en="Take 9 of 30, never seen during training: the tree was pushed just before the recording started and swings freely. Left: filmed image. Right: image decoded from the rollout of the linear oscillator started at the measured state of the first frame, (q&#8320;, q&#775;&#8320;), with no other input from the take. The rollout is integrated in the browser and re-decoded at every frame, locked to the video clock: both restart together when the video loops. Over the whole take, the decoded rollout matches the filmed video at 32.9&thinsp;dB, against 33.1&thinsp;dB when decoding the measured state."
-       data-fr="Prise 9 sur 30, jamais vue à l'entraînement : le sapin a été poussé juste avant le début de l'enregistrement et oscille librement. À gauche, l'image filmée. À droite, l'image décodée depuis le rollout de l'oscillateur linéaire lancé à l'état mesuré de la première image, (q&#8320;, q&#775;&#8320;), sans autre entrée issue de la prise. Le rollout est intégré dans le navigateur et redécodé à chaque image, calé sur l'horloge de la vidéo : les deux repartent ensemble quand la vidéo boucle. Sur toute la prise, le rollout décodé reproduit la vidéo filmée à 32,9&thinsp;dB, contre 33,1&thinsp;dB en décodant l'état mesuré.">
+       data-en="Take 9 of 30, never seen during training: the tree was pushed just before the recording started and swings freely. Left half: filmed image. Right half: image decoded from the rollout of the linear oscillator started at the measured state of the first frame, (q&#8320;, q&#775;&#8320;). The only other thing read from the take is its first frame again, to set one exposure gain and bias for the whole video (the webcam changes its automatic exposure between takes). Both halves are rendered into a single video, so they share the same clock by construction. Over the 187 frames, the decoded rollout matches the filmed video at 31.5&thinsp;dB."
+       data-fr="Prise 9 sur 30, jamais vue à l'entraînement : le sapin a été poussé juste avant le début de l'enregistrement et oscille librement. Moitié gauche : image filmée. Moitié droite : image décodée depuis le rollout de l'oscillateur linéaire lancé à l'état mesuré de la première image, (q&#8320;, q&#775;&#8320;). La seule autre chose lue dans la prise est cette même première image, pour fixer un gain et un biais d'exposition pour toute la vidéo (la webcam change d'exposition automatique d'une prise à l'autre). Les deux moitiés sont rendues dans une seule vidéo, donc partagent la même horloge par construction. Sur les 187 images, le rollout décodé reproduit la vidéo filmée à 31,5&thinsp;dB.">
       Take 9 of 30, never seen during training.
     </p>
     <div class="vid-grid">
-      <section class="panel">
-        <div class="phead">
-          <div class="tag" data-en="input · held-out take" data-fr="entrée · prise mise de côté">input · held-out take</div>
-          <h2 data-en="Filmed video" data-fr="Vidéo filmée">Filmed video</h2>
-          <div class="sub" data-en="built-in webcam of a low-end laptop, 1280×720 cropped" data-fr="webcam intégrée d'un portable d'entrée de gamme, 1280×720 recadrée">built-in webcam of a low-end laptop, 1280×720 cropped</div>
-        </div>
-        <div class="stage recon" style="background:#000">
-          <video id="vSapin" muted playsinline loop autoplay preload="auto" style="display:block;width:100%;height:330px;object-fit:contain;background:#000">
-            <source src="./videos/sapin_take_009.webm" type="video/webm; codecs=vp9">
-            <source src="./videos/sapin_take_009_vp8.webm" type="video/webm; codecs=vp8">
-          </video>
-          <div id="vSapinMsg" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:#888;font-family:var(--mono);font-size:.7rem;text-align:center;padding:10px"></div>
-          <div class="badge" data-en="filmed" data-fr="filmé">filmed</div>
-        </div>
-      </section>
       <section class="panel q">
         <div class="phead">
-          <div class="tag" data-en="LaGSplat · rollout from (q&#8320;, q&#775;&#8320;)" data-fr="LaGSplat · rollout depuis (q&#8320;, q&#775;&#8320;)">LaGSplat · rollout from (q₀, q̇₀)</div>
-          <h2 data-en="Decoded rollout" data-fr="Rollout décodé">Decoded rollout</h2>
-          <div class="sub" data-en="linear oscillator integrated from the first frame, 3&thinsp;000 gaussians re-rasterised at 256×256" data-fr="oscillateur linéaire intégré depuis la première image, 3&thinsp;000 gaussiennes re-rasterisées en 256×256">linear oscillator integrated from the first frame, 3 000 gaussians re-rasterised at 256×256</div>
+          <div class="tag" data-en="held-out take 9 · filmed | decoded rollout" data-fr="prise 9 mise de côté · filmé | rollout décodé">held-out take 9 · filmed | decoded rollout</div>
+          <h2 data-en="Filmed video against the decoded rollout" data-fr="Vidéo filmée contre rollout décodé">Filmed video against the decoded rollout</h2>
+          <div class="sub" data-en="left: webcam frame, 1280×720 cropped to 256×256 · right: 3&thinsp;000 gaussians decoded from the oscillator rollout, 256×256" data-fr="gauche : image webcam 1280×720 recadrée en 256×256 · droite : 3&thinsp;000 gaussiennes décodées depuis le rollout de l'oscillateur, 256×256">left: webcam frame, 1280×720 cropped to 256×256 · right: 3 000 gaussians decoded from the oscillator rollout, 256×256</div>
         </div>
-        <div class="stage recon sq">
-          <div class="sqwrap"><canvas id="cPRoll"></canvas></div>
-          <div class="badge" data-en="network" data-fr="réseau">network</div>
-        </div>
+        <video class="cmp" id="vSapin" muted playsinline loop autoplay preload="auto">
+          <source src="./videos/sapin_take_009_cmp.webm" type="video/webm; codecs=vp9">
+          <source src="./videos/sapin_take_009_cmp_vp8.webm" type="video/webm; codecs=vp8">
+        </video>
+        <div class="vid-labels"><span data-en="filmed" data-fr="filmé">filmed</span><span data-en="network" data-fr="réseau">network</span></div>
       </section>
     </div>
 
@@ -561,18 +549,15 @@ function visActive(g) { return !PAGE_HIDDEN && g.on; }
 <script src="./demo/sapin_dyn.js"></script>
 <script>
 "use strict";
-/* Deux expériences, un seul jeu de poids :
- *   1. rollout de la prise mise de côté, calé sur l'horloge de la vidéo (#cPRoll) ;
- *   2. simulation interactive (#cPRecon, #cPState, #cPOverlay).
- * Chacune a son propre intégrateur et son propre rastériseur CPU (SapinSplat décode le base64
- * à la création : deux fois 770 Ko, négligeable). Chaque boucle sort si ses canevas sont hors
- * écran (watchVisible), donc les deux décodeurs ne tournent ensemble que si les deux sont visibles. */
+/* Expérience 1 (vidéo held-out | rollout décodé) est une vidéo pré-rendue côté LaGS
+ * (`keypoints_cpu/make_sapin_compare_video.py`) : rien à calculer ici. Expérience 2 : simulation
+ * interactive (#cPRecon, #cPState, #cPOverlay), un intégrateur et un rastériseur CPU. La boucle
+ * sort si ses canevas sont hors écran (watchVisible). */
 (function(){
   const META=window.SAPIN_SPLAT_META, B64=window.SAPIN_SPLAT, P=window.SAPIN_LNN;
   const $=id=>document.getElementById(id);
-  const cvRoll=$('cPRoll'), vid=$('vSapin');
   const cvSt=$('cPState'), cvRe=$('cPRecon'), cvOv=$('cPOverlay');
-  if(!META||!B64||!P||!cvRoll||!vid||!cvSt||!cvRe||!cvOv||!window.SapinSplat||!window.SapinDyn) return;
+  if(!META||!B64||!P||!cvSt||!cvRe||!cvOv||!window.SapinSplat||!window.SapinDyn) return;
   const d=P.d, FPS=P.fps;
   const HO=P.takes.findIndex(t=>t.holdout), TAKE=P.takes[HO];
   const RENDER_HZ=40;
@@ -582,36 +567,6 @@ function visActive(g) { return !PAGE_HIDDEN && g.on; }
     catch(err){ console.error('[tree/sapin] décodeur indisponible :', err); return null; }
   }
   function restWeights(splat, dyn){ const qw=new Float64Array(d); dyn.set(null,null); splat.setRest(dyn.whitened(qw)); }
-
-  /* ── expérience 1 : rollout calé sur la vidéo ───────────────────────────────── */
-  (function(){
-    const splat=makeSplat(cvRoll); if(!splat) return;
-    const dyn=window.SapinDyn.create(P); restWeights(splat,dyn);
-    const qw=new Float64Array(d);
-    const vidMsg=$('vSapinMsg');
-    function showVidMsg(t){ if(vidMsg){ vidMsg.textContent=t; vidMsg.style.display='flex'; } }
-    vid.addEventListener('error',()=>{ const e=vid.error; console.error('[tree/sapin] vidéo :', e&&e.code, e&&e.message); showVidMsg('video unavailable (webm/VP9) · code '+(e?e.code:'?')); });
-    vid.addEventListener('playing',()=>{ if(vidMsg) vidMsg.style.display='none'; });
-    const tryPlay=()=>{ const pr=vid.play(); if(pr&&pr.catch) pr.catch(err=>{ console.warn('[tree/sapin] play() refusé :', err&&err.name); showVidMsg('click the video to start it'); }); };
-    vid.addEventListener('canplay',tryPlay,{once:true});
-    vid.addEventListener('click',()=>{ if(vid.paused) tryPlay(); else vid.pause(); });
-    // Le rollout avance au rythme de la vidéo : à l'image n de la vidéo correspond le n-ième pas
-    // de l'intégrateur depuis (q0, v0). Un retour en arrière (boucle, seek) remet l'état initial.
-    let done=-1, drawn=-1, accR=0, last=performance.now();
-    const vis=(typeof watchVisible==='function')? watchVisible(['cPRoll','vSapin']) : null;
-    function loop(now){
-      requestAnimationFrame(loop);
-      const el=Math.min((now-last)/1000,0.1); last=now;
-      if(vis&&typeof visActive==='function'&&!visActive(vis)) return;
-      const target=Math.max(0,Math.floor(vid.currentTime*FPS+1e-6));
-      if(target<done||done<0){ dyn.set(TAKE.q0,TAKE.v0); done=0; }
-      while(done<target){ dyn.step(4); done++; }
-      accR+=el; if(accR<1/RENDER_HZ) return; accR=0;
-      if(done===drawn) return;                          // vidéo en pause : rien à redessiner
-      drawn=done; dyn.whitened(qw); splat.render(qw);
-    }
-    requestAnimationFrame(loop);
-  })();
 
   /* ── expérience 2 : simulation interactive ────────────────────────────────── */
   (function(){

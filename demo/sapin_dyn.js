@@ -12,7 +12,7 @@
  *       compositing par SOMME NORMALISÉE (couleur = Σ cᵢ wᵢ Gᵢ / max(Σ wᵢ Gᵢ, 1)). Ce n'est pas
  *       le « over » de gs_splat.js : le décodeur a été entraîné avec cette règle, on la garde.
  *       Unités : pixels de meta.img_size, q BLANCHI (q − mean)/std.
- *     .render(qw)                 dessine l'état (qw blanchi, longueur d)
+ *     .render(qw)                 dessine l'état (qw blanchi, longueur d), exposition meta.expo (gain, biais)
  *     .select(qw, x, y, opt)      saisie : gaussiennes mobiles pesant au point image (x, y) en px ;
  *                                 opt.radius (px), opt.mobMin (filtre de mobilité), opt.uniform
  *                                 (poids égaux dans le disque : force « globale »)
@@ -122,11 +122,13 @@
             }
           }
         }
-        const px = img.data;
+        // exposition : gain et biais de meta.expo (estimés sur la première frame de la prise held-out
+        // par make_sapin_compare_video.py), les mêmes que la vidéo de comparaison ; sinon (1, 0)
+        const px = img.data, eg = (meta.expo ? meta.expo.gain : 1) * 255, eb = (meta.expo ? meta.expo.bias : 0) * 255;
         for (let p = 0; p < W * H; p++) {
           const dn = den[p] > 1 ? den[p] : 1;
-          px[4 * p] = Math.min(255, num[3 * p] / dn * 255); px[4 * p + 1] = Math.min(255, num[3 * p + 1] / dn * 255);
-          px[4 * p + 2] = Math.min(255, num[3 * p + 2] / dn * 255); px[4 * p + 3] = 255;
+          px[4 * p] = Math.max(0, Math.min(255, num[3 * p] / dn * eg + eb)); px[4 * p + 1] = Math.max(0, Math.min(255, num[3 * p + 1] / dn * eg + eb));
+          px[4 * p + 2] = Math.max(0, Math.min(255, num[3 * p + 2] / dn * eg + eb)); px[4 * p + 3] = 255;
         }
         octx.putImageData(img, 0, 0);
         const cw = canvas.clientWidth, ch = canvas.clientHeight, dpr = Math.min(devicePixelRatio || 1, 2);
