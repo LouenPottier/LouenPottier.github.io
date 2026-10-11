@@ -73,6 +73,15 @@
 #lags-demo .valbig{font-family:var(--mono);font-size:.92rem;font-weight:600;color:var(--navy);}
 
 #lags-demo .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start;}
+#lags-demo .grid.two{grid-template-columns:1fr 1fr;}
+@media(max-width:880px){#lags-demo .grid.two{grid-template-columns:1fr}}
+#lags-demo .vid-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;margin:0 0 1rem;}
+@media(max-width:880px){#lags-demo .vid-grid{grid-template-columns:1fr}}
+#lags-demo .stage.sq{display:flex;justify-content:center;background:#000;}
+#lags-demo .stage.sq .sqwrap{position:relative;height:330px;aspect-ratio:1/1;}
+#lags-demo .stage.sq .sqwrap canvas{display:block;width:100%;height:100%;background:#000;}
+#lags-demo .stage.sq .sqwrap canvas#cPOverlay{position:absolute;inset:0;background:transparent;pointer-events:none;}
+#lags-demo .vid-note{font-size:.82rem;line-height:1.55;color:var(--text-muted);max-width:96ch;margin:0 0 .9rem;}
 @media(max-width:880px){#lags-demo .grid{grid-template-columns:1fr}}
 #lags-demo .col{display:flex;flex-direction:column;gap:14px;}
 #lags-demo .panel{
@@ -345,15 +354,60 @@
 
   <div id="lags-demo">
 
+    <p class="thesis"
+       data-en="A potted pine tree, filmed with the built-in webcam of a low-end laptop (30 takes of a few seconds, the tree pushed by hand then left to swing freely, one take held out). No GPU was used anywhere in this experiment. The encoder is not a network here: 595 keypoints are tracked in every take and a single SVD of their displacements gives a latent state <span class='qk'>q</span>: twelve coordinates were kept for training, then the six that do not oscillate (slow drifts, invisible on screen) were removed by marginalising the Gaussians, leaving a 6-D state whose first two coordinates are the two sway directions of the trunk and the others the motion of individual branches. The dynamics is the simplest possible Lagrangian, a linear oscillator <i>q&#776; = &minus;K q &minus; C q&#775; + b</i> with 6&times;6 stiffness and damping matrices (all six modes oscillate, between 2.7 and 4.8&thinsp;Hz), fitted on the rollouts of the 29 training takes. The Gaussians are parameterised by <span class='qk'>(x, y, q&#8321;, &hellip;, q&#8326;)</span> with a full 8&times;8 covariance each and were trained on a CPU with a small local-window rasteriser."
+       data-fr="Un sapin en pot, film&eacute; avec la webcam int&eacute;gr&eacute;e d'un portable d'entr&eacute;e de gamme (30 prises de quelques secondes, le sapin pouss&eacute; &agrave; la main puis laiss&eacute; osciller librement, une prise mise de c&ocirc;t&eacute;). Aucun GPU n'intervient dans cette exp&eacute;rience. L'encodeur n'est pas un r&eacute;seau : 595 keypoints sont suivis dans toutes les prises et une seule SVD de leurs d&eacute;placements donne un &eacute;tat latent <span class='qk'>q</span> : douze coordonn&eacute;es ont servi &agrave; l'entra&icirc;nement, puis les six qui n'oscillent pas (d&eacute;rives lentes, invisibles &agrave; l'&eacute;cran) ont &eacute;t&eacute; retir&eacute;es en marginalisant les gaussiennes, d'o&ugrave; un &eacute;tat &agrave; 6 dimensions dont les deux premi&egrave;res coordonn&eacute;es sont les deux directions de balancement du tronc et les autres le mouvement de branches individuelles. La dynamique est le lagrangien le plus simple possible, un oscillateur lin&eacute;aire <i>q&#776; = &minus;K q &minus; C q&#775; + b</i> &agrave; matrices de raideur et d'amortissement 6&times;6 (les six modes oscillent, entre 2,7 et 4,8&thinsp;Hz), ajust&eacute; sur les rollouts des 29 prises d'entra&icirc;nement. Les gaussiennes sont param&eacute;tr&eacute;es par <span class='qk'>(x, y, q&#8321;, &hellip;, q&#8326;)</span>, chacune avec une covariance 8&times;8 pleine, et ont &eacute;t&eacute; entra&icirc;n&eacute;es sur CPU avec un petit rast&eacute;riseur &agrave; fen&ecirc;tre locale.">
+      A potted pine tree, filmed with the built-in webcam of a low-end laptop (30 takes of a few seconds, the tree pushed by hand then left to swing freely, one take held out). No GPU was used anywhere in this experiment. The encoder is not a network here: 595 keypoints are tracked in every take and a single SVD of their displacements gives a latent state <span class="qk">q</span>: twelve coordinates were kept for training, then the six that do not oscillate (slow drifts, invisible on screen) were removed by marginalising the Gaussians, leaving a 6-D state whose first two coordinates are the two sway directions of the trunk and the others the motion of individual branches. The dynamics is the simplest possible Lagrangian, a linear oscillator <i>q̈ = −K q − C q̇ + b</i> with 6×6 stiffness and damping matrices (all six modes oscillate, between 2.7 and 4.8 Hz), fitted on the rollouts of the 29 training takes. The Gaussians are parameterised by <span class="qk">(x, y, q₁, …, q₆)</span> with a full 8×8 covariance each and were trained on a CPU with a small local-window rasteriser.
+    </p>
+
     <div class="exp-head">
-      <p class="exp-tag" data-en="real test case · laptop webcam" data-fr="cas test réel · webcam de portable">real test case · laptop webcam</p>
-      <h2 class="exp-title" data-en="Six-degree-of-freedom test case: a small pine tree pushed by hand" data-fr="Cas test 6 degrés de liberté : un petit sapin poussé à la main">Six-degree-of-freedom test case: a small pine tree pushed by hand</h2>
+      <p class="exp-tag" data-en="held-out video" data-fr="vidéo held-out">held-out video</p>
+      <h2 class="exp-title" data-en="Filmed video against the decoded rollout" data-fr="Vidéo filmée contre rollout décodé">Filmed video against the decoded rollout</h2>
+    </div>
+    <p class="vid-note"
+       data-en="Take 9 of 30, never seen during training: the tree was pushed just before the recording started and swings freely. Left: filmed image. Right: image decoded from the rollout of the linear oscillator started at the measured state of the first frame, (q&#8320;, q&#775;&#8320;), with no other input from the take. The rollout is integrated in the browser and re-decoded at every frame, locked to the video clock: both restart together when the video loops. Over the whole take, the decoded rollout matches the filmed video at 32.9&thinsp;dB, against 33.1&thinsp;dB when decoding the measured state."
+       data-fr="Prise 9 sur 30, jamais vue à l'entraînement : le sapin a été poussé juste avant le début de l'enregistrement et oscille librement. À gauche, l'image filmée. À droite, l'image décodée depuis le rollout de l'oscillateur linéaire lancé à l'état mesuré de la première image, (q&#8320;, q&#775;&#8320;), sans autre entrée issue de la prise. Le rollout est intégré dans le navigateur et redécodé à chaque image, calé sur l'horloge de la vidéo : les deux repartent ensemble quand la vidéo boucle. Sur toute la prise, le rollout décodé reproduit la vidéo filmée à 32,9&thinsp;dB, contre 33,1&thinsp;dB en décodant l'état mesuré.">
+      Take 9 of 30, never seen during training.
+    </p>
+    <div class="vid-grid">
+      <section class="panel">
+        <div class="phead">
+          <div class="tag" data-en="input · held-out take" data-fr="entrée · prise mise de côté">input · held-out take</div>
+          <h2 data-en="Filmed video" data-fr="Vidéo filmée">Filmed video</h2>
+          <div class="sub" data-en="built-in webcam of a low-end laptop, 1280×720 cropped" data-fr="webcam intégrée d'un portable d'entrée de gamme, 1280×720 recadrée">built-in webcam of a low-end laptop, 1280×720 cropped</div>
+        </div>
+        <div class="stage recon" style="background:#000">
+          <video id="vSapin" muted playsinline loop autoplay preload="auto" style="display:block;width:100%;height:330px;object-fit:contain;background:#000">
+            <source src="./videos/sapin_take_009.webm" type="video/webm; codecs=vp9">
+            <source src="./videos/sapin_take_009_vp8.webm" type="video/webm; codecs=vp8">
+          </video>
+          <div id="vSapinMsg" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:#888;font-family:var(--mono);font-size:.7rem;text-align:center;padding:10px"></div>
+          <div class="badge" data-en="filmed" data-fr="filmé">filmed</div>
+        </div>
+      </section>
+      <section class="panel q">
+        <div class="phead">
+          <div class="tag" data-en="LaGSplat · rollout from (q&#8320;, q&#775;&#8320;)" data-fr="LaGSplat · rollout depuis (q&#8320;, q&#775;&#8320;)">LaGSplat · rollout from (q₀, q̇₀)</div>
+          <h2 data-en="Decoded rollout" data-fr="Rollout décodé">Decoded rollout</h2>
+          <div class="sub" data-en="linear oscillator integrated from the first frame, 3&thinsp;000 gaussians re-rasterised at 256×256" data-fr="oscillateur linéaire intégré depuis la première image, 3&thinsp;000 gaussiennes re-rasterisées en 256×256">linear oscillator integrated from the first frame, 3 000 gaussians re-rasterised at 256×256</div>
+        </div>
+        <div class="stage recon sq">
+          <div class="sqwrap"><canvas id="cPRoll"></canvas></div>
+          <div class="badge" data-en="network" data-fr="réseau">network</div>
+        </div>
+      </section>
     </div>
 
-    <p class="thesis"
-       data-en="A potted pine tree, filmed with the built-in webcam of a low-end laptop (30 takes of a few seconds, the tree pushed by hand then left to swing freely, one take held out). No GPU was used anywhere in this experiment. The encoder is not a network here: 595 keypoints are tracked in every take and a single SVD of their displacements gives a latent state <span class='qk'>q</span>: twelve coordinates were kept for training, then the six that do not oscillate (slow drifts, invisible on screen) were removed by marginalising the Gaussians, leaving a 6-D state whose first two coordinates are the two sway directions of the trunk and the others the motion of individual branches. The dynamics is the simplest possible Lagrangian, a linear oscillator <i>q&#776; = &minus;K q &minus; C q&#775; + b</i> with 6&times;6 stiffness and damping matrices (all six modes oscillate, between 2.7 and 4.8&thinsp;Hz), fitted on the rollouts of the 29 training takes. The Gaussians are parameterised by <span class='qk'>(x, y, q&#8321;, &hellip;, q&#8326;)</span> with a full 8&times;8 covariance each and were trained on a CPU with a small local-window rasteriser. On the held-out take, decoding the rollout of the oscillator reproduces the filmed video at 32.9&thinsp;dB, against 33.1&thinsp;dB when decoding the measured state."
-       data-fr="Un sapin en pot, film&eacute; avec la webcam int&eacute;gr&eacute;e d'un portable d'entr&eacute;e de gamme (30 prises de quelques secondes, le sapin pouss&eacute; &agrave; la main puis laiss&eacute; osciller librement, une prise mise de c&ocirc;t&eacute;). Aucun GPU n'intervient dans cette exp&eacute;rience. L'encodeur n'est pas un r&eacute;seau : 595 keypoints sont suivis dans toutes les prises et une seule SVD de leurs d&eacute;placements donne un &eacute;tat latent <span class='qk'>q</span> : douze coordonn&eacute;es ont servi &agrave; l'entra&icirc;nement, puis les six qui n'oscillent pas (d&eacute;rives lentes, invisibles &agrave; l'&eacute;cran) ont &eacute;t&eacute; retir&eacute;es en marginalisant les gaussiennes, d'o&ugrave; un &eacute;tat &agrave; 6 dimensions dont les deux premi&egrave;res coordonn&eacute;es sont les deux directions de balancement du tronc et les autres le mouvement de branches individuelles. La dynamique est le lagrangien le plus simple possible, un oscillateur lin&eacute;aire <i>q&#776; = &minus;K q &minus; C q&#775; + b</i> &agrave; matrices de raideur et d'amortissement 6&times;6 (les six modes oscillent, entre 2,7 et 4,8&thinsp;Hz), ajust&eacute; sur les rollouts des 29 prises d'entra&icirc;nement. Les gaussiennes sont param&eacute;tr&eacute;es par <span class='qk'>(x, y, q&#8321;, &hellip;, q&#8326;)</span>, chacune avec une covariance 8&times;8 pleine, et ont &eacute;t&eacute; entra&icirc;n&eacute;es sur CPU avec un petit rast&eacute;riseur &agrave; fen&ecirc;tre locale. Sur la prise mise de c&ocirc;t&eacute;, d&eacute;coder le rollout de l'oscillateur reproduit la vid&eacute;o film&eacute;e &agrave; 32,9&thinsp;dB, contre 33,1&thinsp;dB en d&eacute;codant l'&eacute;tat mesur&eacute;.">
-      A potted pine tree, filmed with the built-in webcam of a low-end laptop (30 takes of a few seconds, the tree pushed by hand then left to swing freely, one take held out). No GPU was used anywhere in this experiment. The encoder is not a network here: 595 keypoints are tracked in every take and a single SVD of their displacements gives a latent state <span class="qk">q</span>: twelve coordinates were kept for training, then the six that do not oscillate (slow drifts, invisible on screen) were removed by marginalising the Gaussians, leaving a 6-D state whose first two coordinates are the two sway directions of the trunk and the others the motion of individual branches. The dynamics is the simplest possible Lagrangian, a linear oscillator <i>q̈ = −K q − C q̇ + b</i> with 6×6 stiffness and damping matrices (all six modes oscillate, between 2.7 and 4.8 Hz), fitted on the rollouts of the 29 training takes. The Gaussians are parameterised by <span class="qk">(x, y, q₁, …, q₆)</span> with a full 8×8 covariance each and were trained on a CPU with a small local-window rasteriser. On the held-out take, decoding the rollout of the oscillator reproduces the filmed video at 32.9 dB, against 33.1 dB when decoding the measured state.
+    <hr class="exp-divider">
+
+    <div class="exp-head">
+      <p class="exp-tag" data-en="interactive simulation" data-fr="simulation interactive">interactive simulation</p>
+      <h2 class="exp-title" data-en="Latent state and GS decoder" data-fr="État latent et décodeur GS">Latent state and GS decoder</h2>
+    </div>
+    <p class="vid-note"
+       data-en="The same oscillator and the same decoder, now driven by hand. Grab a branch in the decoded image and drag it: the force <i>f</i> is pulled back to the 6-D latent space through <i>J</i>&#7488;<i>f</i>, <i>J</i> being the Jacobian of the grabbed gaussians. Local mode: the gaussians under the cursor, weighted by their footprint. Global mode: every mobile gaussian inside the disc weighs the same, which excites the whole-tree modes rather than one branch. The mode buttons give one coordinate a velocity impulse at its own frequency. Tinted area: pixels that never moved in the 30 takes; with the freeze toggle on, gaussians centred there are held at their rest state instead of following q."
+       data-fr="Le même oscillateur et le même décodeur, pilotés à la main. Attrapez une branche dans l'image décodée et glissez-la : la force <i>f</i> est rapatriée dans l'espace latent 6D par <i>J</i>&#7488;<i>f</i>, <i>J</i> étant la jacobienne des gaussiennes saisies. Mode local : les gaussiennes sous le curseur, pondérées par leur empreinte. Mode global : toutes les gaussiennes mobiles du disque pèsent pareil, ce qui excite les modes d'ensemble de l'arbre plutôt qu'une branche. Les boutons de mode donnent à une coordonnée une impulsion de vitesse à sa propre fréquence. Zone teintée : pixels qui n'ont jamais bougé dans les 30 prises ; avec le gel activé, les gaussiennes centrées là restent à leur état de repos au lieu de suivre q.">
+      The same oscillator and the same decoder, now driven by hand.
     </p>
 
     <div class="rock-controls">
@@ -368,8 +422,8 @@
         <input id="pDiss" type="range" min="0" max="300" value="100">
       </div>
       <button id="pReplay"
-        data-en="Replay held-out take with its video" data-fr="Rejouer la prise mise de côté avec sa vidéo"
-        style="font-family:var(--mono);font-size:.82rem;color:var(--text-mid);background:transparent;border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;cursor:pointer;line-height:1;">Replay held-out take with its video</button>
+        data-en="Release from the held-out initial state" data-fr="Lâcher depuis l'état initial de la prise mise de côté"
+        style="font-family:var(--mono);font-size:.82rem;color:var(--text-mid);background:transparent;border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;cursor:pointer;line-height:1;">Release from the held-out initial state</button>
       <div class="ctl">
         <label><span class="lbl" data-en="Kick one mode" data-fr="Exciter un mode">Kick one mode</span></label>
         <div id="pModes" style="display:flex;flex-wrap:wrap;gap:4px;max-width:330px"></div>
@@ -393,24 +447,7 @@
       </div>
     </div>
 
-    <div class="grid">
-      <section class="panel">
-        <div class="phead">
-          <div class="tag" data-en="input · held-out take" data-fr="entrée · prise mise de côté">input · held-out take</div>
-          <h2 data-en="Filmed video" data-fr="Vidéo filmée">Filmed video</h2>
-          <div class="sub" data-en="take 9 of 30, never seen during training; the tree was pushed just before the recording started and swings freely" data-fr="prise 9 sur 30, jamais vue à l'entraînement ; le sapin a été poussé juste avant le début de l'enregistrement et oscille librement">take 9 of 30, never seen during training; the tree was pushed just before the recording started and swings freely</div>
-        </div>
-        <div class="stage recon" style="background:#000">
-          <video id="vSapin" muted playsinline loop autoplay preload="auto" style="display:block;width:100%;height:330px;object-fit:contain;background:#000">
-            <source src="./videos/sapin_take_009.webm" type="video/webm; codecs=vp9">
-            <source src="./videos/sapin_take_009_vp8.webm" type="video/webm; codecs=vp8">
-          </video>
-          <div id="vSapinMsg" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:#888;font-family:var(--mono);font-size:.7rem;text-align:center;padding:10px"></div>
-          <div class="badge" data-en="webcam, 1280×720 cropped" data-fr="webcam, 1280×720 recadrée">webcam, 1280×720 cropped</div>
-        </div>
-        <div class="pfoot video"><span data-en="Press the replay button above to restart the video together with the simulation from the same initial state." data-fr="Le bouton de relecture ci-dessus redémarre la vidéo et la simulation depuis le même état initial.">Press the replay button above to restart the video together with the simulation from the same initial state.</span></div>
-      </section>
-
+    <div class="grid two">
       <section class="panel q">
         <div class="phead">
           <div class="tag" data-en="LaGSplat · latent state" data-fr="LaGSplat · état latent">LaGSplat · latent state</div>
@@ -426,12 +463,14 @@
           <h2 data-en="GS decoder output" data-fr="Sortie du décodeur GS">GS decoder output</h2>
           <div class="sub" data-en="3&thinsp;000 gaussians with full 8&times;8 covariance, conditioned on the 6-D state and re-rasterised every frame at 256&times;256" data-fr="3&thinsp;000 gaussiennes à covariance 8&times;8 pleine, conditionnées sur l'état 6D et re-rasterisées à chaque image en 256&times;256">3 000 gaussians with full 8×8 covariance, conditioned on the 6-D state and re-rasterised every frame at 256×256</div>
         </div>
-        <div class="stage recon" style="position:relative">
-          <canvas id="cPRecon" style="background:#000"></canvas>
-          <canvas id="cPOverlay" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+        <div class="stage recon sq">
+          <div class="sqwrap">
+            <canvas id="cPRecon"></canvas>
+            <canvas id="cPOverlay"></canvas>
+          </div>
           <div class="badge" data-en="grab &amp; drag a branch" data-fr="attraper et glisser une branche">grab &amp; drag a branch</div>
         </div>
-        <div class="pfoot video"><span data-en="<b style='color:#ff7a18'>&#10230;</b> Force <i>f</i> applied by dragging, pulled back to the 6-D latent space through <i>J</i>&#7488;<i>f</i>, <i>J</i> being the Jacobian of the grabbed gaussians. Local mode: the gaussians under the cursor, weighted by their footprint. Global mode: every mobile gaussian inside the disc weighs the same, which excites the whole-tree modes rather than one branch. Tinted area: pixels that never moved in the 30 takes; with the freeze toggle on, gaussians centred there are held at their rest state instead of following q." data-fr="<b style='color:#ff7a18'>&#10230;</b> Force <i>f</i> appliquée en glissant, rapatriée dans l'espace latent 6D par <i>J</i>&#7488;<i>f</i>, <i>J</i> étant la jacobienne des gaussiennes saisies. Mode local : les gaussiennes sous le curseur, pondérées par leur empreinte. Mode global : toutes les gaussiennes mobiles du disque pèsent pareil, ce qui excite les modes d'ensemble de l'arbre plutôt qu'une branche. Zone teintée : pixels qui n'ont jamais bougé dans les 30 prises ; avec le gel activé, les gaussiennes centrées là restent à leur état de repos au lieu de suivre q."><b style='color:#ff7a18'>&#10230;</b> Force <i>f</i> applied by dragging, pulled back to the 6-D latent space through <i>J</i>ᵀ<i>f</i>, <i>J</i> being the Jacobian of the grabbed gaussians. Local mode: the gaussians under the cursor, weighted by their footprint. Global mode: every mobile gaussian inside the disc weighs the same, which excites the whole-tree modes rather than one branch. Tinted area: pixels that never moved in the 30 takes; with the freeze toggle on, gaussians centred there are held at their rest state instead of following q.</span></div>
+        <div class="pfoot video"><span data-en="<b style='color:#ff7a18'>&#10230;</b> Force <i>f</i> applied by dragging, pulled back to the latent space through <i>J</i>&#7488;<i>f</i>." data-fr="<b style='color:#ff7a18'>&#10230;</b> Force <i>f</i> appliquée en glissant, rapatriée dans l'espace latent par <i>J</i>&#7488;<i>f</i>."><b style='color:#ff7a18'>&#10230;</b> Force <i>f</i> applied by dragging, pulled back to the latent space through <i>J</i>ᵀ<i>f</i>.</span></div>
       </section>
     </div>
 
@@ -522,186 +561,219 @@ function visActive(g) { return !PAGE_HIDDEN && g.on; }
 <script src="./demo/sapin_dyn.js"></script>
 <script>
 "use strict";
+/* Deux expériences, un seul jeu de poids :
+ *   1. rollout de la prise mise de côté, calé sur l'horloge de la vidéo (#cPRoll) ;
+ *   2. simulation interactive (#cPRecon, #cPState, #cPOverlay).
+ * Chacune a son propre intégrateur et son propre rastériseur CPU (SapinSplat décode le base64
+ * à la création : deux fois 770 Ko, négligeable). Chaque boucle sort si ses canevas sont hors
+ * écran (watchVisible), donc les deux décodeurs ne tournent ensemble que si les deux sont visibles. */
 (function(){
   const META=window.SAPIN_SPLAT_META, B64=window.SAPIN_SPLAT, P=window.SAPIN_LNN;
-  const cvSt=document.getElementById('cPState'), cvRe=document.getElementById('cPRecon'), cvOv=document.getElementById('cPOverlay');
-  const vid=document.getElementById('vSapin');
-  if(!META||!B64||!P||!cvSt||!cvRe||!cvOv||!window.SapinSplat||!window.SapinDyn) return;
   const $=id=>document.getElementById(id);
+  const cvRoll=$('cPRoll'), vid=$('vSapin');
+  const cvSt=$('cPState'), cvRe=$('cPRecon'), cvOv=$('cPOverlay');
+  if(!META||!B64||!P||!cvRoll||!vid||!cvSt||!cvRe||!cvOv||!window.SapinSplat||!window.SapinDyn) return;
   const d=P.d, FPS=P.fps;
-  let splat=null;
-  try{ splat=window.SapinSplat.create(cvRe, META, B64, window.SAPIN_MASK||null); }
-  catch(err){ console.error('[tree/sapin] décodeur indisponible :', err); return; }
-  const dyn=window.SapinDyn.create(P);
-  const qw=new Float64Array(d);
-  dyn.set(null,null); splat.setRest(dyn.whitened(qw));          // poids de repos (gel du fond)
-  splat.opts.freeze=true; let showMask=true;
-  $('pFreeze').addEventListener('change',e=>{ splat.opts.freeze=e.target.checked; });
-  $('pShowMask').addEventListener('change',e=>{ showMask=e.target.checked; });
+  const HO=P.takes.findIndex(t=>t.holdout), TAKE=P.takes[HO];
+  const RENDER_HZ=40;
 
-  // ── état initial : la prise mise de côté (seule prise exposée), modes ──────
-  const HO=P.takes.findIndex(t=>t.holdout);
-  function setTake(i){ const t=P.takes[i]; dyn.set(t.q0,t.v0); hist.length=0; }
-  const vidMsg=$('vSapinMsg');
-  function showVidMsg(t){ if(vidMsg){ vidMsg.textContent=t; vidMsg.style.display='flex'; } }
-  vid.addEventListener('error',()=>{ const e=vid.error; console.error('[tree/sapin] vidéo :', e&&e.code, e&&e.message); showVidMsg('video unavailable (webm/VP9) · code '+(e?e.code:'?')); });
-  vid.addEventListener('playing',()=>{ if(vidMsg) vidMsg.style.display='none'; });
-  const tryPlay=()=>{ const pr=vid.play(); if(pr&&pr.catch) pr.catch(err=>{ console.warn('[tree/sapin] play() refusé :', err&&err.name); showVidMsg('click the replay button to start the video'); }); };
-  vid.addEventListener('canplay',tryPlay,{once:true});
-  $('pReplay').addEventListener('click',()=>{
-    setTake(HO); st.running=true; $('pPlay').textContent='⏸';
-    try{ vid.currentTime=0; }catch(e){}
-    tryPlay();
-  });
-  // fréquence propre approchée de chaque coordonnée : sqrt(K_kk)/2π ; impulsion de vitesse
-  const modesBox=$('pModes');
-  for(let k=0;k<d;k++){
-    const bt=document.createElement('button'); bt.textContent=String(k+1);
-    bt.style.cssText='font-family:var(--mono);font-size:.72rem;color:var(--text-mid);background:transparent;border:1px solid var(--border);border-radius:var(--radius);padding:4px 7px;cursor:pointer;line-height:1;';
-    const f=Math.sqrt(Math.max(P.K[k][k],1))/(2*Math.PI);
-    bt.title=f.toFixed(2)+' Hz · '+(100*P.var_share[k]).toFixed(1)+' %';
-    bt.addEventListener('click',()=>{
-      const v0=new Float64Array(d); const amp=0.7*Math.max(Math.abs(P.q_range[0][k]),Math.abs(P.q_range[1][k]));
-      v0[k]=2*Math.PI*f*amp; dyn.set(null,v0); hist.length=0; st.running=true; $('pPlay').textContent='⏸';
-    });
-    modesBox.appendChild(bt);
+  function makeSplat(cv){
+    try{ const s=window.SapinSplat.create(cv, META, B64, window.SAPIN_MASK||null); s.opts.freeze=true; return s; }
+    catch(err){ console.error('[tree/sapin] décodeur indisponible :', err); return null; }
   }
+  function restWeights(splat, dyn){ const qw=new Float64Array(d); dyn.set(null,null); splat.setRest(dyn.whitened(qw)); }
 
-  // ── contrôles ──────────────────────────────────────────────────────────────
-  const st={running:true, speed:1.0, grab:null, cursor:null, hover:null, mode:'local', rpct:5, fmul:1.0};
-  Object.defineProperty(st,'radius',{get(){ return st.rpct/100*splat.W; }});   // rayon en px image, depuis le % de largeur
-  $('pPlay').addEventListener('click',()=>{ st.running=!st.running; $('pPlay').textContent=st.running?'⏸':'▶'; });
-  $('pSpeed').addEventListener('input',e=>{ st.speed=parseInt(e.target.value)/100; $('pVs').textContent='×'+st.speed.toFixed(2); });
-  $('pDiss').addEventListener('input',e=>{ dyn.cscale=parseInt(e.target.value)/100; $('pVd').textContent='×'+dyn.cscale.toFixed(2); });
-  $('pRadius').addEventListener('input',e=>{ st.rpct=parseInt(e.target.value); $('pVr').textContent=st.rpct+' %'; });
-  $('pForce').addEventListener('input',e=>{ st.fmul=parseInt(e.target.value)/100; $('pVf').textContent='×'+st.fmul.toFixed(1); });
-  function setMode(m){
-    st.mode=m;
-    for(const [id,on] of [['pFLocal',m==='local'],['pFGlobal',m==='global']]){
-      const b=$(id); b.style.background=on?'var(--navy)':'transparent'; b.style.color=on?'#fff':'var(--text-mid)'; b.style.borderColor=on?'var(--navy)':'var(--border)';
+  /* ── expérience 1 : rollout calé sur la vidéo ───────────────────────────────── */
+  (function(){
+    const splat=makeSplat(cvRoll); if(!splat) return;
+    const dyn=window.SapinDyn.create(P); restWeights(splat,dyn);
+    const qw=new Float64Array(d);
+    const vidMsg=$('vSapinMsg');
+    function showVidMsg(t){ if(vidMsg){ vidMsg.textContent=t; vidMsg.style.display='flex'; } }
+    vid.addEventListener('error',()=>{ const e=vid.error; console.error('[tree/sapin] vidéo :', e&&e.code, e&&e.message); showVidMsg('video unavailable (webm/VP9) · code '+(e?e.code:'?')); });
+    vid.addEventListener('playing',()=>{ if(vidMsg) vidMsg.style.display='none'; });
+    const tryPlay=()=>{ const pr=vid.play(); if(pr&&pr.catch) pr.catch(err=>{ console.warn('[tree/sapin] play() refusé :', err&&err.name); showVidMsg('click the video to start it'); }); };
+    vid.addEventListener('canplay',tryPlay,{once:true});
+    vid.addEventListener('click',()=>{ if(vid.paused) tryPlay(); else vid.pause(); });
+    // Le rollout avance au rythme de la vidéo : à l'image n de la vidéo correspond le n-ième pas
+    // de l'intégrateur depuis (q0, v0). Un retour en arrière (boucle, seek) remet l'état initial.
+    let done=-1, drawn=-1, accR=0, last=performance.now();
+    const vis=(typeof watchVisible==='function')? watchVisible(['cPRoll','vSapin']) : null;
+    function loop(now){
+      requestAnimationFrame(loop);
+      const el=Math.min((now-last)/1000,0.1); last=now;
+      if(vis&&typeof visActive==='function'&&!visActive(vis)) return;
+      const target=Math.max(0,Math.floor(vid.currentTime*FPS+1e-6));
+      if(target<done||done<0){ dyn.set(TAKE.q0,TAKE.v0); done=0; }
+      while(done<target){ dyn.step(4); done++; }
+      accR+=el; if(accR<1/RENDER_HZ) return; accR=0;
+      if(done===drawn) return;                          // vidéo en pause : rien à redessiner
+      drawn=done; dyn.whitened(qw); splat.render(qw);
     }
-    if(m==='global'&&st.rpct<20){ st.rpct=30; $('pRadius').value=30; $('pVr').textContent='30 %'; }
-    if(m==='local'&&st.rpct>20){ st.rpct=5; $('pRadius').value=5; $('pVr').textContent='5 %'; }
-  }
-  $('pFLocal').addEventListener('click',()=>setMode('local'));
-  $('pFGlobal').addEventListener('click',()=>setMode('global'));
-
-  // ── force : calibrage automatique (une traction de 10 px sur la matière la plus mobile
-  //    doit déplacer l'état d'environ 1.5 écart-type latent en statique) ──────────────
-  function solveK(F){                                   // Δq = K⁻¹ F, élimination de Gauss
-    const n=d, M=P.K.map(r=>r.slice()), x=Array.from(F);
-    for(let c=0;c<n;c++){
-      let p=c; for(let r=c+1;r<n;r++) if(Math.abs(M[r][c])>Math.abs(M[p][c])) p=r;
-      [M[c],M[p]]=[M[p],M[c]]; [x[c],x[p]]=[x[p],x[c]];
-      for(let r=c+1;r<n;r++){ const f=M[r][c]/M[c][c]; for(let j=c;j<n;j++) M[r][j]-=f*M[c][j]; x[r]-=f*x[c]; }
-    }
-    for(let r=n-1;r>=0;r--){ let s=x[r]; for(let j=r+1;j<n;j++) s-=M[r][j]*x[j]; x[r]=s/M[r][r]; }
-    return x;
-  }
-  function latentForce(J,f){                            // Jᵀf, J en px par unité BLANCHIE -> unités brutes
-    const F=new Float64Array(d);
-    for(let j=0;j<d;j++) F[j]=(J[0][j]*f[0]+J[1][j]*f[1])/P.q_std[j];
-    return F;
-  }
-  const GAIN=(function(){
-    dyn.set(null,null); dyn.whitened(qw);
-    let best=0, kb=0; for(let k=0;k<splat.K;k++) if(splat.mob[k]>best){best=splat.mob[k];kb=k;}
-    const J=splat.jacobian([[kb,1]]);
-    let worst=0;
-    for(const f of [[10,0],[0,10]]){ const dq=solveK(latentForce(J,f)); let s=0; for(let j=0;j<d;j++) s+=Math.pow(dq[j]/P.q_std[j],2); worst=Math.max(worst,Math.sqrt(s)); }
-    return worst>0? 1.5/worst : 1;
-  })();
-  const KGRAB=1.0, FMAX_W=6.0;
-
-  // ── saisie ─────────────────────────────────────────────────────────────────
-  function toImg(e){ const r=cvRe.getBoundingClientRect(); return [(e.clientX-r.left)/r.width*splat.W,(e.clientY-r.top)/r.height*splat.H]; }
-  cvRe.style.touchAction='none'; cvRe.style.cursor='grab';
-  cvRe.addEventListener('pointerdown',e=>{
-    dyn.whitened(qw); const p=toImg(e);
-    const s=splat.select(qw,p[0],p[1], st.mode==='global'? {radius:st.radius,mobMin:0.1,uniform:true} : {radius:st.radius,mobMin:0.25});
-    if(!s) return; st.grab=s; st.cursor=p; cvRe.setPointerCapture(e.pointerId); cvRe.style.cursor='grabbing'; e.preventDefault();
-  });
-  cvRe.addEventListener('pointermove',e=>{ st.hover=toImg(e); if(st.grab) st.cursor=st.hover; });
-  cvRe.addEventListener('pointerleave',()=>{ if(!st.grab) st.hover=null; });
-  const release=()=>{ st.grab=null; dyn.F.fill(0); cvRe.style.cursor='grab'; };
-  cvRe.addEventListener('pointerup',release); cvRe.addEventListener('pointercancel',release);
-
-  // ── panneaux ───────────────────────────────────────────────────────────────
-  const HIST=Math.round(6*FPS), hist=[];
-  const COLS=['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#e377c2','#7f7f7f','#bcbd22','#17becf','#1b3a6b','#c49c48'];
-  function setup2D(cv){
-    const w=cv.clientWidth,h=cv.clientHeight,dpr=Math.min(devicePixelRatio||1,2);
-    if(cv.width!==w*dpr||cv.height!==h*dpr){cv.width=w*dpr;cv.height=h*dpr;}
-    const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);
-    return {x,w,h};
-  }
-  function drawState(){
-    const {x,w,h}=setup2D(cvSt);
-    const pad=4, lane=(h-2*pad)/d;
-    for(let k=0;k<d;k++){
-      const y0=pad+k*lane, y1=y0+lane, lo=P.q_range[0][k], hi=P.q_range[1][k];
-      const Y=v=>y1-2-(v-lo)/(hi-lo)*(lane-4);
-      x.strokeStyle='rgba(0,0,0,0.10)'; x.lineWidth=1; x.beginPath(); x.moveTo(0,Y(0)); x.lineTo(w,Y(0)); x.stroke();
-      if(hist.length>1){
-        x.save(); x.beginPath(); x.rect(0,y0,w,lane); x.clip();
-        x.strokeStyle=COLS[k%COLS.length]; x.lineWidth=1.4; x.beginPath();
-        for(let i=0;i<hist.length;i++){ const px=w-(hist.length-1-i)/(HIST-1)*w, py=Y(hist[i][k]); if(i===0)x.moveTo(px,py); else x.lineTo(px,py); }
-        x.stroke(); x.restore();
-      }
-      x.fillStyle=COLS[k%COLS.length]; x.font='600 10px ui-monospace,monospace';
-      x.fillText('q'+(k+1)+' '+(100*P.var_share[k]).toFixed(0)+'%', 5, y0+11);
-    }
-  }
-  function drawOverlay(){
-    const {x,w,h}=setup2D(cvOv);
-    if(showMask) splat.drawMask(x,w,h,[27,58,107,70]);    // fond immobile teinté (bleu marine translucide)
-    const c=st.grab? st.cursor : st.hover;                 // disque d'application de la force
-    if(c){
-      x.strokeStyle=st.mode==='global'?'rgba(27,58,107,0.55)':'rgba(255,122,24,0.55)'; x.lineWidth=1; x.setLineDash([4,3]);
-      x.beginPath(); x.ellipse(c[0]/splat.W*w, c[1]/splat.H*h, st.radius/splat.W*w, st.radius/splat.H*h, 0, 0, 6.284); x.stroke();
-      x.setLineDash([]);
-    }
-    if(!st.grab||!st.cursor) return;
-    dyn.whitened(qw); const p=splat.pointOf(qw,st.grab);
-    const ax=p[0]/splat.W*w, ay=p[1]/splat.H*h, bx=st.cursor[0]/splat.W*w, by=st.cursor[1]/splat.H*h;
-    x.strokeStyle='#ff7a18'; x.fillStyle='#ff7a18'; x.lineWidth=2;
-    x.beginPath(); x.moveTo(ax,ay); x.lineTo(bx,by); x.stroke();
-    const a=Math.atan2(by-ay,bx-ax), s=8;
-    x.beginPath(); x.moveTo(bx,by); x.lineTo(bx-s*Math.cos(a-0.4),by-s*Math.sin(a-0.4)); x.lineTo(bx-s*Math.cos(a+0.4),by-s*Math.sin(a+0.4)); x.closePath(); x.fill();
-    x.beginPath(); x.arc(ax,ay,3.2,0,6.284); x.fill();
-  }
-
-  // ── boucle : pas de modèle à FPS fixe, rendu plafonné ──────────────────────
-  setTake(HO);
-  let last=performance.now(), acc=0, accR=0;
-  const vis5=(typeof watchVisible==='function')? watchVisible(['cPState','cPRecon']) : null;
-  function loop(now){
     requestAnimationFrame(loop);
-    if(vis5&&typeof visActive==='function'&&!visActive(vis5)) { last=now; return; }
-    const el=Math.min((now-last)/1000,0.1); last=now;
-    if(st.running||st.grab){
-      acc+=el*st.speed;
-      let n=0;
-      while(acc>=dyn.dt&&n<8){
-        if(st.grab){
-          dyn.whitened(qw); const p=splat.pointOf(qw,st.grab);
-          const f=[KGRAB*(st.cursor[0]-p[0]),KGRAB*(st.cursor[1]-p[1])];
-          const F=latentForce(splat.jacobian(st.grab),f);
-          let s=0; for(let j=0;j<d;j++){ F[j]*=GAIN*st.fmul; s+=Math.pow(F[j]*P.q_std[j],2); }   // plafond (unités blanchies·raideur)
-          const kref=P.K[0][0], lim=FMAX_W*kref*Math.max(1,st.fmul); s=Math.sqrt(s)/Math.max(1,P.q_std[0]);
-          const sc=s>lim? lim/s:1; for(let j=0;j<d;j++) dyn.F[j]=F[j]*sc;
-        }
-        dyn.step(4); acc-=dyn.dt; n++;
-        hist.push(Array.from(dyn.q)); if(hist.length>HIST) hist.shift();
-      }
-      if(n===8) acc=0;
+  })();
+
+  /* ── expérience 2 : simulation interactive ────────────────────────────────── */
+  (function(){
+    const splat=makeSplat(cvRe); if(!splat) return;
+    const dyn=window.SapinDyn.create(P); restWeights(splat,dyn);
+    const qw=new Float64Array(d);
+    let showMask=true;
+    $('pFreeze').addEventListener('change',e=>{ splat.opts.freeze=e.target.checked; });
+    $('pShowMask').addEventListener('change',e=>{ showMask=e.target.checked; });
+
+    const st={running:true, speed:1.0, grab:null, cursor:null, hover:null, mode:'local', rpct:5, fmul:1.0};
+    Object.defineProperty(st,'radius',{get(){ return st.rpct/100*splat.W; }});   // rayon en px image, depuis le % de largeur
+    const HIST=Math.round(6*FPS), hist=[];
+    function release(){ dyn.set(TAKE.q0,TAKE.v0); hist.length=0; st.running=true; $('pPlay').textContent='⏸'; }
+    $('pReplay').addEventListener('click',release);
+    // fréquence propre approchée de chaque coordonnée : sqrt(K_kk)/2π ; impulsion de vitesse
+    const modesBox=$('pModes');
+    for(let k=0;k<d;k++){
+      const bt=document.createElement('button'); bt.textContent=String(k+1);
+      bt.style.cssText='font-family:var(--mono);font-size:.72rem;color:var(--text-mid);background:transparent;border:1px solid var(--border);border-radius:var(--radius);padding:4px 7px;cursor:pointer;line-height:1;';
+      const f=Math.sqrt(Math.max(P.K[k][k],1))/(2*Math.PI);
+      bt.title=f.toFixed(2)+' Hz · '+(100*P.var_share[k]).toFixed(1)+' %';
+      bt.addEventListener('click',()=>{
+        const v0=new Float64Array(d); const amp=0.7*Math.max(Math.abs(P.q_range[0][k]),Math.abs(P.q_range[1][k]));
+        v0[k]=2*Math.PI*f*amp; dyn.set(null,v0); hist.length=0; st.running=true; $('pPlay').textContent='⏸';
+      });
+      modesBox.appendChild(bt);
     }
-    accR+=el;
-    if(accR<1/40) return;
-    accR=0;
-    dyn.whitened(qw); splat.render(qw); drawState(); drawOverlay();
-  }
-  requestAnimationFrame(loop);
+
+    // ── contrôles ──────────────────────────────────────────────────────────────
+    $('pPlay').addEventListener('click',()=>{ st.running=!st.running; $('pPlay').textContent=st.running?'⏸':'▶'; });
+    $('pSpeed').addEventListener('input',e=>{ st.speed=parseInt(e.target.value)/100; $('pVs').textContent='×'+st.speed.toFixed(2); });
+    $('pDiss').addEventListener('input',e=>{ dyn.cscale=parseInt(e.target.value)/100; $('pVd').textContent='×'+dyn.cscale.toFixed(2); });
+    $('pRadius').addEventListener('input',e=>{ st.rpct=parseInt(e.target.value); $('pVr').textContent=st.rpct+' %'; });
+    $('pForce').addEventListener('input',e=>{ st.fmul=parseInt(e.target.value)/100; $('pVf').textContent='×'+st.fmul.toFixed(1); });
+    function setMode(m){
+      st.mode=m;
+      for(const [id,on] of [['pFLocal',m==='local'],['pFGlobal',m==='global']]){
+        const b=$(id); b.style.background=on?'var(--navy)':'transparent'; b.style.color=on?'#fff':'var(--text-mid)'; b.style.borderColor=on?'var(--navy)':'var(--border)';
+      }
+      if(m==='global'&&st.rpct<20){ st.rpct=30; $('pRadius').value=30; $('pVr').textContent='30 %'; }
+      if(m==='local'&&st.rpct>20){ st.rpct=5; $('pRadius').value=5; $('pVr').textContent='5 %'; }
+    }
+    $('pFLocal').addEventListener('click',()=>setMode('local'));
+    $('pFGlobal').addEventListener('click',()=>setMode('global'));
+
+    // ── force : calibrage automatique (une traction de 10 px sur la matière la plus mobile
+    //    doit déplacer l'état d'environ 1.5 écart-type latent en statique) ──────────────
+    function solveK(F){                                   // Δq = K⁻¹ F, élimination de Gauss
+      const n=d, M=P.K.map(r=>r.slice()), x=Array.from(F);
+      for(let c=0;c<n;c++){
+        let p=c; for(let r=c+1;r<n;r++) if(Math.abs(M[r][c])>Math.abs(M[p][c])) p=r;
+        [M[c],M[p]]=[M[p],M[c]]; [x[c],x[p]]=[x[p],x[c]];
+        for(let r=c+1;r<n;r++){ const f=M[r][c]/M[c][c]; for(let j=c;j<n;j++) M[r][j]-=f*M[c][j]; x[r]-=f*x[c]; }
+      }
+      for(let r=n-1;r>=0;r--){ let s=x[r]; for(let j=r+1;j<n;j++) s-=M[r][j]*x[j]; x[r]=s/M[r][r]; }
+      return x;
+    }
+    function latentForce(J,f){                            // Jᵀf, J en px par unité BLANCHIE -> unités brutes
+      const F=new Float64Array(d);
+      for(let j=0;j<d;j++) F[j]=(J[0][j]*f[0]+J[1][j]*f[1])/P.q_std[j];
+      return F;
+    }
+    const GAIN=(function(){
+      dyn.set(null,null); dyn.whitened(qw);
+      let best=0, kb=0; for(let k=0;k<splat.K;k++) if(splat.mob[k]>best){best=splat.mob[k];kb=k;}
+      const J=splat.jacobian([[kb,1]]);
+      let worst=0;
+      for(const f of [[10,0],[0,10]]){ const dq=solveK(latentForce(J,f)); let s=0; for(let j=0;j<d;j++) s+=Math.pow(dq[j]/P.q_std[j],2); worst=Math.max(worst,Math.sqrt(s)); }
+      return worst>0? 1.5/worst : 1;
+    })();
+    const KGRAB=1.0, FMAX_W=6.0;
+
+    // ── saisie ─────────────────────────────────────────────────────────────────
+    function toImg(e){ const r=cvRe.getBoundingClientRect(); return [(e.clientX-r.left)/r.width*splat.W,(e.clientY-r.top)/r.height*splat.H]; }
+    cvRe.style.touchAction='none'; cvRe.style.cursor='grab';
+    cvRe.addEventListener('pointerdown',e=>{
+      dyn.whitened(qw); const p=toImg(e);
+      const s=splat.select(qw,p[0],p[1], st.mode==='global'? {radius:st.radius,mobMin:0.1,uniform:true} : {radius:st.radius,mobMin:0.25});
+      if(!s) return; st.grab=s; st.cursor=p; cvRe.setPointerCapture(e.pointerId); cvRe.style.cursor='grabbing'; e.preventDefault();
+    });
+    cvRe.addEventListener('pointermove',e=>{ st.hover=toImg(e); if(st.grab) st.cursor=st.hover; });
+    cvRe.addEventListener('pointerleave',()=>{ if(!st.grab) st.hover=null; });
+    const ungrab=()=>{ st.grab=null; dyn.F.fill(0); cvRe.style.cursor='grab'; };
+    cvRe.addEventListener('pointerup',ungrab); cvRe.addEventListener('pointercancel',ungrab);
+
+    // ── panneaux ───────────────────────────────────────────────────────────────
+    const COLS=['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#e377c2','#7f7f7f','#bcbd22','#17becf','#1b3a6b','#c49c48'];
+    function setup2D(cv){
+      const w=cv.clientWidth,h=cv.clientHeight,dpr=Math.min(devicePixelRatio||1,2);
+      if(cv.width!==w*dpr||cv.height!==h*dpr){cv.width=w*dpr;cv.height=h*dpr;}
+      const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);
+      return {x,w,h};
+    }
+    function drawState(){
+      const {x,w,h}=setup2D(cvSt);
+      const pad=4, lane=(h-2*pad)/d;
+      for(let k=0;k<d;k++){
+        const y0=pad+k*lane, y1=y0+lane, lo=P.q_range[0][k], hi=P.q_range[1][k];
+        const Y=v=>y1-2-(v-lo)/(hi-lo)*(lane-4);
+        x.strokeStyle='rgba(0,0,0,0.10)'; x.lineWidth=1; x.beginPath(); x.moveTo(0,Y(0)); x.lineTo(w,Y(0)); x.stroke();
+        if(hist.length>1){
+          x.save(); x.beginPath(); x.rect(0,y0,w,lane); x.clip();
+          x.strokeStyle=COLS[k%COLS.length]; x.lineWidth=1.4; x.beginPath();
+          for(let i=0;i<hist.length;i++){ const px=w-(hist.length-1-i)/(HIST-1)*w, py=Y(hist[i][k]); if(i===0)x.moveTo(px,py); else x.lineTo(px,py); }
+          x.stroke(); x.restore();
+        }
+        x.fillStyle=COLS[k%COLS.length]; x.font='600 10px ui-monospace,monospace';
+        x.fillText('q'+(k+1)+' '+(100*P.var_share[k]).toFixed(0)+'%', 5, y0+11);
+      }
+    }
+    function drawOverlay(){
+      const {x,w,h}=setup2D(cvOv);
+      if(showMask) splat.drawMask(x,w,h,[27,58,107,70]);    // fond immobile teinté (bleu marine translucide)
+      const c=st.grab? st.cursor : st.hover;                 // disque d'application de la force
+      if(c){
+        x.strokeStyle=st.mode==='global'?'rgba(27,58,107,0.55)':'rgba(255,122,24,0.55)'; x.lineWidth=1; x.setLineDash([4,3]);
+        x.beginPath(); x.ellipse(c[0]/splat.W*w, c[1]/splat.H*h, st.radius/splat.W*w, st.radius/splat.H*h, 0, 0, 6.284); x.stroke();
+        x.setLineDash([]);
+      }
+      if(!st.grab||!st.cursor) return;
+      dyn.whitened(qw); const p=splat.pointOf(qw,st.grab);
+      const ax=p[0]/splat.W*w, ay=p[1]/splat.H*h, bx=st.cursor[0]/splat.W*w, by=st.cursor[1]/splat.H*h;
+      x.strokeStyle='#ff7a18'; x.fillStyle='#ff7a18'; x.lineWidth=2;
+      x.beginPath(); x.moveTo(ax,ay); x.lineTo(bx,by); x.stroke();
+      const a=Math.atan2(by-ay,bx-ax), s=8;
+      x.beginPath(); x.moveTo(bx,by); x.lineTo(bx-s*Math.cos(a-0.4),by-s*Math.sin(a-0.4)); x.lineTo(bx-s*Math.cos(a+0.4),by-s*Math.sin(a+0.4)); x.closePath(); x.fill();
+      x.beginPath(); x.arc(ax,ay,3.2,0,6.284); x.fill();
+    }
+
+    // ── boucle : pas de modèle à FPS fixe, rendu plafonné ──────────────────────
+    release();
+    let last=performance.now(), acc=0, accR=0;
+    const vis=(typeof watchVisible==='function')? watchVisible(['cPState','cPRecon']) : null;
+    function loop(now){
+      requestAnimationFrame(loop);
+      if(vis&&typeof visActive==='function'&&!visActive(vis)) { last=now; return; }
+      const el=Math.min((now-last)/1000,0.1); last=now;
+      if(st.running||st.grab){
+        acc+=el*st.speed;
+        let n=0;
+        while(acc>=dyn.dt&&n<8){
+          if(st.grab){
+            dyn.whitened(qw); const p=splat.pointOf(qw,st.grab);
+            const f=[KGRAB*(st.cursor[0]-p[0]),KGRAB*(st.cursor[1]-p[1])];
+            const F=latentForce(splat.jacobian(st.grab),f);
+            let s=0; for(let j=0;j<d;j++){ F[j]*=GAIN*st.fmul; s+=Math.pow(F[j]*P.q_std[j],2); }   // plafond (unités blanchies·raideur)
+            const kref=P.K[0][0], lim=FMAX_W*kref*Math.max(1,st.fmul); s=Math.sqrt(s)/Math.max(1,P.q_std[0]);
+            const sc=s>lim? lim/s:1; for(let j=0;j<d;j++) dyn.F[j]=F[j]*sc;
+          }
+          dyn.step(4); acc-=dyn.dt; n++;
+          hist.push(Array.from(dyn.q)); if(hist.length>HIST) hist.shift();
+        }
+        if(n===8) acc=0;
+      }
+      accR+=el;
+      if(accR<1/RENDER_HZ) return;
+      accR=0;
+      dyn.whitened(qw); splat.render(qw); drawState(); drawOverlay();
+    }
+    requestAnimationFrame(loop);
+  })();
 })();
 </script>
 
