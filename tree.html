@@ -73,16 +73,22 @@
 #lags-demo .valbig{font-family:var(--mono);font-size:.92rem;font-weight:600;color:var(--navy);}
 
 #lags-demo .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start;}
-#lags-demo .grid.two{grid-template-columns:1fr 1fr;}
-@media(max-width:880px){#lags-demo .grid.two{grid-template-columns:1fr}}
+#lags-demo .grid.two{grid-template-columns:minmax(0,1fr) auto;}
+@media(max-width:880px){#lags-demo .grid.two{grid-template-columns:1fr}#lags-demo .grid.two .panel:last-child{width:100%}#lags-demo .stage.sq .sqwrap{width:100%;height:auto}}
 #lags-demo .vid-grid{display:grid;grid-template-columns:minmax(0,760px);gap:14px;align-items:start;margin:0 0 1rem;}
 #lags-demo .vid-grid video{display:block;width:100%;height:auto;background:#111;}
 #lags-demo .vid-labels{display:grid;grid-template-columns:1fr 1fr;font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);padding:8px 15px 10px;border-top:1px solid var(--border-soft);}
 #lags-demo .vid-labels span:last-child{color:var(--q)}
 #lags-demo .stage.sq{display:flex;justify-content:center;background:#000;}
+#lags-demo .grid.two .panel:last-child{width:min(100%,332px);}
 #lags-demo .stage.sq .sqwrap{position:relative;height:330px;aspect-ratio:1/1;}
 #lags-demo .stage.sq .sqwrap canvas{display:block;width:100%;height:100%;background:#000;}
 #lags-demo .stage.sq .sqwrap canvas#cPOverlay{position:absolute;inset:0;background:transparent;pointer-events:none;}
+#lags-demo .state-row{display:flex;align-items:stretch;}
+#lags-demo .state-row .stage{flex:1 1 0;min-width:0;}
+#lags-demo .mode-col{display:grid;grid-template-rows:repeat(6,1fr);gap:4px;padding:4px;width:54px;border-left:1px solid var(--border-soft);background:var(--surface);}
+#lags-demo .mode-col button{font-family:var(--mono);font-size:.7rem;font-weight:600;background:transparent;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;line-height:1;padding:0;}
+#lags-demo .mode-col button:hover{background:var(--bg);}
 #lags-demo .vid-note{font-size:.82rem;line-height:1.55;color:var(--text-muted);max-width:96ch;margin:0 0 .9rem;}
 @media(max-width:880px){#lags-demo .grid{grid-template-columns:1fr}}
 #lags-demo .col{display:flex;flex-direction:column;gap:14px;}
@@ -363,7 +369,7 @@
     </p>
 
     <div class="exp-head">
-      <p class="exp-tag" data-en="held-out video" data-fr="vidéo held-out">held-out video</p>
+      <p class="exp-tag" data-en="held-out video" data-fr="vidéo mise de côté">held-out video</p>
       <h2 class="exp-title" data-en="Filmed video against the decoded rollout" data-fr="Vidéo filmée contre rollout décodé">Filmed video against the decoded rollout</h2>
     </div>
     <p class="vid-note"
@@ -374,9 +380,8 @@
     <div class="vid-grid">
       <section class="panel q">
         <div class="phead">
-          <div class="tag" data-en="held-out take 9 · filmed | decoded rollout" data-fr="prise 9 mise de côté · filmé | rollout décodé">held-out take 9 · filmed | decoded rollout</div>
-          <h2 data-en="Filmed video against the decoded rollout" data-fr="Vidéo filmée contre rollout décodé">Filmed video against the decoded rollout</h2>
-          <div class="sub" data-en="left: webcam frame, 1280×720 cropped to 256×256 · right: 3&thinsp;000 gaussians decoded from the oscillator rollout, 256×256" data-fr="gauche : image webcam 1280×720 recadrée en 256×256 · droite : 3&thinsp;000 gaussiennes décodées depuis le rollout de l'oscillateur, 256×256">left: webcam frame, 1280×720 cropped to 256×256 · right: 3 000 gaussians decoded from the oscillator rollout, 256×256</div>
+          <div class="tag" data-en="take 9 of 30 · held out" data-fr="prise 9 sur 30 · mise de côté">take 9 of 30 · held out</div>
+          <h2 data-en="Webcam frame | decoded rollout" data-fr="Image webcam | rollout décodé">Webcam frame | decoded rollout</h2>
         </div>
         <video class="cmp" id="vSapin" muted playsinline loop autoplay preload="auto">
           <source src="./videos/sapin_take_009_cmp.webm" type="video/webm; codecs=vp9">
@@ -393,8 +398,8 @@
       <h2 class="exp-title" data-en="Latent state and GS decoder" data-fr="État latent et décodeur GS">Latent state and GS decoder</h2>
     </div>
     <p class="vid-note"
-       data-en="The same oscillator and the same decoder, now driven by hand. Grab a branch in the decoded image and drag it: the force <i>f</i> is pulled back to the 6-D latent space through <i>J</i>&#7488;<i>f</i>, <i>J</i> being the Jacobian of the grabbed gaussians. Local mode: the gaussians under the cursor, weighted by their footprint. Global mode: every mobile gaussian inside the disc weighs the same, which excites the whole-tree modes rather than one branch. The mode buttons give one coordinate a velocity impulse at its own frequency. Tinted area: pixels that never moved in the 30 takes; with the freeze toggle on, gaussians centred there are held at their rest state instead of following q."
-       data-fr="Le même oscillateur et le même décodeur, pilotés à la main. Attrapez une branche dans l'image décodée et glissez-la : la force <i>f</i> est rapatriée dans l'espace latent 6D par <i>J</i>&#7488;<i>f</i>, <i>J</i> étant la jacobienne des gaussiennes saisies. Mode local : les gaussiennes sous le curseur, pondérées par leur empreinte. Mode global : toutes les gaussiennes mobiles du disque pèsent pareil, ce qui excite les modes d'ensemble de l'arbre plutôt qu'une branche. Les boutons de mode donnent à une coordonnée une impulsion de vitesse à sa propre fréquence. Zone teintée : pixels qui n'ont jamais bougé dans les 30 prises ; avec le gel activé, les gaussiennes centrées là restent à leur état de repos au lieu de suivre q.">
+       data-en="The same oscillator and the same decoder, now driven by hand. Drag anywhere on the decoded image: the force <i>f</i> is pulled back to the latent space through <i>J</i>&#7488;<i>f</i>, <i>J</i> being the Jacobian of the gaussians inside the disc around the cursor. The buttons next to the plot give one latent coordinate a velocity impulse at its own frequency."
+       data-fr="Le même oscillateur et le même décodeur, pilotés à la main. Glissez n'importe où sur l'image décodée : la force <i>f</i> est ramenée dans l'espace latent par <i>J</i>&#7488;<i>f</i>, <i>J</i> étant la jacobienne des gaussiennes du disque autour du curseur. Les boutons à côté du tracé donnent à une coordonnée latente une impulsion de vitesse à sa propre fréquence.">
       The same oscillator and the same decoder, now driven by hand.
     </p>
 
@@ -402,63 +407,41 @@
       <button id="pPlay" title="play / pause"
         style="font-family:var(--mono);font-size:1rem;font-weight:600;color:#fff;background:var(--navy);border:none;border-radius:var(--radius);padding:8px 14px;cursor:pointer;min-width:44px;line-height:1;">⏸</button>
       <div class="ctl">
-        <label><span class="lbl" data-en="Time scale" data-fr="Échelle de temps">Time scale</span> <span class="val" id="pVs">×1.0</span></label>
-        <input id="pSpeed" type="range" min="5" max="300" value="100">
+        <label><span class="lbl" data-en="Force radius" data-fr="Rayon de la force">Force radius</span> <span class="val" id="pVr">10 %</span></label>
+        <input id="pRadius" type="range" min="2" max="50" value="10">
       </div>
       <div class="ctl">
-        <label><span class="lbl" data-en="Dissipation" data-fr="Dissipation">Dissipation</span> <span class="val" id="pVd">×1.0</span></label>
-        <input id="pDiss" type="range" min="0" max="300" value="100">
-      </div>
-      <button id="pReplay"
-        data-en="Release from the held-out initial state" data-fr="Lâcher depuis l'état initial de la prise mise de côté"
-        style="font-family:var(--mono);font-size:.82rem;color:var(--text-mid);background:transparent;border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;cursor:pointer;line-height:1;">Release from the held-out initial state</button>
-      <div class="ctl">
-        <label><span class="lbl" data-en="Kick one mode" data-fr="Exciter un mode">Kick one mode</span></label>
-        <div id="pModes" style="display:flex;flex-wrap:wrap;gap:4px;max-width:330px"></div>
-      </div>
-      <label class="toggle"><input type="checkbox" id="pFreeze" checked> <span data-en="freeze background" data-fr="figer le fond">freeze background</span></label>
-      <label class="toggle"><input type="checkbox" id="pShowMask" checked> <span data-en="show mask" data-fr="afficher le masque">show mask</span></label>
-      <div class="ctl">
-        <label><span class="lbl" data-en="Force mode" data-fr="Mode de force">Force mode</span></label>
-        <div style="display:flex;gap:4px">
-          <button id="pFLocal" data-en="local" data-fr="locale" style="font-family:var(--mono);font-size:.72rem;color:#fff;background:var(--navy);border:1px solid var(--navy);border-radius:var(--radius);padding:5px 9px;cursor:pointer;line-height:1;">local</button>
-          <button id="pFGlobal" data-en="global" data-fr="globale" style="font-family:var(--mono);font-size:.72rem;color:var(--text-mid);background:transparent;border:1px solid var(--border);border-radius:var(--radius);padding:5px 9px;cursor:pointer;line-height:1;">global</button>
-        </div>
-      </div>
-      <div class="ctl">
-        <label><span class="lbl" data-en="Force radius" data-fr="Rayon de la force">Force radius</span> <span class="val" id="pVr">5 %</span></label>
-        <input id="pRadius" type="range" min="2" max="50" value="5">
-      </div>
-      <div class="ctl">
-        <label><span class="lbl" data-en="Force amplitude" data-fr="Amplitude de la force">Force amplitude</span> <span class="val" id="pVf">×1.0</span></label>
-        <input id="pForce" type="range" min="10" max="500" value="100">
+        <label><span class="lbl" data-en="Force amplitude" data-fr="Amplitude de la force">Force amplitude</span> <span class="val" id="pVf">×2.5</span></label>
+        <input id="pForce" type="range" min="10" max="500" value="250">
       </div>
     </div>
 
     <div class="grid two">
       <section class="panel q">
         <div class="phead">
-          <div class="tag" data-en="LaGSplat · latent state" data-fr="LaGSplat · état latent">LaGSplat · latent state</div>
+          <div class="tag" data-en="latent state" data-fr="état latent">latent state</div>
           <h2 data-en="Six latent coordinates over time" data-fr="Les six coordonnées latentes au cours du temps">Six latent coordinates over time</h2>
           <div class="sub" data-en="each lane is one SVD coordinate, scaled to the range seen in the training takes; the percentage is its share of the keypoint motion" data-fr="chaque bande est une coordonnée SVD, à l'échelle de l'étendue vue dans les prises d'entraînement ; le pourcentage est sa part du mouvement des keypoints">each lane is one SVD coordinate, scaled to the range seen in the training takes; the percentage is its share of the keypoint motion</div>
         </div>
-        <div class="stage recon"><canvas id="cPState"></canvas></div>
+        <div class="state-row">
+          <div class="stage recon"><canvas id="cPState"></canvas></div>
+          <div class="mode-col" id="pModes" title="kick one mode"></div>
+        </div>
       </section>
 
       <section class="panel q">
         <div class="phead">
-          <div class="tag" data-en="live GS decoder, CPU" data-fr="décodeur GS en direct, CPU">live GS decoder, CPU</div>
-          <h2 data-en="GS decoder output" data-fr="Sortie du décodeur GS">GS decoder output</h2>
-          <div class="sub" data-en="3&thinsp;000 gaussians with full 8&times;8 covariance, conditioned on the 6-D state and re-rasterised every frame at 256&times;256" data-fr="3&thinsp;000 gaussiennes à covariance 8&times;8 pleine, conditionnées sur l'état 6D et re-rasterisées à chaque image en 256&times;256">3 000 gaussians with full 8×8 covariance, conditioned on the 6-D state and re-rasterised every frame at 256×256</div>
+          <div class="tag" data-en="GS decoder · CPU" data-fr="décodeur GS · CPU">GS decoder · CPU</div>
+          <h2 data-en="Decoded image" data-fr="Image décodée">Decoded image</h2>
+          <div class="sub" data-en="re-rasterised at every frame from the current state" data-fr="re-rasterisée à chaque image depuis l'état courant">re-rasterised at every frame from the current state</div>
         </div>
         <div class="stage recon sq">
           <div class="sqwrap">
             <canvas id="cPRecon"></canvas>
             <canvas id="cPOverlay"></canvas>
           </div>
-          <div class="badge" data-en="grab &amp; drag a branch" data-fr="attraper et glisser une branche">grab &amp; drag a branch</div>
+          <div class="badge" data-en="drag to push" data-fr="glisser pour pousser">drag to push</div>
         </div>
-        <div class="pfoot video"><span data-en="<b style='color:#ff7a18'>&#10230;</b> Force <i>f</i> applied by dragging, pulled back to the latent space through <i>J</i>&#7488;<i>f</i>." data-fr="<b style='color:#ff7a18'>&#10230;</b> Force <i>f</i> appliquée en glissant, rapatriée dans l'espace latent par <i>J</i>&#7488;<i>f</i>."><b style='color:#ff7a18'>&#10230;</b> Force <i>f</i> applied by dragging, pulled back to the latent space through <i>J</i>ᵀ<i>f</i>.</span></div>
       </section>
     </div>
 
@@ -573,22 +556,19 @@ function visActive(g) { return !PAGE_HIDDEN && g.on; }
     const splat=makeSplat(cvRe); if(!splat) return;
     const dyn=window.SapinDyn.create(P); restWeights(splat,dyn);
     const qw=new Float64Array(d);
-    let showMask=true;
-    $('pFreeze').addEventListener('change',e=>{ splat.opts.freeze=e.target.checked; });
-    $('pShowMask').addEventListener('change',e=>{ showMask=e.target.checked; });
-
-    const st={running:true, speed:1.0, grab:null, cursor:null, hover:null, mode:'local', rpct:5, fmul:1.0};
+    const showMask=false;                                   // fond gelé (splat.opts.freeze), masque non affiché
+    const st={running:true, speed:1.0, grab:null, cursor:null, hover:null, mode:'global', rpct:10, fmul:2.5};
     Object.defineProperty(st,'radius',{get(){ return st.rpct/100*splat.W; }});   // rayon en px image, depuis le % de largeur
     const HIST=Math.round(6*FPS), hist=[];
     function release(){ dyn.set(TAKE.q0,TAKE.v0); hist.length=0; st.running=true; $('pPlay').textContent='⏸'; }
-    $('pReplay').addEventListener('click',release);
-    // fréquence propre approchée de chaque coordonnée : sqrt(K_kk)/2π ; impulsion de vitesse
+    // boutons « exciter un mode », un par bande du tracé : fréquence propre approchée sqrt(K_kk)/2π,
+    // impulsion de vitesse sur cette seule coordonnée
+    const COLS=['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#e377c2','#7f7f7f','#bcbd22','#17becf','#1b3a6b','#c49c48'];
     const modesBox=$('pModes');
     for(let k=0;k<d;k++){
-      const bt=document.createElement('button'); bt.textContent=String(k+1);
-      bt.style.cssText='font-family:var(--mono);font-size:.72rem;color:var(--text-mid);background:transparent;border:1px solid var(--border);border-radius:var(--radius);padding:4px 7px;cursor:pointer;line-height:1;';
+      const bt=document.createElement('button'); bt.textContent='q'+(k+1); bt.style.color=COLS[k%COLS.length];
       const f=Math.sqrt(Math.max(P.K[k][k],1))/(2*Math.PI);
-      bt.title=f.toFixed(2)+' Hz · '+(100*P.var_share[k]).toFixed(1)+' %';
+      bt.title='kick q'+(k+1)+' · '+f.toFixed(2)+' Hz';
       bt.addEventListener('click',()=>{
         const v0=new Float64Array(d); const amp=0.7*Math.max(Math.abs(P.q_range[0][k]),Math.abs(P.q_range[1][k]));
         v0[k]=2*Math.PI*f*amp; dyn.set(null,v0); hist.length=0; st.running=true; $('pPlay').textContent='⏸';
@@ -598,20 +578,8 @@ function visActive(g) { return !PAGE_HIDDEN && g.on; }
 
     // ── contrôles ──────────────────────────────────────────────────────────────
     $('pPlay').addEventListener('click',()=>{ st.running=!st.running; $('pPlay').textContent=st.running?'⏸':'▶'; });
-    $('pSpeed').addEventListener('input',e=>{ st.speed=parseInt(e.target.value)/100; $('pVs').textContent='×'+st.speed.toFixed(2); });
-    $('pDiss').addEventListener('input',e=>{ dyn.cscale=parseInt(e.target.value)/100; $('pVd').textContent='×'+dyn.cscale.toFixed(2); });
     $('pRadius').addEventListener('input',e=>{ st.rpct=parseInt(e.target.value); $('pVr').textContent=st.rpct+' %'; });
     $('pForce').addEventListener('input',e=>{ st.fmul=parseInt(e.target.value)/100; $('pVf').textContent='×'+st.fmul.toFixed(1); });
-    function setMode(m){
-      st.mode=m;
-      for(const [id,on] of [['pFLocal',m==='local'],['pFGlobal',m==='global']]){
-        const b=$(id); b.style.background=on?'var(--navy)':'transparent'; b.style.color=on?'#fff':'var(--text-mid)'; b.style.borderColor=on?'var(--navy)':'var(--border)';
-      }
-      if(m==='global'&&st.rpct<20){ st.rpct=30; $('pRadius').value=30; $('pVr').textContent='30 %'; }
-      if(m==='local'&&st.rpct>20){ st.rpct=5; $('pRadius').value=5; $('pVr').textContent='5 %'; }
-    }
-    $('pFLocal').addEventListener('click',()=>setMode('local'));
-    $('pFGlobal').addEventListener('click',()=>setMode('global'));
 
     // ── force : calibrage automatique (une traction de 10 px sur la matière la plus mobile
     //    doit déplacer l'état d'environ 1.5 écart-type latent en statique) ──────────────
@@ -654,7 +622,6 @@ function visActive(g) { return !PAGE_HIDDEN && g.on; }
     cvRe.addEventListener('pointerup',ungrab); cvRe.addEventListener('pointercancel',ungrab);
 
     // ── panneaux ───────────────────────────────────────────────────────────────
-    const COLS=['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#e377c2','#7f7f7f','#bcbd22','#17becf','#1b3a6b','#c49c48'];
     function setup2D(cv){
       const w=cv.clientWidth,h=cv.clientHeight,dpr=Math.min(devicePixelRatio||1,2);
       if(cv.width!==w*dpr||cv.height!==h*dpr){cv.width=w*dpr;cv.height=h*dpr;}
