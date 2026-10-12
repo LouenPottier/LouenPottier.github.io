@@ -32,6 +32,19 @@
   max-width:96ch;margin:0 0 1.75rem;
 }
 #lags-demo .thesis b{color:var(--navy);font-weight:600}
+/* intro : texte a gauche, schema du dispositif a droite */
+#lags-demo .intro-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,420px);gap:24px;
+  align-items:start;margin:0 0 1.75rem;}
+#lags-demo .intro-grid .thesis{margin:0;}
+#lags-demo .thesis ol{margin:.5rem 0 0;padding-left:1.4em;}
+#lags-demo .thesis li{margin:.2rem 0;}
+@media(max-width:880px){#lags-demo .intro-grid{grid-template-columns:1fr}}
+#lags-demo .setup-fig{margin:0;}
+#lags-demo .setup-fig video{display:block;width:100%;height:auto;background:#111;}
+#lags-demo .setup-fig figcaption{font-size:.78rem;line-height:1.45;color:var(--text-muted);padding:8px 15px 10px;
+  border-top:1px solid var(--border-soft);}
+#lags-demo .setup-fig .k-fix{color:#1f4e8c;font-weight:600}
+#lags-demo .setup-fig .k-mob{color:#e8380d;font-weight:600}
 #lags-demo .exp-divider{border:none;border-top:2px solid var(--navy);margin:2.75rem 0 1.6rem;}
 #lags-demo .exp-head{margin:0 0 1.2rem;}
 #lags-demo .exp-tag{
@@ -202,37 +215,49 @@
 
   <div id="lags-demo">
 
-    <p class="thesis"
-       data-en="A UR robot arm moves a soft hyperelastic tab held in its gripper. The scene was filmed by four synchronised phones. An encoder reads one camera and returns the deformation of the tab as two latent coordinates <b>q = (q0, q1)</b>; the position of the arm along its path, <b>s</b>, is measured. The same state <b>(s, q)</b> drives three Gaussian Splatting decoders: a 2D decoder in a window that follows the gripper, a 2D decoder of the full camera frame, and a 3D decoder trained on all four views. The videos below compare the two 2D decoders with the filmed images; the interactive demo uses the 3D decoder."
-       data-fr="Un bras robot UR déplace une languette hyperélastique tenue dans sa pince. La scène a été filmée par quatre téléphones synchronisés. Un encodeur lit une caméra et rend la déformation de la languette sous la forme de deux coordonnées latentes <b>q = (q0, q1)</b> ; la position du bras le long de sa trajectoire, <b>s</b>, est mesurée. Le même état <b>(s, q)</b> pilote trois décodeurs Gaussian Splatting : un décodeur 2D dans une fenêtre qui suit la pince, un décodeur 2D de l'image entière de la caméra, et un décodeur 3D entraîné sur les quatre vues. Les vidéos ci-dessous comparent les deux décodeurs 2D aux images filmées ; la démo interactive utilise le décodeur 3D.">
-      A UR robot arm moves a soft hyperelastic tab held in its gripper.
-    </p>
+    <div class="intro-grid">
+    <div class="thesis"
+       data-en="A UR robot holds a hyperelastic tab in its gripper and makes it deform as it moves. The scene is filmed by three cameras on a fixed tripod and by one mobile camera that films the whole scene.&lt;br&gt;LaGSplat learns the physics of the scene and its 3D reconstruction from the videos alone:&lt;ol&gt;&lt;li&gt;An encoder extracts the deformation state of the tab from the images as a low-dimensional vector &lt;b&gt;q = (q0, q1)&lt;/b&gt;. The position &lt;b&gt;s&lt;/b&gt; of the robot is extracted by tracking the gripper in a fixed camera.&lt;/li&gt;&lt;li&gt;A Lagrangian neural network (LNN) learns the dynamics of &lt;b&gt;q&lt;/b&gt; (mass, dissipation and potential energy), with the motion of the arm as input: when the arm accelerates or stops, the tab lags behind and then oscillates around its rest shape. The LNN learns how strongly these accelerations excite the tab and how quickly its oscillations die out.&lt;/li&gt;&lt;li&gt;A 3D Gaussian Splatting decoder, trained on the four views, renders the scene from the state &lt;b&gt;(s, q)&lt;/b&gt;, where &lt;b&gt;q&lt;/b&gt; is computed at each instant by the LNN.&lt;/li&gt;&lt;li&gt;A force can be applied anywhere in the scene through J&#7488;f and acts on the system consistently, although the neural network never saw any force during training.&lt;/li&gt;&lt;/ol&gt;"
+       data-fr="Un robot UR tient une languette hyperélastique dans sa pince et la fait se déformer lorsqu&#39;il bouge. La scène est filmée depuis 3 caméras sur un trépied fixe et une caméra mobile qui filme l&#39;entièreté de la scène.&lt;br&gt;LaGSplat apprend la physique de la scène et sa reconstruction 3D uniquement à partir des vidéos :&lt;ol&gt;&lt;li&gt;Un encodeur extrait l&#39;état de déformation de la languette à partir des images sous la forme d&#39;un vecteur de petite dimension &lt;b&gt;q = (q0, q1)&lt;/b&gt;. La position &lt;b&gt;s&lt;/b&gt; du robot est extraite par suivi de la pince dans une caméra fixe.&lt;/li&gt;&lt;li&gt;Un réseau de neurones lagrangien (LNN) apprend la dynamique de &lt;b&gt;q&lt;/b&gt; (masse, dissipation et énergie potentielle), avec le mouvement du bras en entrée : quand le bras accélère ou s&#39;arrête, la languette prend du retard puis oscille autour de sa forme de repos. Le LNN apprend avec quelle force ces accélérations excitent la languette et à quelle vitesse ses oscillations s&#39;amortissent.&lt;/li&gt;&lt;li&gt;Un décodeur Gaussian Splatting 3D, entraîné sur les quatre vues, rend la scène à partir de l&#39;état &lt;b&gt;(s, q)&lt;/b&gt;, où &lt;b&gt;q&lt;/b&gt; est calculé à chaque instant par le LNN.&lt;/li&gt;&lt;li&gt;Une force peut être appliquée n&#39;importe où dans la scène par l&#39;intermédiaire de J&#7488;f et agit sur le système de manière cohérente, sans qu&#39;aucune force n&#39;ait été vue par le réseau de neurones pendant l&#39;entraînement.&lt;/li&gt;&lt;/ol&gt;">
+      A UR robot holds a hyperelastic tab in its gripper and makes it deform as it moves.
+    </div>
+    <figure class="panel setup-fig">
+      <video class="cmp" muted playsinline loop preload="metadata" src="./videos/mpov_setup.mp4"></video>
+      <figcaption
+        data-en="Recording setup: <span class=&quot;k-fix&quot;>three fixed phones</span> on a tripod and <span class=&quot;k-mob&quot;>one phone moved by hand</span> around the scene."
+        data-fr="Dispositif d'enregistrement : <span class=&quot;k-fix&quot;>trois téléphones fixes</span> sur un trépied et <span class=&quot;k-mob&quot;>un téléphone déplacé à la main</span> autour de la scène.">
+        Recording setup.
+      </figcaption>
+    </figure>
+    </div>
+
+    <hr class="exp-divider">
 
     <div class="exp-head">
       <p class="exp-tag" data-en="held-out video" data-fr="vidéo held-out">held-out video</p>
-      <h2 class="exp-title" data-en="Filmed video against the network reconstruction" data-fr="Vidéo filmée contre reconstruction du réseau">Filmed video against the network reconstruction</h2>
+      <h2 class="exp-title" data-en="LaGSplat reconstruction on a video never seen during training" data-fr="Reconstruction LaGSplat sur une vidéo jamais vue à l&#39;entraînement">LaGSplat reconstruction on a video never seen during training</h2>
     </div>
-    <p class="vid-note"
-       data-en="Ten seconds taken from the last minute of the recording, which none of the networks saw during training. Left half: filmed image. Right half: image decoded from the encoded state (s, q)."
-       data-fr="Dix secondes prises dans la dernière minute de l'enregistrement, qu'aucun des réseaux n'a vue à l'entraînement. Moitié gauche : image filmée. Moitié droite : image décodée depuis l'état encodé (s, q).">
-      Ten seconds taken from the last minute of the recording.
+    <p class="thesis"
+       data-en="Ten seconds taken from the last minute of the recording, which was never used for training. In each video, left half: filmed image; right half: image rendered by LaGSplat from the state (s, q) extracted from the filmed image."
+       data-fr="Dix secondes prises dans la dernière minute de l&#39;enregistrement, qui n&#39;a jamais servi à l&#39;entraînement. Dans chaque vidéo, moitié gauche : image filmée ; moitié droite : image rendue par LaGSplat à partir de l&#39;état (s, q) extrait de l&#39;image filmée.">
+      Ten seconds taken from the last minute of the recording, which was never used for training.
     </p>
     <div class="vid-grid">
       <section class="panel q">
         <div class="phead">
-          <div class="tag" data-en="2D decoder · tracking window" data-fr="décodeur 2D · fenêtre suiveuse">2D decoder · tracking window</div>
+          <div class="tag" data-en="tracking window" data-fr="fenêtre suiveuse">tracking window</div>
           <h2 data-en="Window that follows the gripper" data-fr="Fenêtre qui suit la pince">Window that follows the gripper</h2>
         </div>
         <video class="cmp" muted playsinline loop preload="metadata" src="./videos/mpov_crop.mp4"></video>
-        <div class="vid-labels"><span data-en="filmed" data-fr="filmé">filmed</span><span data-en="network" data-fr="réseau">network</span></div>
+        <div class="vid-labels"><span data-en="filmed" data-fr="filmé">filmed</span><span data-en="LaGSplat reconstruction" data-fr="reconstruction LaGSplat">LaGSplat reconstruction</span></div>
       </section>
       <section class="panel q">
         <div class="phead">
-          <div class="tag" data-en="2D decoder · fixed camera" data-fr="décodeur 2D · caméra fixe">2D decoder · fixed camera</div>
+          <div class="tag" data-en="fixed camera" data-fr="caméra fixe">fixed camera</div>
           <h2 data-en="Full camera frame" data-fr="Image entière de la caméra">Full camera frame</h2>
         </div>
         <video class="cmp" muted playsinline loop preload="metadata" src="./videos/mpov_fixed.mp4"></video>
-        <div class="vid-labels"><span data-en="filmed" data-fr="filmé">filmed</span><span data-en="network" data-fr="réseau">network</span></div>
+        <div class="vid-labels"><span data-en="filmed" data-fr="filmé">filmed</span><span data-en="LaGSplat reconstruction" data-fr="reconstruction LaGSplat">LaGSplat reconstruction</span></div>
       </section>
     </div>
 
@@ -242,10 +267,10 @@
       <p class="exp-tag" data-en="interactive simulation" data-fr="simulation interactive">interactive simulation</p>
       <h2 class="exp-title" data-en="Latent state and 3D decoder" data-fr="État latent et décodeur 3D">Latent state and 3D decoder</h2>
     </div>
-    <p class="vid-note"
-       data-en="A Lagrangian neural network (LNN) identified on q(t), with constant mass, constant dissipation and an invex potential energy V(q), moves the state; the 3D decoder renders it. The dominant mode q0 is a &ldquo;bending&rdquo; of the tab, the secondary mode q1 a &ldquo;twist&rdquo;. Push the tab with the mouse in the 3D scene: the force enters the dynamics through the decoder Jacobian, J&#7488;f. In the latent plane, each dot is one recorded frame placed at its encoded state; dragging the red dot holds the state while time keeps running, and releasing it lets the dynamics start again from there (unless the simulation is paused). In pause, time stops but the arm slider still moves the arm; on play, the tab responds to that jump as to a step. Beyond the recorded states (dashed contour), the 3D geometry of the tab comes from an elastic shell while the dynamics stays that of the LNN."
-       data-fr="Un réseau de neurones lagrangien (LNN) identifié sur q(t), à masse et dissipation constantes et à énergie potentielle V(q) invexe, fait évoluer l'état ; le décodeur 3D le rend. Le mode dominant q0 est une « flexion » de la languette, le mode secondaire q1 une « torsion ». Poussez la languette à la souris dans la scène 3D : l'effort entre dans la dynamique par la jacobienne du décodeur, J&#7488;f. Dans le plan latent, chaque point est une image enregistrée, placée à son état encodé ; glisser le point rouge tient l'état pendant que le temps continue, et le lâcher relance la dynamique depuis cet état (sauf si la simulation est en pause). En pause, le temps s'arrête mais le curseur du bras le déplace toujours ; à la reprise, la languette répond à ce saut comme à un échelon. Au-delà des états enregistrés (contour en tirets), la géométrie 3D de la languette vient d'une coque élastique, la dynamique restant celle du LNN.">
-      A linear dynamics identified on q(t) moves the state; the 3D decoder renders it.
+    <p class="thesis"
+       data-en="Push the tab with the mouse in the 3D scene, or move the arm with the slider: the LNN computes the response of the tab and the 3D decoder renders it. On the left, q0 is the bending of the tab and q1 its twist; in the latent plane, each dot is a recorded frame and the red dot, which can be dragged, is the current state."
+       data-fr="Poussez la languette à la souris dans la scène 3D, ou déplacez le bras avec le curseur : le LNN calcule la réponse de la languette et le décodeur 3D la rend. À gauche, q0 est la flexion de la languette et q1 sa torsion ; dans le plan latent, chaque point est une image enregistrée et le point rouge, que l&#39;on peut glisser, est l&#39;état courant.">
+      Push the tab with the mouse in the 3D scene, or move the arm with the slider.
     </p>
 
     <p class="live-warn" id="liveWarn"></p>
@@ -257,15 +282,9 @@
         <input type="range" id="mpS" step="0.001"/>
       </div>
       <button class="btn ghost" id="mpReplay" type="button" data-en="replay recorded arm motion" data-fr="rejouer le mouvement enregistré du bras">replay recorded arm motion</button>
-      <button class="btn ghost" id="mpKick" type="button" data-en="impulse" data-fr="impulsion">impulse</button>
-      <button class="btn ghost" id="mpRest" type="button" data-en="rest" data-fr="repos">rest</button>
       <button class="btn ghost" id="mpHi" type="button" data-en="high resolution 3D" data-fr="3D haute résolution">high resolution 3D</button>
       <button class="btn ghost" id="mpBox" type="button" title="a cardboard box on the table: the tab and the arm push it, drag it with the mouse" data-en="cardboard box" data-fr="boîte en carton">cardboard box</button>
-      <button class="btn ghost" id="mpShell" type="button" title="beyond the recorded states, the 3D geometry of the tab comes from an elastic shell; the dynamics is unchanged" data-en="shell beyond the data" data-fr="coque hors des données">shell beyond the data</button>
-      <div class="ctl">
-        <label data-en="latent state q" data-fr="état latent q">latent state q</label>
-        <span class="valbig" id="mpQ">0.00, 0.00</span>
-      </div>
+      <button class="btn ghost" id="mpShell" type="button" title="beyond the recorded states, the 3D geometry of the tab comes from an elastic shell; the dynamics is unchanged" data-en="plausible extrapolation" data-fr="extrapolation plausible">plausible extrapolation</button>
     </div>
 
     <div class="live-grid">
@@ -281,10 +300,10 @@
         <section class="panel q">
           <div class="phead">
             <div class="tag" data-en="dataset · encoded states" data-fr="jeu de données · états encodés">dataset · encoded states</div>
-            <h2 data-en="Latent plane (q0, q1)" data-fr="Plan latent (q0, q1)">Latent plane (q0, q1)</h2>
-            <div class="sub" data-en="drag the dot to set the state" data-fr="glisser le point pour fixer l'état">drag the dot to set the state</div>
+            <h2 data-en="Latent space visualisation" data-fr="Visualisation de l&#39;espace latent">Latent space visualisation</h2>
+            <div class="sub" data-en="drag the dot to explore the deformation space of the tab" data-fr="glisser le point pour explorer l&#39;espace de déformation de la languette">drag the dot to explore the deformation space of the tab</div>
           </div>
-          <div class="plot-wrap"><canvas id="exPlot"></canvas><div class="badge" data-en="drag the dot" data-fr="glisser le point">drag the dot</div><button class="btn ghost on" id="exCloud" type="button" data-en="recorded frames" data-fr="images enregistrées">recorded frames</button></div>
+          <div class="plot-wrap"><canvas id="exPlot"></canvas></div>
           <div class="ex-legend">
             <span class="key"><i class="dot-sel"></i><span data-en="current state" data-fr="état courant">current state</span></span>
             <span class="key"><i class="arr-lat"></i><span data-en="latent effort Jᵀf" data-fr="effort latent Jᵀf">latent effort Jᵀf</span></span>
@@ -303,7 +322,6 @@
           <div class="loading" data-en="loading" data-fr="chargement">loading</div></div>
       </section>
     </div>
-    <p class="stats" id="mpStats"></p>
   </div>
 </main>
 

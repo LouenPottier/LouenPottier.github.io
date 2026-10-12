@@ -916,7 +916,7 @@
     function hoverText(d) {
       const q = D(d), sh = shellOn() && SHELL.SH.project(q).out;
       return 'q = (' + d[0].toFixed(2) + ', ' + d[1].toFixed(2) + ')'
-        + (sh ? (lang() === 'fr' ? ' · géométrie de la coque' : ' · shell geometry') : inHull(q) ? '' : ' · extrapolation');
+        + (sh || !inHull(q) ? ' · extrapolation' : '');
     }
     function place(d) { const q = D(d); S.q[0] = q[0]; S.q[1] = q[1]; S.v[0] = 0; S.v[1] = 0; }
     cv.addEventListener('pointerdown', e => {
@@ -934,8 +934,10 @@
     for (const ev of ['pointerup', 'pointercancel']) cv.addEventListener(ev, () => { X.drag = false; S.hold = false; S.v[0] = 0; S.v[1] = 0; });
     cv.addEventListener('pointerleave', () => { X.hover = null; $('exHover').innerHTML = '&nbsp;'; });
     new IntersectionObserver(es => { X.visible = es.some(e => e.isIntersecting); }).observe(cv);
-    $('exCloud').addEventListener('pointerdown', e => e.stopPropagation());
-    $('exCloud').onclick = () => { X.cloud = !X.cloud; $('exCloud').classList.toggle('on', X.cloud); geo = null; };
+    if ($('exCloud')) {
+      $('exCloud').addEventListener('pointerdown', e => e.stopPropagation());
+      $('exCloud').onclick = () => { X.cloud = !X.cloud; $('exCloud').classList.toggle('on', X.cloud); geo = null; };
+    }
     // changement de langue (lang.js) : etiquettes des axes
     new MutationObserver(() => { geo = null; }).observe(document.documentElement, {attributes: true, attributeFilter: ['lang']});
 
@@ -1300,12 +1302,12 @@
     }
     EX.frame();
     QT.draw();
-    $('mpQ').textContent = D(S.q).map(v => v.toFixed(2)).join(', ');
+    if ($('mpQ')) $('mpQ').textContent = D(S.q).map(v => v.toFixed(2)).join(', ');
     if (!S.replay && document.activeElement !== $('mpS')) $('mpS').value = S.target;
-    $('mpStats').textContent = (quality === 'high' ? 'high' : 'low') + ' resolution · ' + fps.toFixed(0) + ' fps · ' + Object.entries(ms)
+    if ($('mpStats')) $('mpStats').textContent = (quality === 'high' ? 'high' : 'low') + ' resolution · ' + fps.toFixed(0) + ' fps · ' + Object.entries(ms)
       .map(([k, v]) => k.replace('cv', '') + ' ' + v.toFixed(1) + ' ms').join(' · ')
       + (distAt(Array.from(S.q)) > 0 ? ' · edge of the explored domain' : '')
-      + (shellOn() && v3.M && v3.M.shellOut ? ' · beyond the data, shell geometry (r/R ' + v3.M.shellRatio.toFixed(2) + ')' : '');
+      + (shellOn() && v3.M && v3.M.shellOut ? ' · extrapolation (r/R ' + v3.M.shellRatio.toFixed(2) + ')' : '');
     requestAnimationFrame(loop);
   }
 
@@ -1342,7 +1344,7 @@
     if (!S.replay) { S.target = S.s; S.sd = 0; }
     if (!S.running) setRunning(true);
   };
-  $('mpKick').onclick = () => {
+  if ($('mpKick')) $('mpKick').onclick = () => {
     for (let i = 0; i < dq; i++) S.v[i] += (Math.random() * 2 - 1) * 12 * P.q_std[i];
     if (!S.running) setRunning(true);
   };
@@ -1360,7 +1362,7 @@
       v3.lastZ = null;
     };
   }
-  $('mpRest').onclick = () => { S.q[0] = LN.q_r[0]; S.q[1] = LN.q_r[1]; S.v.fill(0); };
+  if ($('mpRest')) $('mpRest').onclick = () => { S.q[0] = LN.q_r[0]; S.q[1] = LN.q_r[1]; S.v.fill(0); };
   $('mpHi').onclick = () => { if (started) useQuality(quality === 'high' ? 'low' : 'high'); };
   $('mpShell').onclick = () => {
     if (!SHELL.SH) return;
