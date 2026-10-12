@@ -15,7 +15,7 @@
 <meta charset="utf-8"/>
 <meta name="description" content="LaGSplat on a soft tab held by a robot arm: held-out video against the network reconstruction, and an interactive 3D demo driven by the latent state, extended beyond the recorded states by an elastic shell."/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Louen Pottier - LaGSplat: interactive physics-governed simulation from video alone</title>
+<title>Louen Pottier - LaGSplat: from videos to physics-governed interactive simulation</title>
 <link rel="stylesheet" href="./style.css"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&amp;family=Source+Sans+3:wght@300;400;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
@@ -159,8 +159,8 @@
   font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:#bbb;line-height:1.4;}
 #lags-demo.loaded .loading{display:none}
 
-.lags-head{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;}
-.lags-head .page-title{margin-bottom:.5rem;}
+.lags-head{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;flex-wrap:nowrap;}
+.lags-head .page-title{margin-bottom:.5rem;flex:1 1 auto;min-width:0;}
 .lags-affil{flex:0 0 auto;}
 .lags-affil img{height:46px;width:auto;display:block;object-fit:contain;}
 @media(max-width:720px){.lags-head{gap:.6rem;}.lags-affil img{height:34px;}}
@@ -197,9 +197,9 @@
 
   <div class="lags-head">
     <h1 class="page-title"
-        data-en="LaGSplat: interactive physics-governed simulation of 3D environments, learned from video alone"
-        data-fr="LaGSplat : simulation interactive d'environnements 3D régie par la physique, apprise à partir de simples vidéos">
-      LaGSplat: interactive physics-governed simulation of 3D environments, learned from video alone
+        data-en="LaGSplat: from videos to physics-governed interactive simulation"
+        data-fr="LaGSplat : de la vidéo à la simulation physique interactive">
+      LaGSplat: from videos to physics-governed interactive simulation
     </h1>
     <div class="lags-affil">
       <img src="./logos/cea-list.png" alt="CEA-List"
