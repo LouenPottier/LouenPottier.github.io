@@ -124,6 +124,8 @@
 #lags-demo .live-grid canvas.view{display:block;touch-action:none;cursor:grab;}
 #lags-demo .live-grid canvas.view.grabbing{cursor:grabbing}
 #lags-demo .live-grid canvas.ovl{position:absolute;pointer-events:none;}
+#lags-demo .touch-only{display:none}
+@media(hover:none) and (pointer:coarse){#lags-demo .touch-only{display:block}#lags-demo .mouse-only{display:none}}
 #lags-demo .live-warn{display:none;font-size:.86rem;color:var(--text-muted);
   border-left:2px solid var(--border);padding-left:11px;margin:0 0 1.2rem;}
 /* plans latents (q(t) et plan (q0, q1)) */
@@ -159,6 +161,29 @@
   font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:#bbb;line-height:1.4;}
 #lags-demo.loaded .loading{display:none}
 
+/* mobile : boutons, puis la 3D (prioritaire) en pleine largeur, puis q(t) et le plan latent cote a
+   cote, petits ; en-tetes et legendes reduits pour que boutons + 3D tiennent dans un ecran */
+@media(max-width:880px){
+  #lags-demo .controls{gap:8px;align-items:center;margin-bottom:10px;}
+  #lags-demo .controls #mpPlay{flex:0 0 auto;min-height:34px;}
+  #lags-demo .controls .ctl{flex:1 1 calc(100% - 60px);gap:2px;}
+  #lags-demo .controls input[type=range]{width:100%;height:4px;margin:8px 0;}
+  #lags-demo .controls .btn.ghost{flex:1 1 calc(50% - 4px);min-height:34px;font-size:.56rem;
+    padding:6px;line-height:1.25;white-space:normal;}
+  #lags-demo .live-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:stretch;}
+  #lags-demo .live-col{display:contents;}
+  #lags-demo .live-grid > .panel{grid-column:1 / -1;grid-row:1;}
+  #lags-demo .live-grid .stage.big{max-height:72svh;}
+  #lags-demo .live-col .panel .phead{padding:6px 8px;}
+  #lags-demo .live-col .panel .phead .tag,#lags-demo .live-col .panel .phead .sub{display:none;}
+  #lags-demo .live-col .panel .phead h2{font-size:.8rem;margin:0;line-height:1.25;}
+  #lags-demo .live-grid > .panel .phead{padding:7px 10px;}
+  #lags-demo .live-grid > .panel .phead .tag{display:none;}
+  #lags-demo .live-grid > .panel .phead h2{display:none;}
+  #lags-demo .plot-wrap.qt{aspect-ratio:auto;flex:1 1 auto;min-height:0;}
+  #lags-demo .ex-legend,#lags-demo .ex-hover{display:none;}
+  #lags-demo #exCloud{top:4px;left:4px;font-size:.5rem;padding:3px 5px;}
+}
 .lags-head{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;flex-wrap:nowrap;}
 .lags-head .page-title{margin-bottom:.5rem;flex:1 1 auto;min-width:0;}
 .lags-affil{flex:0 0 auto;}
@@ -268,9 +293,9 @@
       <h2 class="exp-title" data-en="Latent state and 3D decoder" data-fr="État latent et décodeur 3D">Latent state and 3D decoder</h2>
     </div>
     <p class="thesis"
-       data-en="Push the tab with the mouse in the 3D scene, or move the arm with the slider: the LNN computes the response of the tab and the 3D decoder renders it. On the left, q0 is the bending of the tab and q1 its twist; in the latent plane, each dot is a recorded frame and the red dot, which can be dragged, is the current state."
-       data-fr="Poussez la languette à la souris dans la scène 3D, ou déplacez le bras avec le curseur : le LNN calcule la réponse de la languette et le décodeur 3D la rend. À gauche, q0 est la flexion de la languette et q1 sa torsion ; dans le plan latent, chaque point est une image enregistrée et le point rouge, que l&#39;on peut glisser, est l&#39;état courant.">
-      Push the tab with the mouse in the 3D scene, or move the arm with the slider.
+       data-en="Push the tab in the 3D scene, or move the arm with the slider: the LNN computes the response of the tab and the 3D decoder renders it. In the two plots, q0 is the bending of the tab and q1 its twist; in the latent plane, each dot is a recorded frame and the red dot, which can be dragged, is the current state."
+       data-fr="Poussez la languette dans la scène 3D, ou déplacez le bras avec le curseur : le LNN calcule la réponse de la languette et le décodeur 3D la rend. Dans les deux graphes, q0 est la flexion de la languette et q1 sa torsion ; dans le plan latent, chaque point est une image enregistrée et le point rouge, que l&#39;on peut glisser, est l&#39;état courant.">
+      Push the tab in the 3D scene, or move the arm with the slider.
     </p>
 
     <p class="live-warn" id="liveWarn"></p>
@@ -316,7 +341,8 @@
         <div class="phead">
           <div class="tag" id="tag3d" data-en="3D decoder · 85 000 Gaussians · four views" data-fr="décodeur 3D · 85 000 gaussiennes · quatre vues">3D decoder · 85 000 Gaussians · four views</div>
           <h2 data-en="3D scene" data-fr="Scène 3D">3D scene</h2>
-          <div class="sub" data-en="left-drag on the tab to push it · right-drag to rotate · scroll to zoom" data-fr="glisser au clic gauche sur la languette pour la pousser · glisser au clic droit pour tourner · molette pour zoomer">left-drag on the tab to push it · right-drag to rotate · scroll to zoom</div>
+          <div class="sub mouse-only" data-en="left-drag on the tab to push it · right-drag to rotate · scroll to zoom" data-fr="glisser au clic gauche sur la languette pour la pousser · glisser au clic droit pour tourner · molette pour zoomer">left-drag on the tab to push it · right-drag to rotate · scroll to zoom</div>
+          <div class="sub touch-only" data-en="one finger on the tab to push it · two fingers to rotate and zoom" data-fr="un doigt sur la languette pour la pousser · deux doigts pour tourner et zoomer">one finger on the tab to push it · two fingers to rotate and zoom</div>
         </div>
         <div class="stage big"><canvas class="view" id="cv3d"></canvas><canvas class="ovl" id="ov3d"></canvas>
           <div class="loading" data-en="loading" data-fr="chargement">loading</div></div>

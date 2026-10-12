@@ -839,7 +839,8 @@
       if (geo && geo.W === W && geo.H === H) return true;
       cv.width = W; cv.height = H;
       // cadre carre (marge 7 % du cote) ; echelle EGALE sur q0 et q1 ; vue zoomable (view)
-      const side = Math.min(w, h), pad = 0.07 * side, inner = side - 2 * pad;
+      // marge plancher : sur mobile (panneau ~170 px) 7 % ne laisse pas la place aux etiquettes
+      const side = Math.min(w, h), pad = Math.max(0.07 * side, 22), inner = side - 2 * pad;
       const ox = (w - side) / 2 + pad, oy = (h - side) / 2 + pad;
       const [vlo, vhi] = view();
       const span = vhi[0] - vlo[0], sc = inner / span;
