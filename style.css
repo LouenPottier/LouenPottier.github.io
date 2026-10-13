@@ -316,7 +316,7 @@ a.hero-stat:hover .hero-stat-label::after { transform: translateX(2px); }
 
 .highlights-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
 }
 
