@@ -1828,14 +1828,14 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
 })();
 </script>
 
-<script src="./demo/krauss2_meta.js"></script>
-<script src="./demo/krauss2_gaussians.js"></script>
+<script src="./demo/krauss2_deform.js"></script>
+<script src="./demo/deform_splat.js"></script>
 <script src="./demo/krauss2_lnn.js"></script>
 <script src="./demo/krauss2_lnn_dyn.js"></script>
 <script>
 "use strict";
 (function(){
-  const META=window.KRAUSS2_META, P=window.KRAUSS2_LNN, L=window.Krauss2LNN, SP=window.GSSplat;
+  const META=window.KRAUSS2_DEFORM, P=window.KRAUSS2_LNN, L=window.Krauss2LNN, SP=window.DeformSplat;
   const cvRec=document.getElementById('cKrRecon');
   const cvOv=document.getElementById('cKrOverlay');
   const cvSt=document.getElementById('cKrState');
@@ -1864,12 +1864,12 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   let splat=null, JREF=1;
   (function(){
     try{
-      const b64=window.KRAUSS2_GAUSSIANS;
-      if(!b64) throw new Error('krauss2_gaussians.js absent');
+      const b64=META.b64;
+      if(!b64) throw new Error('krauss2_deform.js absent');
       const bin=atob(b64), buf=new ArrayBuffer(bin.length), u8=new Uint8Array(buf);
       for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
-      splat=SP.create(cvRec, buf, META, {maxSide: 512});
-      JREF=jacRef(new Float32Array(buf));
+      splat=SP.create(cvRec, buf, META, {maxSide: 512, whiten: P.whiten});
+      JREF=META.jref_u;
     }catch(err){
       console.error('[lagsplat/krauss2] décodeur GS indisponible :', err);
       const x=cvRec.getContext('2d');
@@ -1958,17 +1958,16 @@ requestAnimationFrame(()=>{resizeAll();rebuildAll();lastTime=performance.now();r
   });
 
   function updateGrab(z){
-    if(!st.grab||!splat||!st.anchorImg){ st.Fu=null; return; }
-    const sel=splat.select(z, st.anchorImg[0], st.anchorImg[1], selOpt);
-    if(!sel){ st.sel=null; st.Fu=null; showCount(); return; }
-    st.sel=sel;
-    st.pres=Math.min(1, (sel.wsum/sel.kernsum)/Math.max(st.pres0,1e-9));
+    if(!st.grab||!splat||!st.sel){ st.Fu=null; return; }
+    const sel=st.sel;
+    st.anchorImg=splat.pointOf(z, sel);     // suiveur : le point d'application suit la matiere
+    st.pres=1;
     const mi=splat.toImage(st.mouse[0], st.mouse[1], true);
     let fx=mi[0]-st.anchorImg[0], fy=mi[1]-st.anchorImg[1];
     const n=Math.hypot(fx,fy);
     if(n>FGRAB_MAX){ fx*=FGRAB_MAX/n; fy*=FGRAB_MAX/n; }
     st.tipImg=[st.anchorImg[0]+fx, st.anchorImg[1]+fy];
-    const J=sel.J;
+    const J=splat.jacobianOf(z, sel);
     const scale=st.pres*GRAB_FORCE*STIFF_U*SPAN_U/Math.max(JREF,1e-6);
     const Fz=new Float64Array(D);
     for(let i=0;i<D;i++) Fz[i]=scale*(J[i]*fx + J[D+i]*fy);
