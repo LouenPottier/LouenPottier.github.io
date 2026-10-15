@@ -356,7 +356,7 @@
   }
 
   /** Un pas de RK4 d'UNE frame (l'unité de temps du LNN). Options constantes sur le pas. */
-  function step(P, q, v, o, dt) {
+  function rk4(P, q, v, o, dt) {
     const d = P.d, h = dt === undefined ? P.dt_frames : dt;
     const add = (a, b, s) => {
       const r = new Float64Array(d);
@@ -376,6 +376,59 @@
       vn[i] = v[i] + (h / 6) * (k1v[i] + 2 * k2v[i] + 2 * k3v[i] + k4v[i]);
     }
     return { q: qn, v: vn };
+  }
+
+  /** Un pas d'UNE frame, stable hors des donnees (2026-10-15).
+   *
+   *  Hors du domaine des donnees, l'amortissement appris C(q) rapporte a la masse devient
+   *  tres grand (valeurs propres de da/dv jusqu'a -73 par frame a 4 rayons du repos) : la
+   *  dynamique continue amortit tres fort, mais le RK4 explicite est instable des que
+   *  |lambda| h depasse ~2.8, et la demo divergeait. On borne |lambda| par la norme infinie
+   *  de da/dv (differences finies, d evaluations) :
+   *    - h rho <= 2 : RK4 inchange (tout le domaine des donnees : dynamique identique) ;
+   *    - sinon jusqu'a MAXSUB sous-pas de RK4 ;
+   *    - au-dela, sous-pas d'Euler LINEAIREMENT IMPLICITE en vitesse,
+   *      v+ = v + hs (I - hs da/dv)^-1 a(q, v), q+ = q + hs v+, stable pour tout
+   *      amortissement (facteur 1 / (1 - hs lambda) sur un mode de valeur propre lambda < 0). */
+  const MAXSUB = 8, NIMP = 4;
+  function dadv(P, q, v, o, a0) {
+    const d = P.d, J = new Float64Array(d * d);
+    let rho = 0;
+    for (let j = 0; j < d; j++) {
+      const e = 1e-5 * Math.max(1, Math.abs(v[j])), vj = Float64Array.from(v);
+      vj[j] += e;
+      const a1 = accel(P, q, vj, o);
+      for (let i = 0; i < d; i++) J[i * d + j] = (a1[i] - a0[i]) / e;
+    }
+    for (let i = 0; i < d; i++) {
+      let s = 0;
+      for (let j = 0; j < d; j++) s += Math.abs(J[i * d + j]);
+      rho = Math.max(rho, s);
+    }
+    return { J, rho };
+  }
+  function step(P, q, v, o, dt) {
+    const d = P.d, h = dt === undefined ? P.dt_frames : dt;
+    const a0 = accel(P, q, v, o);
+    const st = dadv(P, q, v, o, a0);
+    if (h * st.rho <= 2) return rk4(P, q, v, o, h);
+    const n = Math.ceil(h * st.rho / 2);
+    if (n <= MAXSUB) {
+      let s = { q, v };
+      for (let i = 0; i < n; i++) s = rk4(P, s.q, s.v, o, h / n);
+      return s;
+    }
+    const hs = h / NIMP;
+    let qc = Float64Array.from(q), vc = Float64Array.from(v), a = a0, J = st.J;
+    for (let k = 0; k < NIMP; k++) {
+      if (k > 0) { a = accel(P, qc, vc, o); J = dadv(P, qc, vc, o, a).J; }
+      const A = new Float64Array(d * d);
+      for (let i = 0; i < d * d; i++) A[i] = -hs * J[i];
+      for (let i = 0; i < d; i++) A[i * d + i] += 1;
+      const dv = solveN(A, a, d);
+      for (let i = 0; i < d; i++) { vc[i] += hs * dv[i]; qc[i] += hs * vc[i]; }
+    }
+    return { q: qc, v: vc };
   }
 
   // ── conversions espace blanchi u ↔ espace latent brut z ───────────────────
@@ -414,7 +467,7 @@
   const kpaToP = (P, kpa) => kpa.map(k => k * 1000 / P.p_atm_pa);
 
   root.Krauss2LNN = {
-    accel, step, potential, pressureForce, cholSPD,
+    accel, step, rk4, potential, pressureForce, cholSPD,
     toU, toZ, forceToU, kpaToP,
   };
 })(typeof window !== 'undefined' ? window : globalThis);
