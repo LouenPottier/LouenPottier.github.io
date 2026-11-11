@@ -13,9 +13,172 @@
   gtag('config', 'G-FLKK795BKL');
 </script>
 <meta charset="utf-8"/>
-<meta name="description" content="An interactive research note from Louen Pottier's work on LaGSplat (Lagrangian Gaussian Splatting): why parameterising a dynamic scene by physical state q is far cheaper than by time t."/>
+<meta name="description" content="LaGSplat turns a few seconds of monocular video into an interactive, physics-governed 3D simulation: a Lagrangian neural network learns the equations of motion of the filmed rigid or deformable object in a learned latent state, and a Gaussian Splatting decoder renders it in real time, so a user can push on the object with forces never seen in training. Preprint arXiv:2608.16324, code, interactive demos."/>
+<meta name="keywords" content="LaGSplat, Latent Lagrangian Gaussian Splatting, physics from video, video to simulation, deformable object simulation from video, physics-aware Gaussian Splatting, interactive 3D Gaussian Splatting, Lagrangian neural network, digital twin from video, physics world model, system identification from video, sim-to-real, soft body, soft robot, 4D Gaussian Splatting, dynamic scene reconstruction, real-time simulation, CEA-List"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Louen Pottier - LaGSplat</title>
+<meta name="author" content="Louen Pottier"/>
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large"/>
+<title>LaGSplat: Physics-Governed Interactive Simulation from Monocular Video (Latent Lagrangian Gaussian Splatting) · Louen Pottier</title>
+<link rel="canonical" href="https://louenpottier.github.io/lagsplat.html"/>
+<link rel="alternate" type="application/pdf" href="https://louenpottier.github.io/pdf/LaGSplat_preprint.pdf" title="LaGSplat preprint (PDF)"/>
+
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="article"/>
+<meta property="og:site_name" content="Louen Pottier"/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:locale:alternate" content="fr_FR"/>
+<meta property="og:url" content="https://louenpottier.github.io/lagsplat.html"/>
+<meta property="og:title" content="LaGSplat: physics-governed interactive simulation from monocular video"/>
+<meta property="og:description" content="From a few seconds of video to an interactive 3D simulation: LaGSplat learns the equations of motion of a filmed rigid or deformable object and renders it with Gaussian Splatting, so it can be pushed with forces never seen in training. Preprint, code and live demos."/>
+<meta property="og:image" content="https://louenpottier.github.io/img/highlight_lagsplat.jpg"/>
+<meta property="og:image:width" content="1120"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="A filmed object reconstructed by LaGSplat and pushed interactively with a force"/>
+<meta property="article:published_time" content="2026-08-17"/>
+<meta property="article:modified_time" content="2026-10-26"/>
+<meta property="article:author" content="https://louenpottier.github.io/"/>
+<meta property="article:tag" content="Gaussian Splatting"/>
+<meta property="article:tag" content="Lagrangian neural networks"/>
+<meta property="article:tag" content="Physics from video"/>
+<meta property="article:tag" content="Deformable objects"/>
+<meta property="article:tag" content="World models"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="LaGSplat: physics-governed interactive simulation from monocular video"/>
+<meta name="twitter:description" content="From a few seconds of video to an interactive 3D simulation: learned equations of motion plus Gaussian Splatting, forces never seen in training. Preprint, code and live demos."/>
+<meta name="twitter:image" content="https://louenpottier.github.io/img/highlight_lagsplat.jpg"/>
+
+<!-- Google Scholar (Highwire Press tags) -->
+<meta name="citation_title" content="LaGSplat: Inferring Physics-Governed Interactive Simulation from Monocular Video Using Latent Lagrangian Gaussian Splatting"/>
+<meta name="citation_author" content="Pottier, Louen"/>
+<meta name="citation_author_institution" content="Université Paris-Saclay, CEA, List"/>
+<meta name="citation_publication_date" content="2026/08/17"/>
+<meta name="citation_online_date" content="2026/08/17"/>
+<meta name="citation_publisher" content="arXiv"/>
+<meta name="citation_arxiv_id" content="2608.16324"/>
+<meta name="citation_doi" content="10.48550/arXiv.2608.16324"/>
+<meta name="citation_pdf_url" content="https://louenpottier.github.io/pdf/LaGSplat_preprint.pdf"/>
+<meta name="citation_abstract_html_url" content="https://arxiv.org/abs/2608.16324"/>
+<meta name="citation_fulltext_html_url" content="https://arxiv.org/html/2608.16324"/>
+<meta name="citation_language" content="en"/>
+<meta name="citation_keywords" content="Gaussian Splatting; Lagrangian neural networks; physics from video; interactive simulation; deformable objects; latent dynamics; world models; digital twin; sim-to-real"/>
+<meta name="citation_abstract" content="We present LaGSplat (Latent Lagrangian Gaussian Splatting), a framework that infers interactive, physics-governed dynamics from one or a few monocular videos. At inference it lets a user push on the filmed object, rigid or deformable, with an external force that was never measured, annotated, or seen during training. This is possible because a low-dimensional latent state q ∈ ℝ^d plays two roles at once: it is the generalised coordinate of a learned dissipative Lagrangian and the conditioning variable of a Gaussian Splatting decoder. The inductive bias of this decoder, whose primitives are explicit points μᵢ(q) that move with the object, is what lets a force f applied in the image pull back into a latent generalised force J(q)ᵀf and enter the equations of motion, which pixel-space (CNN) or neural-field (NeRF) decoders cannot do. We validate LaGSplat on test cases of increasing difficulty, from rigid to deformable and from autonomous to forced real systems, combining monocular video and sensor measurements. We further demonstrate interactive use: forces of arbitrary magnitude and direction can be applied to the reconstructed object at any time, its response rendered in real time, in 2D or 3D. Assuming a dissipative Euler-Lagrange equation over a few generalised coordinates trades generality for a bounded, plausible response to unseen forces, where an unconstrained predictor diverges."/>
+
+<!-- Dublin Core -->
+<meta name="DC.title" content="LaGSplat: Inferring Physics-Governed Interactive Simulation from Monocular Video Using Latent Lagrangian Gaussian Splatting"/>
+<meta name="DC.creator" content="Pottier, Louen"/>
+<meta name="DC.date" content="2026-08-17"/>
+<meta name="DC.identifier" content="arXiv:2608.16324"/>
+<meta name="DC.type" content="Text"/>
+<meta name="DC.language" content="en"/>
+<meta name="DC.rights" content="CC BY-NC-SA 4.0"/>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": "https://louenpottier.github.io/#me",
+      "name": "Louen Pottier",
+      "url": "https://louenpottier.github.io/",
+      "jobTitle": "AI Research Engineer",
+      "affiliation": { "@type": "Organization", "name": "CEA-List", "url": "https://list.cea.fr/" },
+      "sameAs": [
+        "https://www.linkedin.com/in/louen-pottier/",
+        "https://github.com/LouenPottier/",
+        "https://scholar.google.fr/citations?hl=fr&user=dX-KWKQAAAAJ"
+      ]
+    },
+    {
+      "@type": "ScholarlyArticle",
+      "@id": "https://arxiv.org/abs/2608.16324",
+      "headline": "LaGSplat: Inferring Physics-Governed Interactive Simulation from Monocular Video Using Latent Lagrangian Gaussian Splatting",
+      "alternativeHeadline": "Latent Lagrangian Gaussian Splatting",
+      "name": "LaGSplat: Inferring Physics-Governed Interactive Simulation from Monocular Video Using Latent Lagrangian Gaussian Splatting",
+      "author": { "@id": "https://louenpottier.github.io/#me" },
+      "datePublished": "2026-08-17",
+      "dateModified": "2026-09-15",
+      "publisher": { "@type": "Organization", "name": "arXiv" },
+      "identifier": [
+        { "@type": "PropertyValue", "propertyID": "arXiv", "value": "2608.16324" },
+        { "@type": "PropertyValue", "propertyID": "DOI", "value": "10.48550/arXiv.2608.16324" }
+      ],
+      "sameAs": [ "https://arxiv.org/abs/2608.16324", "https://doi.org/10.48550/arXiv.2608.16324" ],
+      "url": "https://louenpottier.github.io/lagsplat.html",
+      "inLanguage": "en",
+      "isAccessibleForFree": true,
+      "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+      "encoding": { "@type": "MediaObject", "encodingFormat": "application/pdf", "contentUrl": "https://louenpottier.github.io/pdf/LaGSplat_preprint.pdf" },
+      "abstract": "We present LaGSplat (Latent Lagrangian Gaussian Splatting), a framework that infers interactive, physics-governed dynamics from one or a few monocular videos. At inference it lets a user push on the filmed object, rigid or deformable, with an external force that was never measured, annotated, or seen during training. This is possible because a low-dimensional latent state q plays two roles at once: it is the generalised coordinate of a learned dissipative Lagrangian and the conditioning variable of a Gaussian Splatting decoder. The inductive bias of this decoder, whose primitives are explicit points that move with the object, is what lets a force applied in the image pull back into a latent generalised force and enter the equations of motion, which pixel-space (CNN) or neural-field (NeRF) decoders cannot do. We validate LaGSplat on test cases of increasing difficulty, from rigid to deformable and from autonomous to forced real systems, combining monocular video and sensor measurements. We further demonstrate interactive use: forces of arbitrary magnitude and direction can be applied to the reconstructed object at any time, its response rendered in real time, in 2D or 3D. Assuming a dissipative Euler-Lagrange equation over a few generalised coordinates trades generality for a bounded, plausible response to unseen forces, where an unconstrained predictor diverges.",
+      "keywords": [
+        "Gaussian Splatting", "3D Gaussian Splatting", "4D Gaussian Splatting", "Lagrangian neural networks",
+        "physics from video", "video to simulation", "learning physics from video", "deformable object simulation",
+        "soft body", "soft robotics", "interactive simulation", "real-time simulation", "digital twin",
+        "physics-based world model", "system identification from video", "latent dynamics", "sim-to-real",
+        "dynamic scene reconstruction", "self-supervised learning"
+      ],
+      "about": [
+        { "@type": "Thing", "name": "Gaussian Splatting" },
+        { "@type": "Thing", "name": "Lagrangian neural networks" },
+        { "@type": "Thing", "name": "Physics simulation learned from video" },
+        { "@type": "Thing", "name": "Deformable object simulation" },
+        { "@type": "Thing", "name": "Interactive digital twins" },
+        { "@type": "Thing", "name": "World models" }
+      ],
+      "workExample": [
+        { "@id": "https://github.com/LouenPottier/LaGSplat" },
+        { "@id": "https://github.com/LouenPottier/lagsplat-mpov" }
+      ]
+    },
+    {
+      "@type": "SoftwareSourceCode",
+      "@id": "https://github.com/LouenPottier/LaGSplat",
+      "name": "LaGSplat (code of the paper)",
+      "codeRepository": "https://github.com/LouenPottier/LaGSplat",
+      "programmingLanguage": "Python",
+      "runtimePlatform": "PyTorch, gsplat, CUDA",
+      "author": { "@id": "https://louenpottier.github.io/#me" },
+      "about": { "@id": "https://arxiv.org/abs/2608.16324" },
+      "description": "Training code of the LaGSplat preprint: encoder, latent Lagrangian neural network and Gaussian Splatting decoder, with the soft continuum robot experiment reproduced end to end."
+    },
+    {
+      "@type": "SoftwareSourceCode",
+      "@id": "https://github.com/LouenPottier/lagsplat-mpov",
+      "name": "lagsplat-mpov (3D multi-view experiment)",
+      "codeRepository": "https://github.com/LouenPottier/lagsplat-mpov",
+      "programmingLanguage": "Python",
+      "author": { "@id": "https://louenpottier.github.io/#me" },
+      "about": { "@id": "https://arxiv.org/abs/2608.16324" },
+      "description": "Training code of the 3D LaGSplat experiment: a robot-held flexible strip filmed by four synchronized smartphones, turned into an interactive, physics-governed 3D Gaussian Splatting scene (demo shown at XR DAYS 2026)."
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://louenpottier.github.io/lagsplat.html",
+      "url": "https://louenpottier.github.io/lagsplat.html",
+      "name": "LaGSplat: physics-governed interactive simulation from monocular video",
+      "description": "Project page of the LaGSplat preprint, with interactive demos: a synthetic pendulum, a rocking chair, a hanging bag and a pneumatic soft robot, each simulated in the browser by the learned Lagrangian and rendered by the Gaussian Splatting decoder. LaGSplat (Latent Lagrangian Gaussian Splatting) turns a short video, filmed with a single phone or a few of them, into an interactive physics simulation of the filmed object. From the frames alone, without a simulator, a mesh, material parameters, motion capture or any measured force, it learns both the 3D appearance of the scene, as Gaussian Splatting, and the equations of motion that govern it, as a Lagrangian neural network acting on a few learned latent coordinates. The reconstructed object, rigid or deformable, can be pushed with forces never seen during training, from unseen initial conditions, and answers in real time, in 2D or 3D, with a bounded and physically plausible response. Uses: make a 3D Gaussian Splatting scene physical and interactive rather than a time-indexed replay (4D Gaussian Splatting, dynamic NeRF); build a digital twin of a real deformable or rigid object from video; learn a physics-constrained world model from video with the energy-dissipation guarantees of a Lagrangian neural network; identify the dynamics of a soft robot or a deformable structure from its own footage (system identification from video), with or without measured inputs such as a pressure or an actuator position; narrow the sim-to-real gap in robotics and virtual reality by fitting a simulator on real video.",
+      "text": "Positioning (Table 1 of the preprint). Dynamic novel-view synthesis (dynamic NeRF, 4D Gaussian Splatting, FreeTimeGS) reconstructs a moving scene indexed by time, so it can only replay the recorded clip and no force can be applied. Learned analytical mechanics (neural ODEs, Lagrangian, Hamiltonian and Deep Lagrangian networks, structure-preserving reduced-order models) recovers equations of motion that can be forced and extrapolated, but needs the generalised coordinates to be measured by sensors or produced by a simulator. Physics-based generation (PhysGaussian, PhysDreamer, PhysGen, VR-GS, NewtonGen, Force Prompting) animates a static scene with a hand-chosen simulator such as the material point method or a spring-mass system, or with a prior learned across other videos, with material parameters set or guessed, rather than learning the mechanics of the filmed system from its own video. Pixel-space physics from video (pixel Hamiltonian networks, neural state variables) learns a law from the system's own video but renders it on fixed pixels, so there is no material point to push on. LaGSplat holds the four properties at once: supervised by the video of the very system it simulates, a genuine dissipative Euler-Lagrange equation, explicit Gaussian primitives that move with the object, and an external force entering the dynamics at inference through the Jacobian of the decoder.",
+      "inLanguage": [ "en", "fr" ],
+      "isPartOf": { "@type": "WebSite", "@id": "https://louenpottier.github.io/#site", "name": "Louen Pottier", "url": "https://louenpottier.github.io/" },
+      "about": { "@id": "https://arxiv.org/abs/2608.16324" },
+      "mainEntity": { "@id": "https://arxiv.org/abs/2608.16324" },
+      "primaryImageOfPage": { "@type": "ImageObject", "contentUrl": "https://louenpottier.github.io/img/highlight_lagsplat.jpg", "width": 1120, "height": 630 },
+      "datePublished": "2026-08-17",
+      "dateModified": "2026-10-26",
+      "author": { "@id": "https://louenpottier.github.io/#me" },
+      "relatedLink": [ "https://louenpottier.github.io/xrdays.html", "https://arxiv.org/abs/2608.16324", "https://github.com/LouenPottier/LaGSplat" ],
+      "breadcrumb": {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Louen Pottier", "item": "https://louenpottier.github.io/" },
+          { "@type": "ListItem", "position": 2, "name": "Projects", "item": "https://louenpottier.github.io/projects.html" },
+          { "@type": "ListItem", "position": 3, "name": "LaGSplat", "item": "https://louenpottier.github.io/lagsplat.html" }
+        ]
+      }
+    }
+  ]
+}
+</script>
 <link rel="stylesheet" href="./style.css"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&amp;family=Source+Sans+3:wght@300;400;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
@@ -343,7 +506,7 @@
   </div>
 
   <figure class="lags-arch">
-    <img src="./demo/lags_architecture.png" alt="Architecture LaGSplat : encodeur CNN, réseau lagrangien latent, décodeur Gaussian Splatting, et rappel de la force utilisateur dans l'espace latent par la jacobienne du décodeur"/>
+    <img src="./demo/lags_architecture.png" alt="LaGSplat architecture: a CNN encoder maps each video frame to a low-dimensional latent state q, a latent Lagrangian neural network integrates the learned equations of motion, a Gaussian Splatting decoder renders the state, and a user force applied in the image is pulled back into the latent space through the Jacobian of the decoder"/>
     <figcaption
       data-en="LaGSplat infers the physics of an object from a few seconds of video: a visual encoder projects each frame into a low-dimensional latent space, a Lagrangian Neural Network learns the equations of motion there, then a Gaussian Splatting decoder reconstructs the scene in real time. An external force can be applied at any instant, anywhere in the scene, even though the training data contains no measured force."
       data-fr="LaGSplat identifie la physique d'un objet à partir de quelques secondes de vidéo : un encodeur visuel projette chaque image dans un espace latent de faible dimension, un réseau de neurones lagrangien y apprend les équations du mouvement, puis un décodeur Gaussian Splatting reconstruit la scène en temps réel. Un effort extérieur peut être appliqué à tout instant, en tout point de la scène, alors que les données d'entraînement ne contiennent aucune force mesurée.">
@@ -771,7 +934,7 @@
 
 </main>
 
-<footer><p data-en="Lovingly vibe-coded · Last updated August 2026" data-fr="Vibe-codé avec amour · Dernière màj août 2026">Vibe-codé avec amour · Dernière màj août 2026</p></footer>
+<footer><p data-en="Lovingly vibe-coded · Last updated October 2026" data-fr="Vibe-codé avec amour · Dernière màj octobre 2026">Lovingly vibe-coded · Last updated October 2026</p></footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>

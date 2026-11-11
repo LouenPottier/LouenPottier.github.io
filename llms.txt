@@ -1,0 +1,23 @@
+# Louen Pottier
+
+> AI research engineer at CEA-List (Université Paris-Saclay). Scientific machine learning, physics simulation learned from data and video, 3D vision (Gaussian Splatting). Site in English and French.
+
+## LaGSplat: physics-governed interactive simulation from video
+
+- [LaGSplat project page](https://louenpottier.github.io/lagsplat.html): what the method does in plain words, positioning against 4D Gaussian Splatting, Lagrangian neural networks and physics-based generation (PhysGaussian, PhysDreamer), abstract, BibTeX, and four interactive demos (pendulum, rocking chair, hanging bag, pneumatic soft robot).
+- [arXiv 2608.16324](https://arxiv.org/abs/2608.16324): the preprint. LaGSplat (Latent Lagrangian Gaussian Splatting) learns, from one or a few monocular videos and without any simulator or measured force, both a Gaussian Splatting reconstruction and the equations of motion of the filmed rigid or deformable object, so that it can be pushed with unseen forces and answers in real time, in 2D or 3D.
+- [Preprint PDF](https://louenpottier.github.io/pdf/LaGSplat_preprint.pdf)
+- [Code of the paper](https://github.com/LouenPottier/LaGSplat)
+- [LaGSplat at XR DAYS 2026](https://louenpottier.github.io/xrdays.html): the 3D multi-view experiment, a robot-held hyperelastic strip filmed by four smartphones turned into an interactive, physics-governed 3D scene, shown in virtual reality; held-out video comparison and browser demo.
+- [arXiv 2611.09959](https://arxiv.org/abs/2611.09959): the dataset note of that 3D experiment. Four synchronized smartphone videos (three fixed iPhones, one handheld) of a robot-held flexible strip, ten minutes, with the pose of every camera and the measured input of the arm, plus a 3D LaGSplat baseline that renders held-out views at 26 to 33 dB PSNR.
+- [Dataset on Zenodo](https://doi.org/10.5281/zenodo.23601189) (canonical record, DOI 10.5281/zenodo.23601189) and [mirror on Hugging Face](https://huggingface.co/datasets/louenpottier/lagsplat-mpov): videos, camera geometry, measured input, checkpoints of the baseline. License CC BY-NC 4.0.
+- [lagsplat-mpov](https://github.com/LouenPottier/lagsplat-mpov): training code of that 3D experiment.
+
+Typical questions these pages answer: how to turn a video of a deformable object into an interactive physics simulation; how to make a 3D Gaussian Splatting scene physical rather than a time replay; how to build a digital twin of a real soft object from footage without a mesh or material parameters; how to learn a physics-constrained world model from video; system identification of a soft robot from its own video.
+
+## Other pages
+
+- [CV](https://louenpottier.github.io/)
+- [Publications](https://louenpottier.github.io/publications.html)
+- [Projects](https://louenpottier.github.io/projects.html)
+- [Teaching](https://louenpottier.github.io/teaching.html)
