@@ -13,9 +13,114 @@
   gtag('config', 'G-FLKK795BKL');
 </script>
 <meta charset="utf-8"/>
-<meta name="description" content="LaGSplat on a soft tab held by a robot arm: held-out video against the network reconstruction, and an interactive 3D demo driven by the latent state, extended beyond the recorded states by an elastic shell."/>
+<meta name="description" content="A robot-held hyperelastic strip filmed by four smartphones becomes an interactive, physics-governed 3D Gaussian Splatting scene: LaGSplat learns the deformation state of the soft object and its equations of motion from the videos alone, then simulates its response to the user's hands in real time, in the browser and in a VR headset. Live demo shown at XR DAYS 2026, held-out video comparison, training code."/>
+<meta name="keywords" content="LaGSplat, XR DAYS 2026, interactive 3D Gaussian Splatting, physics-based Gaussian Splatting, deformable object simulation from video, soft body digital twin, multi-view video to simulation, robot manipulation of deformable objects, virtual reality physics, OpenXR, Lagrangian neural network, real-time simulation, CEA-List"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Louen Pottier - LaGSplat: from videos to physics-governed interactive simulation</title>
+<meta name="author" content="Louen Pottier"/>
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large"/>
+<title>LaGSplat at XR DAYS 2026: an interactive, physics-governed 3D scene learned from smartphone videos · Louen Pottier</title>
+<link rel="canonical" href="https://louenpottier.github.io/xrdays.html"/>
+
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="article"/>
+<meta property="og:site_name" content="Louen Pottier"/>
+<meta property="og:locale" content="en_US"/>
+<meta property="og:locale:alternate" content="fr_FR"/>
+<meta property="og:url" content="https://louenpottier.github.io/xrdays.html"/>
+<meta property="og:title" content="LaGSplat at XR DAYS 2026: a physical, interactive 3D scene learned from videos"/>
+<meta property="og:description" content="Four phone videos of a robot-held soft strip, and LaGSplat learns a 3D Gaussian Splatting scene with its own physics: push the strip with your hands in VR or in the browser, it answers in real time."/>
+<meta property="og:image" content="https://louenpottier.github.io/img/highlight_xrdays.jpg"/>
+<meta property="og:image:width" content="1120"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="Spectator view and headset view of the LaGSplat VR demo: a user pushes a soft strip held by a robot arm"/>
+<meta property="article:published_time" content="2026-10-11"/>
+<meta property="article:modified_time" content="2026-10-26"/>
+<meta property="article:author" content="https://louenpottier.github.io/"/>
+<meta property="article:tag" content="Gaussian Splatting"/>
+<meta property="article:tag" content="Virtual reality"/>
+<meta property="article:tag" content="Deformable objects"/>
+<meta property="article:tag" content="Physics from video"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="LaGSplat at XR DAYS 2026: a physical, interactive 3D scene learned from videos"/>
+<meta name="twitter:description" content="Four phone videos of a robot-held soft strip become an interactive 3D Gaussian Splatting scene with its own learned physics, in VR and in the browser."/>
+<meta name="twitter:image" content="https://louenpottier.github.io/img/highlight_xrdays.jpg"/>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": "https://louenpottier.github.io/#me",
+      "name": "Louen Pottier",
+      "url": "https://louenpottier.github.io/",
+      "jobTitle": "AI Research Engineer",
+      "affiliation": { "@type": "Organization", "name": "CEA-List", "url": "https://list.cea.fr/" },
+      "sameAs": [
+        "https://www.linkedin.com/in/louen-pottier/",
+        "https://github.com/LouenPottier/",
+        "https://scholar.google.fr/citations?hl=fr&user=dX-KWKQAAAAJ"
+      ]
+    },
+    {
+      "@type": "ScholarlyArticle",
+      "@id": "https://arxiv.org/abs/2608.16324",
+      "headline": "LaGSplat: Inferring Physics-Governed Interactive Simulation from Monocular Video Using Latent Lagrangian Gaussian Splatting",
+      "author": { "@id": "https://louenpottier.github.io/#me" },
+      "datePublished": "2026-08-17",
+      "identifier": { "@type": "PropertyValue", "propertyID": "arXiv", "value": "2608.16324" },
+      "sameAs": [ "https://arxiv.org/abs/2608.16324", "https://doi.org/10.48550/arXiv.2608.16324" ],
+      "url": "https://louenpottier.github.io/lagsplat.html"
+    },
+    {
+      "@type": "ScholarlyArticle",
+      "@id": "https://arxiv.org/abs/2611.09959",
+      "headline": "A four-view smartphone video dataset of a robot-held flexible strip, with camera poses and a 3D LaGSplat baseline",
+      "author": { "@id": "https://louenpottier.github.io/#me" },
+      "datePublished": "2026-11-11",
+      "identifier": { "@type": "PropertyValue", "propertyID": "arXiv", "value": "2611.09959" },
+      "sameAs": [ "https://arxiv.org/abs/2611.09959", "https://doi.org/10.48550/arXiv.2611.09959" ],
+      "isBasedOn": { "@id": "https://arxiv.org/abs/2608.16324" },
+      "url": "https://louenpottier.github.io/xrdays.html"
+    },
+    {
+      "@type": "SoftwareSourceCode",
+      "@id": "https://github.com/LouenPottier/lagsplat-mpov",
+      "name": "lagsplat-mpov",
+      "codeRepository": "https://github.com/LouenPottier/lagsplat-mpov",
+      "programmingLanguage": "Python",
+      "runtimePlatform": "PyTorch, gsplat, CUDA",
+      "author": { "@id": "https://louenpottier.github.io/#me" },
+      "about": [ { "@id": "https://arxiv.org/abs/2608.16324" }, { "@id": "https://arxiv.org/abs/2611.09959" } ],
+      "description": "Training code of the 3D LaGSplat experiment shown on this page: a robot-held flexible strip filmed by four synchronized smartphones, turned into an interactive, physics-governed 3D Gaussian Splatting scene."
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://louenpottier.github.io/xrdays.html",
+      "url": "https://louenpottier.github.io/xrdays.html",
+      "name": "LaGSplat at XR DAYS 2026: an interactive, physics-governed 3D scene learned from smartphone videos",
+      "description": "LaGSplat taken from a single monocular video to a real multi-view 3D scene. A hyperelastic strip held by a UR robot arm is filmed by four ordinary smartphones, three fixed and one moved by hand. From those videos alone, with no mesh, no material parameters and no simulator, the method learns a 3D Gaussian Splatting reconstruction of the room and of the strip, a two-dimensional deformation state of the strip (bending and twist), and a Lagrangian neural network that gives the strip its equations of motion, driven by the measured position of the arm. The outcome is a physics-governed, interactive 3D scene learned from video: a digital twin of a deformable object that can be pushed with the hand, in a VR headset (OpenXR) or in the browser, and answers in real time with a plausible, bounded deformation, including for states that were never recorded. The same scene ran live in virtual reality at XR DAYS 2026, La Ruche Industrielle, Vénissieux. Held-out video comparison (filmed vs reconstruction), interactive 3D demo with 85 000 Gaussians, training code published as lagsplat-mpov.",
+      "inLanguage": [ "en", "fr" ],
+      "isPartOf": { "@type": "WebSite", "@id": "https://louenpottier.github.io/#site", "name": "Louen Pottier", "url": "https://louenpottier.github.io/" },
+      "about": [ { "@id": "https://arxiv.org/abs/2608.16324" }, { "@id": "https://arxiv.org/abs/2611.09959" }, { "@id": "https://github.com/LouenPottier/lagsplat-mpov" } ],
+      "primaryImageOfPage": { "@type": "ImageObject", "contentUrl": "https://louenpottier.github.io/img/highlight_xrdays.jpg", "width": 1120, "height": 630 },
+      "datePublished": "2026-10-11",
+      "dateModified": "2026-11-11",
+      "author": { "@id": "https://louenpottier.github.io/#me" },
+      "relatedLink": [ "https://louenpottier.github.io/lagsplat.html", "https://arxiv.org/abs/2608.16324", "https://arxiv.org/abs/2611.09959", "https://github.com/LouenPottier/lagsplat-mpov" ],
+      "keywords": [ "Gaussian Splatting", "interactive 3D scene", "deformable object", "soft body", "digital twin", "physics from video", "multi-view video", "virtual reality", "robot manipulation", "Lagrangian neural network", "XR DAYS 2026" ],
+      "breadcrumb": {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Louen Pottier", "item": "https://louenpottier.github.io/" },
+          { "@type": "ListItem", "position": 2, "name": "Projects", "item": "https://louenpottier.github.io/projects.html" },
+          { "@type": "ListItem", "position": 3, "name": "LaGSplat at XR DAYS 2026", "item": "https://louenpottier.github.io/xrdays.html" }
+        ]
+      }
+    }
+  ]
+}
+</script>
 <link rel="stylesheet" href="./style.css"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&amp;family=Source+Sans+3:wght@300;400;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
@@ -255,7 +360,7 @@
 
   <div class="lags-byline">
     <p class="lags-meta">
-      <a href="./lagsplat.html" data-en="LaGSplat main page" data-fr="Page principale LaGSplat">LaGSplat main page</a><i>·</i><a href="https://arxiv.org/abs/2608.16324" target="_blank" rel="noopener">arXiv:2608.16324</a><i>·</i><a class="lags-x" href="https://github.com/LouenPottier/lagsplat-mpov" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="11" height="11" aria-hidden="true" focusable="false"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg><span data-en="Code" data-fr="Code">Code</span></a><i>·</i><a class="lags-x" href="https://lnkd.in/p/eZRrSS3e" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="11" height="11" aria-hidden="true" focusable="false"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0z"/></svg><span data-en="Post" data-fr="Post">Post</span></a><i>·</i><a href="https://list.cea.fr/en/" target="_blank" rel="noopener">CEA&#8209;List</a>
+      <a href="./lagsplat.html" data-en="LaGSplat main page" data-fr="Page principale LaGSplat">LaGSplat main page</a><i>·</i><a href="https://arxiv.org/abs/2611.09959" target="_blank" rel="noopener">arXiv:2611.09959</a><i>·</i><a class="lags-x" href="https://github.com/LouenPottier/lagsplat-mpov" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="11" height="11" aria-hidden="true" focusable="false"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg><span data-en="Code" data-fr="Code">Code</span></a><i>·</i><a class="lags-x" href="https://lnkd.in/p/eZRrSS3e" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="11" height="11" aria-hidden="true" focusable="false"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0z"/></svg><span data-en="Post" data-fr="Post">Post</span></a><i>·</i><a href="https://list.cea.fr/en/" target="_blank" rel="noopener">CEA&#8209;List</a>
     </p>
   </div>
 
@@ -372,14 +477,25 @@
 
     <section class="lags-cite">
       <h2 data-en="Cite this work" data-fr="Citer ce travail">Cite this work</h2>
-      <p data-en="This demo is built on the LaGSplat preprint; a publication on the dataset is in preparation. In the meantime, if you use this work, please cite it as:"
-         data-fr="Cette démo s'appuie sur le preprint LaGSplat ; une publication sur le jeu de données est en préparation. En attendant, si vous utilisez ce travail, merci de le citer ainsi :">
-        This demo is built on the LaGSplat preprint; a publication on the dataset is in preparation. In the meantime, if you use this work, please cite it as:
+      <p data-en="The dataset, the camera poses and this 3D baseline are described in a short arXiv note; the method itself is the LaGSplat preprint. If you use this work, please cite:"
+         data-fr="Le jeu de données, la calibration des caméras et cette première reconstruction 3D font l'objet d'un court article sur arXiv ; la méthode elle-même est décrite dans le preprint LaGSplat. Si vous utilisez ce travail, merci de citer :">
+        The dataset, the camera poses and this 3D baseline are described in a short arXiv note; the method itself is the LaGSplat preprint. If you use this work, please cite:
       </p>
       <div class="lags-cite-box">
         <button type="button" class="lags-cite-copy" onclick="copyBibtex(this)"
                 data-en="copy" data-fr="copier">copy</button>
-        <pre id="lags-bibtex">@misc{pottier2026lagsplat,
+        <pre id="lags-bibtex">@misc{pottier2026mpov,
+  title         = {A four-view smartphone video dataset of a robot-held flexible strip,
+                   with camera poses and a 3D LaGSplat baseline},
+  author        = {Pottier, Louen},
+  year          = {2026},
+  eprint        = {2611.09959},
+  archivePrefix = {arXiv},
+  url           = {https://arxiv.org/abs/2611.09959},
+  note          = {Dataset and checkpoints: doi:10.5281/zenodo.23601189}
+}
+
+@misc{pottier2026lagsplat,
   title         = {LaGSplat: Inferring Physics-Governed Interactive Simulation from
                    Monocular Video Using Latent Lagrangian Gaussian Splatting},
   author        = {Pottier, Louen},
