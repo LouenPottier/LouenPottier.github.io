@@ -86,3 +86,31 @@ function setupMobileLogos() {
 setupMobileLinks();
 setupMobileLogos();
 window.addEventListener('resize', () => { setupMobileLinks(); setupMobileLogos(); });
+
+// « Cited by » (publications.html) : déplier la liste ne doit pas déplacer l'image.
+// La colonne image est centrée verticalement (align-self: center) ; on fige sa
+// position au moment du dépliement, puis on rend le centrage à la fermeture.
+function setupCitedBy() {
+  document.querySelectorAll('.card .cited-by').forEach(details => {
+    const card = details.closest('.card');
+    const imgCol = card && card.querySelector(':scope > .card-image-col');
+    const summary = details.querySelector('summary');
+    if (!imgCol || !summary) return;
+    summary.addEventListener('click', () => {
+      if (details.open || window.innerWidth <= MOBILE_BREAKPOINT) return;
+      const anyOpen = card.querySelector('.cited-by[open]');
+      if (anyOpen) return;
+      const offset = imgCol.getBoundingClientRect().top - card.getBoundingClientRect().top
+        - parseFloat(getComputedStyle(card).paddingTop);
+      imgCol.style.alignSelf = 'start';
+      imgCol.style.marginTop = offset + 'px';
+    });
+    details.addEventListener('toggle', () => {
+      if (!details.open) {
+        imgCol.style.alignSelf = '';
+        imgCol.style.marginTop = '';
+      }
+    });
+  });
+}
+setupCitedBy();
