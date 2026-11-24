@@ -43,8 +43,8 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbo
 // Seuil mobile synchronisé avec le breakpoint CSS (style.css @media max-width: 720px)
 const MOBILE_BREAKPOINT = 720;
 
-// Déplace .card-links (et le « Cited by » qui le suit) hors du .card-body sur
-// mobile, pour les afficher sous l'image. Ordre conservé : liens puis citations.
+// Déplace .card-links hors du .card-body sur mobile, pour l'afficher sous
+// l'image. Le « Cited by » est rangé DANS .card-links, à côté des liens.
 function setupMobileLinks() {
   const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
   document.querySelectorAll('.card').forEach(card => {
@@ -55,7 +55,7 @@ function setupMobileLinks() {
     if (isMobile) {
       if (!card.querySelector(':scope > .card-links')) {
         card.appendChild(links);
-        if (cited) card.appendChild(cited);
+        if (cited) links.appendChild(cited);   // sur la même ligne que arXiv / PDF
       }
     } else {
       if (card.querySelector(':scope > .card-links')) {
