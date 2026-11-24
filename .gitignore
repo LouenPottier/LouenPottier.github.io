@@ -20,3 +20,4 @@ Thumbs.db
 
 # venv Python (outillage local, génération QR code)
 venv/
+.aider*

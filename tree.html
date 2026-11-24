@@ -13,9 +13,17 @@
   gtag('config', 'G-FLKK795BKL');
 </script>
 <meta charset="utf-8"/>
-<meta name="description" content="Unlisted LaGSplat test case: a potted pine tree filmed with a laptop webcam, 6-D latent state, linear oscillator, live CPU Gaussian Splatting decoder."/>
+<meta name="description" content="A small pine tree filmed with a laptop webcam, turned into an interactive physical simulation in two ways, side by side: LaGSplat, with a learned Lagrangian and 15 000 Gaussians, and a version with zero training built on 3D Gaussians predicted from a single image."/>
 <meta name="robots" content="noindex, nofollow"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta property="og:type" content="article"/>
+<meta property="og:title" content="LaGSplat: a small pine tree, filmed with a webcam"/>
+<meta property="og:description" content="Interactive physical simulation of a pine tree from webcam videos. Two versions side by side: LaGSplat, trained, and zero training with 3D Gaussians from a single image. Pull the branches in your browser."/>
+<meta property="og:image" content="https://louenpottier.github.io/img/projets/tree_og.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:url" content="https://louenpottier.github.io/tree.html"/>
+<meta name="twitter:card" content="summary_large_image"/>
 <title>Louen Pottier - LaGSplat · pine tree</title>
 <link rel="stylesheet" href="./style.css"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -139,6 +147,11 @@
 #lags-demo .exp-tag{
   font-family:var(--mono);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;
   color:var(--navy-light);margin:0 0 .5rem;
+}
+#lags-demo .exp-head.sub{margin:2rem 0 .8rem;}
+#lags-demo .exp-sub{
+  font-family:'Lora',Georgia,serif;font-weight:600;font-size:1.1rem;line-height:1.25;
+  color:var(--navy);margin:0;
 }
 #lags-demo .exp-title{
   font-family:'Lora',Georgia,serif;font-weight:600;font-size:1.4rem;line-height:1.2;
@@ -322,6 +335,51 @@
   transition:color .15s ease,border-color .15s ease;
 }
 .lags-cite-copy:hover{color:var(--navy);border-color:var(--navy-light);}
+
+/* Colonne sans entrainement : demo SHARP, chargee a la demande */
+#lags-demo{--z:#c8742a;}
+#lags-demo .panel.z{border-top:3px solid var(--z)}
+#lags-demo .panel.z .phead .tag{color:var(--z)}
+#lags-demo .seg{display:inline-flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+#lags-demo .seg button{font-family:var(--mono);font-size:.64rem;letter-spacing:.05em;text-transform:uppercase;
+  border:0;background:transparent;color:var(--text-muted);padding:8px 11px;cursor:pointer;line-height:1;}
+#lags-demo .seg button+button{border-left:1px solid var(--border);}
+#lags-demo .seg button.on{background:var(--navy);color:#fff;}
+#lags-demo .zstack{position:relative;width:100%;aspect-ratio:1/1;background:#000;}
+#lags-demo .zstack canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+#lags-demo #zOv{cursor:grab;touch-action:none;}
+#lags-demo #zOv.grab{cursor:grabbing;}
+#lags-demo #zOv.orbit{cursor:move;}
+#lags-demo .zstack .viewer-play-overlay{width:auto;height:auto;border-radius:var(--radius);padding:14px 20px;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;line-height:1.5;text-align:center;}
+#lags-demo .zstack .viewer-play-overlay:hover{transform:translate(-50%,-50%);}
+#lags-demo .zstack .zloading{cursor:default;pointer-events:none;background:rgba(26,46,74,.7);}
+#lags-demo .zstack .zmsg{position:absolute;left:12px;right:12px;bottom:12px;color:#ddd;font-family:var(--mono);
+  font-size:.62rem;letter-spacing:.05em;text-transform:uppercase;text-align:center;}
+#lags-demo .zstage{position:relative;width:100%;aspect-ratio:1/1;
+  background:radial-gradient(130% 120% at 50% 12%,#ffffff 0%,#eef0f3 100%);}
+#lags-demo .zstage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+#lags-demo .zstage canvas#zReal{background:#000;}
+#lags-demo .zinfo{font-family:var(--mono);font-size:.66rem;letter-spacing:.03em;color:var(--text-muted);
+  padding:10px 15px 12px;border-top:1px solid var(--border-soft);line-height:1.6;}
+#lags-demo .zinfo b{color:var(--navy);font-weight:600}
+
+/* Deux démos interactives côte à côte */
+#lags-demo .cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px;align-items:start;}
+@media(max-width:980px){#lags-demo .cols{grid-template-columns:1fr}}
+#lags-demo .col2{display:flex;flex-direction:column;min-width:0;}
+/* même hauteur de rangée dans les deux colonnes (titre, texte, contrôles, image, tracé) */
+@supports (grid-template-rows: subgrid){
+  #lags-demo .cols{grid-auto-rows:auto;row-gap:0;}
+  #lags-demo .col2{display:grid;grid-row:span 5;grid-template-rows:subgrid;align-content:start;}
+  #lags-demo .col2 > .rock-controls{align-self:end;}
+}
+#lags-demo .col2 .vid-note{min-height:0;}
+#lags-demo .col2 .rock-controls{gap:10px 16px;margin:0 0 1rem;}
+#lags-demo .col2 .panel+.panel{margin-top:14px;}
+#lags-demo .zstage.wide{aspect-ratio:2/1;}
+#lags-demo .zstage.wide canvas#zReal{left:50%;width:auto;height:100%;aspect-ratio:1/1;transform:translateX(-50%);}
+#lags-demo #tGl{touch-action:none;}
 </style>
 </head>
 <body>
@@ -365,85 +423,134 @@
   <div id="lags-demo">
 
     <p class="thesis"
-       data-en="A potted pine tree, filmed with the built-in webcam of a low-end laptop (30 takes of a few seconds, the tree pushed by hand then left to swing freely, one take held out). No GPU was used anywhere in this experiment. The encoder is not a network here: 595 keypoints are tracked in every take and a single SVD of their displacements gives a latent state <span class='qk'>q</span>: twelve coordinates were kept for training, then the six that do not oscillate (slow drifts, invisible on screen) were removed by marginalising the Gaussians, leaving a 6-D state whose first two coordinates are the two sway directions of the trunk and the others the motion of individual branches. The dynamics is the simplest possible Lagrangian, a linear oscillator <i>q&#776; = &minus;K q &minus; C q&#775; + b</i> with 6&times;6 stiffness and damping matrices (all six modes oscillate, between 2.7 and 4.8&thinsp;Hz), fitted on the rollouts of the 29 training takes. The Gaussians are parameterised by <span class='qk'>(x, y, q&#8321;, &hellip;, q&#8326;)</span> with a full 8&times;8 covariance each and were trained on a CPU with a small local-window rasteriser."
-       data-fr="Un sapin en pot, film&eacute; avec la webcam int&eacute;gr&eacute;e d'un portable d'entr&eacute;e de gamme (30 prises de quelques secondes, le sapin pouss&eacute; &agrave; la main puis laiss&eacute; osciller librement, une prise mise de c&ocirc;t&eacute;). Aucun GPU n'intervient dans cette exp&eacute;rience. L'encodeur n'est pas un r&eacute;seau : 595 keypoints sont suivis dans toutes les prises et une seule SVD de leurs d&eacute;placements donne un &eacute;tat latent <span class='qk'>q</span> : douze coordonn&eacute;es ont servi &agrave; l'entra&icirc;nement, puis les six qui n'oscillent pas (d&eacute;rives lentes, invisibles &agrave; l'&eacute;cran) ont &eacute;t&eacute; retir&eacute;es en marginalisant les gaussiennes, d'o&ugrave; un &eacute;tat &agrave; 6 dimensions dont les deux premi&egrave;res coordonn&eacute;es sont les deux directions de balancement du tronc et les autres le mouvement de branches individuelles. La dynamique est le lagrangien le plus simple possible, un oscillateur lin&eacute;aire <i>q&#776; = &minus;K q &minus; C q&#775; + b</i> &agrave; matrices de raideur et d'amortissement 6&times;6 (les six modes oscillent, entre 2,7 et 4,8&thinsp;Hz), ajust&eacute; sur les rollouts des 29 prises d'entra&icirc;nement. Les gaussiennes sont param&eacute;tr&eacute;es par <span class='qk'>(x, y, q&#8321;, &hellip;, q&#8326;)</span>, chacune avec une covariance 8&times;8 pleine, et ont &eacute;t&eacute; entra&icirc;n&eacute;es sur CPU avec un petit rast&eacute;riseur &agrave; fen&ecirc;tre locale.">
-      A potted pine tree, filmed with the built-in webcam of a low-end laptop (30 takes of a few seconds, the tree pushed by hand then left to swing freely, one take held out). No GPU was used anywhere in this experiment. The encoder is not a network here: 595 keypoints are tracked in every take and a single SVD of their displacements gives a latent state <span class="qk">q</span>: twelve coordinates were kept for training, then the six that do not oscillate (slow drifts, invisible on screen) were removed by marginalising the Gaussians, leaving a 6-D state whose first two coordinates are the two sway directions of the trunk and the others the motion of individual branches. The dynamics is the simplest possible Lagrangian, a linear oscillator <i>q̈ = −K q − C q̇ + b</i> with 6×6 stiffness and damping matrices (all six modes oscillate, between 2.7 and 4.8 Hz), fitted on the rollouts of the 29 training takes. The Gaussians are parameterised by <span class="qk">(x, y, q₁, …, q₆)</span> with a full 8×8 covariance each and were trained on a CPU with a small local-window rasteriser.
+       data-en="A small potted pine tree, filmed with the built-in webcam of a laptop: 30 takes of a few seconds, the tree pushed by hand then left to swing freely, one take (take 9) kept aside for testing. The same videos are turned into an interactive physical simulation in two ways, shown side by side. On the left, <b>LaGSplat</b>: an encoder, a learned Lagrangian and a Gaussian Splatting decoder, all trained on these videos. On the right, a version with <b>zero training</b>: every step is a closed-form fit, and the only network involved is a pretrained image-to-3D model, run once on a single frame. In both, you can pull the branches with the mouse or the finger, and the dynamics runs in your browser."
+       data-fr="Un petit sapin en pot, filmé avec la webcam intégrée d'un portable : 30 prises de quelques secondes, le sapin poussé à la main puis laissé osciller librement, une prise (la prise 9) mise de côté pour le test. Ces vidéos sont transformées en simulation physique interactive de deux façons, présentées côte à côte. À gauche, <b>LaGSplat</b> : un encodeur, un lagrangien appris et un décodeur Gaussian Splatting, tous entraînés sur ces vidéos. À droite, une version <b>sans entraînement</b> : chaque étape est un ajustement en forme close, et le seul réseau utilisé est un modèle image vers 3D pré-entraîné, appliqué une seule fois à une seule image. Dans les deux, on peut tirer les branches à la souris ou au doigt, et la dynamique tourne dans le navigateur.">
+      A small potted pine tree, filmed with the built-in webcam of a laptop.
     </p>
 
+    <div class="cols">
+
+      <!-- ══════════════ colonne gauche : LaGSplat ══════════════ -->
+      <div class="col2">
+        <div class="exp-head">
+          <p class="exp-tag" data-en="LaGSplat · trained" data-fr="LaGSplat · entraîné">LaGSplat · trained</p>
+          <h2 class="exp-title" data-en="Learned Lagrangian, 15 000 Gaussians" data-fr="Lagrangien appris, 15 000 gaussiennes">Learned Lagrangian, 15 000 Gaussians</h2>
+        </div>
+        <p class="vid-note"
+           data-en="A convolutional encoder maps each frame to a 6-D latent state <span class='qk'>q</span>; it is trained jointly with a Gaussian Splatting decoder on 25 takes. The dynamics is a learned Lagrangian: an invex potential, a mass matrix <i>M</i>(<i>q</i>) and a dissipation <i>C</i>(<i>q</i>), all learned with the encoder frozen. The decoder shown here has 15&thinsp;000 Gaussians parameterised by <span class='qk'>(x, y, q&#8321;, &hellip;, q&#8326;)</span>, retrained with the same frozen encoder. Drag anywhere on the image: the force <i>f</i> is pulled back to the latent space as <i>J</i>&#7488;<i>f</i>, <i>J</i> being the Jacobian of the Gaussians under the cursor."
+           data-fr="Un encodeur convolutif envoie chaque image sur un état latent <span class='qk'>q</span> à 6 dimensions ; il est entraîné avec un décodeur Gaussian Splatting sur 25 prises. La dynamique est un lagrangien appris : un potentiel invexe, une matrice de masse <i>M</i>(<i>q</i>) et une dissipation <i>C</i>(<i>q</i>), tous appris à encodeur figé. Le décodeur affiché a 15&thinsp;000 gaussiennes paramétrées par <span class='qk'>(x, y, q&#8321;, &hellip;, q&#8326;)</span>, réentraîné avec le même encodeur figé. Glissez n'importe où sur l'image : la force <i>f</i> est ramenée dans l'espace latent par <i>J</i>&#7488;<i>f</i>, <i>J</i> étant la jacobienne des gaussiennes sous le curseur.">
+          A convolutional encoder maps each frame to a 6-D latent state q.
+        </p>
+        <div class="rock-controls">
+          <button class="btn" id="tPlay" title="play / pause">⏸</button>
+          <div class="ctl">
+            <label><span class="lbl" data-en="Force" data-fr="Force">Force</span> <span class="val" id="tVf">×1.0</span></label>
+            <input id="tForce" type="range" min="20" max="300" value="100">
+          </div>
+          <button class="btn ghost" id="tRelease" data-en="release" data-fr="lâcher">release</button>
+          <button class="btn ghost" id="tRest" data-en="rest" data-fr="repos">rest</button>
+        </div>
+        <section class="panel q">
+          <div class="phead">
+            <div class="tag" data-en="GS decoder · WebGL · checkpoint at epoch 105 of 730" data-fr="décodeur GS · WebGL · checkpoint à l'époque 105 sur 730">GS decoder · WebGL</div>
+            <h2 data-en="Decoded image" data-fr="Image décodée">Decoded image</h2>
+            <div class="sub" data-en="re-rasterised at every frame from the current state; drag to pull" data-fr="re-rastérisée à chaque image depuis l'état courant ; glisser pour tirer">re-rasterised at every frame from the current state; drag to pull</div>
+          </div>
+          <div class="zstack">
+            <canvas id="tGl"></canvas>
+            <canvas id="tOv"></canvas>
+            <div class="zmsg" id="tMsg"></div>
+          </div>
+        </section>
+        <section class="panel q zsec">
+          <div class="phead">
+            <div class="tag" data-en="latent state" data-fr="état latent">latent state</div>
+            <h2 data-en="Six latent coordinates, last 6 s" data-fr="Les six coordonnées latentes, 6 dernières s">Six latent coordinates, last 6 s</h2>
+          </div>
+          <div class="zstage wide"><canvas id="tState"></canvas></div>
+        </section>
+      </div>
+
+      <!-- ══════════════ colonne droite : sans entraînement ══════════════ -->
+      <div class="col2">
+        <div class="exp-head">
+          <p class="exp-tag" data-en="zero training" data-fr="sans entraînement">zero training</p>
+          <h2 class="exp-title" data-en="3D Gaussians from a single image" data-fr="Gaussiennes 3D depuis une seule image">3D Gaussians from a single image</h2>
+        </div>
+        <p class="vid-note"
+           data-en="No gradient descent. The latent state <span class='qk'>q</span> is the SVD of the displacements of 595 tracked keypoints (6 coordinates). The dynamics is a second-order linear autoregressive model fitted by least squares on 29 takes, which gives the stiffness, damping and mass matrices of a linear oscillator. The 3D Gaussians come from SHARP (Apple, ICLR 2026), a pretrained model that predicts Gaussians from one image: it is run once, on a frame where the tree is at rest, and the 400&thinsp;000 most opaque of its 1.18 million Gaussians are kept. Each Gaussian moves with <span class='qk'>q</span> through a displacement field <i>u</i>(<i>p</i>, <i>q</i>) = <i>A</i>(<i>p</i>) <i>q</i>, a least-squares regression of the optical flow on <span class='qk'>q</span>, lifted to 3D at constant depth. The whole fit takes less than a minute. Because the Gaussians are in 3D, the camera can turn around the tree; only what the webcam saw is reconstructed, so turning too far shows holes."
+           data-fr="Aucune descente de gradient. L'état latent <span class='qk'>q</span> est la SVD des déplacements de 595 keypoints suivis (6 coordonnées). La dynamique est un modèle autorégressif linéaire d'ordre 2 ajusté par moindres carrés sur 29 prises, qui donne les matrices de raideur, d'amortissement et de masse d'un oscillateur linéaire. Les gaussiennes 3D viennent de SHARP (Apple, ICLR 2026), un modèle pré-entraîné qui prédit des gaussiennes depuis une seule image : il est appliqué une fois, à une image où le sapin est au repos, et on garde les 400&thinsp;000 plus opaques de ses 1,18 million de gaussiennes. Chaque gaussienne suit <span class='qk'>q</span> par un champ de déplacement <i>u</i>(<i>p</i>, <i>q</i>) = <i>A</i>(<i>p</i>) <i>q</i>, régression par moindres carrés du flux optique sur <span class='qk'>q</span>, relevée en 3D à profondeur constante. L'ajustement complet prend moins d'une minute. Les gaussiennes étant en 3D, la caméra peut tourner autour du sapin ; seul ce que la webcam a vu est reconstruit, donc en tournant trop on voit des trous.">
+          No gradient descent.
+        </p>
+        <div class="rock-controls">
+          <span class="seg" id="zModeSeg">
+            <button data-v="sim" class="on" data-en="interactive" data-fr="interactif">interactive</button>
+            <button data-v="roll" data-en="take 9 · rollout" data-fr="prise 9 · rollout">take 9 · rollout</button>
+            <button data-v="meas" data-en="take 9 · measured q" data-fr="prise 9 · q mesuré">take 9 · measured q</button>
+          </span>
+          <span class="seg" id="zDragSeg">
+            <button data-v="push" class="on" data-en="pull" data-fr="tirer">pull</button>
+            <button data-v="orbit" data-en="rotate" data-fr="tourner">rotate</button>
+          </span>
+          <div class="ctl">
+            <label><span class="lbl" data-en="Amplification" data-fr="Amplification">Amplification</span> <span class="val" id="zGainV">×1.0</span></label>
+            <input id="zGain" type="range" min="1" max="5" step="0.5" value="1">
+          </div>
+          <button class="btn ghost" id="zKick" data-en="flick" data-fr="pichenette">flick</button>
+          <button class="btn ghost" id="zRest" data-en="rest" data-fr="repos">rest</button>
+          <button class="btn ghost" id="zHome" data-en="front view" data-fr="vue de face">front view</button>
+        </div>
+        <section class="panel z">
+          <div class="phead">
+            <div class="tag" data-en="3D Gaussians · WebGL" data-fr="gaussiennes 3D · WebGL">3D Gaussians · WebGL</div>
+            <h2 id="zTitleModel" data-en="SHARP Gaussians driven by q" data-fr="Gaussiennes SHARP pilotées par q">SHARP Gaussians driven by q</h2>
+            <div class="sub" data-en="pull: drag a branch · rotate: drag to turn, scroll to zoom (also right click or Ctrl + drag)" data-fr="tirer : glisser une branche · tourner : glisser pour tourner, molette pour zoomer (aussi clic droit ou Ctrl + glisser)">pull: drag a branch · rotate: drag to turn, scroll to zoom</div>
+          </div>
+          <div class="zstack">
+            <canvas id="zGl" width="768" height="768"></canvas>
+            <canvas id="zOv" width="768" height="768"></canvas>
+            <div class="viewer-play-overlay zloading" id="zLoad"
+                 data-en="loading the 3D demo&hellip;<br>(23 MB)" data-fr="chargement de la démo 3D&hellip;<br>(23 Mo)">loading the 3D demo… (23 MB)</div>
+            <div class="zmsg" id="zMsg"></div>
+          </div>
+        </section>
+        <section class="panel z zsec">
+          <div class="phead">
+            <div class="tag" id="zTagRight" data-en="latent state" data-fr="état latent">latent state</div>
+            <h2 id="zTitleRight" data-en="Six latent coordinates, last 6 s" data-fr="Les six coordonnées latentes, 6 dernières s">Six latent coordinates, last 6 s</h2>
+            <div class="sub" id="zSubRight" data-en="" data-fr=""></div>
+          </div>
+          <div class="zstage wide">
+            <canvas id="zTrace"></canvas>
+            <canvas id="zReal" width="512" height="512" style="display:none"></canvas>
+          </div>
+          <div class="zinfo" id="zInfo"></div>
+        </section>
+      </div>
+    </div>
+
+    <hr class="exp-divider">
+
     <div class="exp-head">
-      <p class="exp-tag" data-en="held-out video" data-fr="vidéo mise de côté">held-out video</p>
-      <h2 class="exp-title" data-en="Filmed video against the decoded rollout" data-fr="Vidéo filmée contre rollout décodé">Filmed video against the decoded rollout</h2>
+      <p class="exp-tag" data-en="held-out take" data-fr="prise mise de côté">held-out take</p>
+      <h2 class="exp-title" data-en="Filmed video against the LaGSplat rollout" data-fr="Vidéo filmée contre rollout LaGSplat">Filmed video against the LaGSplat rollout</h2>
     </div>
     <p class="vid-note"
-       data-en="Take 9 of 30, never seen during training: the tree was pushed just before the recording started and swings freely. Left half: filmed image. Right half: image decoded from the rollout of the linear oscillator started at the measured state of the first frame, (q&#8320;, q&#775;&#8320;). The only other thing read from the take is its first frame again, to set one exposure gain and bias for the whole video (the webcam changes its automatic exposure between takes). Both halves are rendered into a single video, so they share the same clock by construction. Over the 187 frames, the decoded rollout matches the filmed video at 31.5&thinsp;dB."
-       data-fr="Prise 9 sur 30, jamais vue à l'entraînement : le sapin a été poussé juste avant le début de l'enregistrement et oscille librement. Moitié gauche : image filmée. Moitié droite : image décodée depuis le rollout de l'oscillateur linéaire lancé à l'état mesuré de la première image, (q&#8320;, q&#775;&#8320;). La seule autre chose lue dans la prise est cette même première image, pour fixer un gain et un biais d'exposition pour toute la vidéo (la webcam change d'exposition automatique d'une prise à l'autre). Les deux moitiés sont rendues dans une seule vidéo, donc partagent la même horloge par construction. Sur les 187 images, le rollout décodé reproduit la vidéo filmée à 31,5&thinsp;dB.">
+       data-en="Take 9 of 30, never seen during training. Left half: filmed image, after a correction of the automatic exposure of the webcam computed on the static background. Right half: image decoded by the 15&thinsp;000 Gaussians from the rollout of the learned Lagrangian, started at the encoded state of the first frame; nothing else is read from the take. Over the 188 frames, the decoded rollout matches the filmed video at 32.8&thinsp;dB (36.2&thinsp;dB when each frame is decoded from its own encoded state). The version with zero training replays the same take in its panel above (take 9 modes)."
+       data-fr="Prise 9 sur 30, jamais vue à l'entraînement. Moitié gauche : image filmée, après une correction de l'exposition automatique de la webcam calculée sur le fond immobile. Moitié droite : image décodée par les 15&thinsp;000 gaussiennes depuis le rollout du lagrangien appris, lancé à l'état encodé de la première image ; rien d'autre n'est lu dans la prise. Sur les 188 images, le rollout décodé reproduit la vidéo filmée à 32,8&thinsp;dB (36,2&thinsp;dB quand chaque image est décodée depuis son propre état encodé). La version sans entraînement rejoue la même prise dans son panneau ci-dessus (modes prise 9).">
       Take 9 of 30, never seen during training.
     </p>
     <div class="vid-grid">
       <section class="panel q">
         <div class="phead">
           <div class="tag" data-en="take 9 of 30 · held out" data-fr="prise 9 sur 30 · mise de côté">take 9 of 30 · held out</div>
-          <h2 data-en="Webcam frame | decoded rollout" data-fr="Image webcam | rollout décodé">Webcam frame | decoded rollout</h2>
+          <h2 data-en="Webcam frame | LaGSplat rollout" data-fr="Image webcam | rollout LaGSplat">Webcam frame | LaGSplat rollout</h2>
         </div>
-        <video class="cmp" id="vSapin" muted playsinline loop autoplay preload="auto">
-          <source src="./videos/sapin_take_009_cmp.webm" type="video/webm; codecs=vp9">
-          <source src="./videos/sapin_take_009_cmp_vp8.webm" type="video/webm; codecs=vp8">
+        <video class="cmp" id="vTree" muted playsinline loop autoplay preload="auto">
+          <source src="./videos/tree_take_009_cmp_d15k_ep105.webm" type="video/webm; codecs=vp9">
+          <source src="./videos/tree_take_009_cmp_d15k_ep105_vp8.webm" type="video/webm; codecs=vp8">
         </video>
         <div class="vid-labels"><span data-en="filmed" data-fr="filmé">filmed</span><span data-en="network" data-fr="réseau">network</span></div>
-      </section>
-    </div>
-
-    <hr class="exp-divider">
-
-    <div class="exp-head">
-      <p class="exp-tag" data-en="interactive simulation" data-fr="simulation interactive">interactive simulation</p>
-      <h2 class="exp-title" data-en="Latent state and GS decoder" data-fr="État latent et décodeur GS">Latent state and GS decoder</h2>
-    </div>
-    <p class="vid-note"
-       data-en="The same oscillator and the same decoder, now driven by hand. Drag anywhere on the decoded image: the force <i>f</i> is pulled back to the latent space through <i>J</i>&#7488;<i>f</i>, <i>J</i> being the Jacobian of the gaussians inside the disc around the cursor. The <i>kick</i> buttons beside the plot excite one latent coordinate at a time."
-       data-fr="Le même oscillateur et le même décodeur, pilotés à la main. Glissez n'importe où sur l'image décodée : la force <i>f</i> est ramenée dans l'espace latent par <i>J</i>&#7488;<i>f</i>, <i>J</i> étant la jacobienne des gaussiennes du disque autour du curseur. Les boutons <i>kick</i> à côté du tracé excitent une coordonnée latente à la fois.">
-      The same oscillator and the same decoder, now driven by hand.
-    </p>
-
-    <div class="rock-controls">
-      <button id="pPlay" title="play / pause"
-        style="font-family:var(--mono);font-size:1rem;font-weight:600;color:#fff;background:var(--navy);border:none;border-radius:var(--radius);padding:8px 14px;cursor:pointer;min-width:44px;line-height:1;">⏸</button>
-      <div class="ctl">
-        <label><span class="lbl" data-en="Force radius" data-fr="Rayon de la force">Force radius</span> <span class="val" id="pVr">10 %</span></label>
-        <input id="pRadius" type="range" min="2" max="50" value="10">
-      </div>
-      <div class="ctl">
-        <label><span class="lbl" data-en="Force amplitude" data-fr="Amplitude de la force">Force amplitude</span> <span class="val" id="pVf">×2.5</span></label>
-        <input id="pForce" type="range" min="10" max="500" value="250">
-      </div>
-    </div>
-
-    <div class="grid two">
-      <section class="panel q">
-        <div class="phead">
-          <div class="tag" data-en="latent state" data-fr="état latent">latent state</div>
-          <h2 data-en="Six latent coordinates over time" data-fr="Les six coordonnées latentes au cours du temps">Six latent coordinates over time</h2>
-          <div class="sub" data-en="one lane per coordinate, with its share of the keypoint motion; the <b>kick</b> button at the right of a lane gives that coordinate a velocity impulse at its own frequency" data-fr="une bande par coordonnée, avec sa part du mouvement des keypoints ; le bouton <b>kick</b> à droite d'une bande donne à cette coordonnée une impulsion de vitesse à sa propre fréquence">one lane per coordinate, with its share of the keypoint motion; the <b>kick</b> button at the right of a lane gives that coordinate a velocity impulse at its own frequency</div>
-        </div>
-        <div class="state-row">
-          <div class="stage recon"><canvas id="cPState"></canvas></div>
-          <div class="mode-col" id="pModes"></div>
-        </div>
-      </section>
-
-      <section class="panel q">
-        <div class="phead">
-          <div class="tag" data-en="GS decoder · CPU" data-fr="décodeur GS · CPU">GS decoder · CPU</div>
-          <h2 data-en="Decoded image" data-fr="Image décodée">Decoded image</h2>
-          <div class="sub" data-en="re-rasterised at every frame from the current state" data-fr="re-rasterisée à chaque image depuis l'état courant">re-rasterised at every frame from the current state</div>
-        </div>
-        <div class="stage recon sq">
-          <div class="sqwrap">
-            <canvas id="cPRecon"></canvas>
-            <canvas id="cPOverlay"></canvas>
-          </div>
-          <div class="badge" data-en="drag to push" data-fr="glisser pour pousser">drag to push</div>
-        </div>
       </section>
     </div>
 
@@ -472,7 +579,7 @@
 
 </main>
 
-<footer><p data-en="Lovingly vibe-coded · Last updated October 2026" data-fr="Vibe-codé avec amour · Dernière màj octobre 2026">Vibe-codé avec amour · Dernière màj octobre 2026</p></footer>
+<footer><p data-en="Lovingly vibe-coded · Last updated November 2026" data-fr="Vibe-codé avec amour · Dernière màj novembre 2026">Lovingly vibe-coded · Last updated November 2026</p></footer>
 
 <script>
 "use strict";
@@ -527,177 +634,467 @@ function watchVisible(ids) {
 function visActive(g) { return !PAGE_HIDDEN && g.on; }
 </script>
 
-<script src="./demo/sapin_splat_meta.js"></script>
-<script src="./demo/sapin_splat.js"></script>
-<script src="./demo/sapin_lnn.js"></script>
-<script src="./demo/sapin_mask.js"></script>
-<script src="./demo/sapin_dyn.js"></script>
+<script src="./demo/gs_splat_tree.js"></script>
+<script src="./demo/tree_splat_meta.js"></script>
+<script src="./demo/tree_splat.js"></script>
+<script src="./demo/tree_lnn.js"></script>
+<script src="./demo/tree_lnn_dyn.js"></script>
 <script>
 "use strict";
-/* Expérience 1 (vidéo held-out | rollout décodé) est une vidéo pré-rendue côté LaGS
- * (`keypoints_cpu/make_sapin_compare_video.py`) : rien à calculer ici. Expérience 2 : simulation
- * interactive (#cPRecon, #cPState, #cPOverlay), un intégrateur et un rastériseur CPU. La boucle
- * sort si ses canevas sont hors écran (watchVisible). */
+/* Colonne LaGSplat : décodeur (2+6)GS à 15 000 gaussiennes rasterisé en direct par
+ * gs_splat_tree.js (recette gsplat, vérifiée à 46.8 dB contre gsplat sur 8 états), lagrangien
+ * appris porté par tree_lnn_dyn.js (vérifié contre PyTorch, écart relatif 3.4e-6).
+ * Assets : demo_Lags/extract_tree_live.py et export_tree_lnn.py (dépôt LaGS).
+ * Deux espaces : le LNN intègre en u BLANCHI, le décodeur rend en z BRUT (toZ/toU/forceToU).
+ * Unité de temps du LNN : 1 frame (1/30 s). */
 (function(){
-  const META=window.SAPIN_SPLAT_META, B64=window.SAPIN_SPLAT, P=window.SAPIN_LNN;
+  const META=window.TREE_SPLAT_META, P=window.TREE_LNN, L=window.TreeLNN, SP=window.GSSplatTree;
   const $=id=>document.getElementById(id);
-  const cvSt=$('cPState'), cvRe=$('cPRecon'), cvOv=$('cPOverlay');
-  if(!META||!B64||!P||!cvSt||!cvRe||!cvOv||!window.SapinSplat||!window.SapinDyn) return;
-  const d=P.d, FPS=P.fps;
-  const HO=P.takes.findIndex(t=>t.holdout), TAKE=P.takes[HO];
-  const RENDER_HZ=40;
+  const cvRec=$('tGl'), cvOv=$('tOv'), cvSt=$('tState');
+  if(!META||!P||!L||!SP||!cvRec||!cvOv||!cvSt) return;
+  const D=P.d;
+  const COLS=['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b'];
+  const FORCE_CSS='#ff7a18';
 
-  function makeSplat(cv){
-    try{ const s=window.SapinSplat.create(cv, META, B64, window.SAPIN_MASK||null); s.opts.freeze=true; return s; }
-    catch(err){ console.error('[tree/sapin] décodeur indisponible :', err); return null; }
+  let splat=null;
+  try{
+    const bin=atob(window.TREE_SPLAT), buf=new ArrayBuffer(bin.length), u8=new Uint8Array(buf);
+    for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
+    splat=SP.create(cvRec, buf, META, {maxSide:512});
+  }catch(err){
+    console.error('[tree/lagsplat] décodeur GS indisponible :', err);
+    $('tMsg').textContent='WebGL2 required for the live decoder';
+    return;
   }
-  function restWeights(splat, dyn){ const qw=new Float64Array(d); dyn.set(null,null); splat.setRest(dyn.whitened(qw)); }
+  window.addEventListener('resize',()=>{ splat.resize(); st.armed=true; });
 
-  /* ── expérience 2 : simulation interactive ────────────────────────────────── */
-  (function(){
-    const splat=makeSplat(cvRe); if(!splat) return;
-    const dyn=window.SapinDyn.create(P); restWeights(splat,dyn);
-    const qw=new Float64Array(d);
-    const showMask=false;                                   // fond gelé (splat.opts.freeze), masque non affiché
-    const st={running:true, speed:1.0, grab:null, cursor:null, hover:null, mode:'global', rpct:10, fmul:2.5};
-    Object.defineProperty(st,'radius',{get(){ return st.rpct/100*splat.W; }});   // rayon en px image, depuis le % de largeur
-    const HIST=Math.round(6*FPS), hist=[];
-    function release(){ dyn.set(TAKE.q0,TAKE.v0); hist.length=0; st.running=true; $('pPlay').textContent='⏸'; }
-    // boutons « exciter un mode », un par bande du tracé : fréquence propre approchée sqrt(K_kk)/2π,
-    // impulsion de vitesse sur cette seule coordonnée
-    const COLS=['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#e377c2','#7f7f7f','#bcbd22','#17becf','#1b3a6b','#c49c48'];
-    const modesBox=$('pModes');
-    for(let k=0;k<d;k++){
-      const bt=document.createElement('button'); bt.innerHTML='<small>kick</small>q'+(k+1); bt.style.color=COLS[k%COLS.length];
-      const f=Math.sqrt(Math.max(P.K[k][k],1))/(2*Math.PI);
-      bt.title='velocity impulse on q'+(k+1)+' at '+f.toFixed(2)+' Hz';
-      bt.addEventListener('click',()=>{
-        const v0=new Float64Array(d); const amp=0.7*Math.max(Math.abs(P.q_range[0][k]),Math.abs(P.q_range[1][k]));
-        v0[k]=2*Math.PI*f*amp; dyn.set(null,v0); hist.length=0; st.running=true; $('pPlay').textContent='⏸';
-      });
-      modesBox.appendChild(bt);
+  // échelle de la force : raideur du potentiel à l'équilibre × étendue des données / ‖J‖ typique
+  const STIFF_U=(function(){
+    const e=1e-3, ue=P.energy.u_eq; let s=0;
+    for(let k=0;k<D;k++){
+      const a=ue.slice(), b=ue.slice(); a[k]-=e; b[k]+=e;
+      s+=Math.abs((L.potential(P.energy,b,D).grad[k]-L.potential(P.energy,a,D).grad[k])/(2*e));
     }
-
-    // ── contrôles ──────────────────────────────────────────────────────────────
-    $('pPlay').addEventListener('click',()=>{ st.running=!st.running; $('pPlay').textContent=st.running?'⏸':'▶'; });
-    $('pRadius').addEventListener('input',e=>{ st.rpct=parseInt(e.target.value); $('pVr').textContent=st.rpct+' %'; });
-    $('pForce').addEventListener('input',e=>{ st.fmul=parseInt(e.target.value)/100; $('pVf').textContent='×'+st.fmul.toFixed(1); });
-
-    // ── force : calibrage automatique (une traction de 10 px sur la matière la plus mobile
-    //    doit déplacer l'état d'environ 1.5 écart-type latent en statique) ──────────────
-    function solveK(F){                                   // Δq = K⁻¹ F, élimination de Gauss
-      const n=d, M=P.K.map(r=>r.slice()), x=Array.from(F);
-      for(let c=0;c<n;c++){
-        let p=c; for(let r=c+1;r<n;r++) if(Math.abs(M[r][c])>Math.abs(M[p][c])) p=r;
-        [M[c],M[p]]=[M[p],M[c]]; [x[c],x[p]]=[x[p],x[c]];
-        for(let r=c+1;r<n;r++){ const f=M[r][c]/M[c][c]; for(let j=c;j<n;j++) M[r][j]-=f*M[c][j]; x[r]-=f*x[c]; }
-      }
-      for(let r=n-1;r>=0;r--){ let s=x[r]; for(let j=r+1;j<n;j++) s-=M[r][j]*x[j]; x[r]=s/M[r][r]; }
-      return x;
-    }
-    function latentForce(J,f){                            // Jᵀf, J en px par unité BLANCHIE -> unités brutes
-      const F=new Float64Array(d);
-      for(let j=0;j<d;j++) F[j]=(J[0][j]*f[0]+J[1][j]*f[1])/P.q_std[j];
-      return F;
-    }
-    const GAIN=(function(){
-      dyn.set(null,null); dyn.whitened(qw);
-      let best=0, kb=0; for(let k=0;k<splat.K;k++) if(splat.mob[k]>best){best=splat.mob[k];kb=k;}
-      const J=splat.jacobian([[kb,1]]);
-      let worst=0;
-      for(const f of [[10,0],[0,10]]){ const dq=solveK(latentForce(J,f)); let s=0; for(let j=0;j<d;j++) s+=Math.pow(dq[j]/P.q_std[j],2); worst=Math.max(worst,Math.sqrt(s)); }
-      return worst>0? 1.5/worst : 1;
-    })();
-    const KGRAB=1.0, FMAX_W=6.0;
-
-    // ── saisie ─────────────────────────────────────────────────────────────────
-    function toImg(e){ const r=cvRe.getBoundingClientRect(); return [(e.clientX-r.left)/r.width*splat.W,(e.clientY-r.top)/r.height*splat.H]; }
-    cvRe.style.touchAction='none'; cvRe.style.cursor='grab';
-    cvRe.addEventListener('pointerdown',e=>{
-      dyn.whitened(qw); const p=toImg(e);
-      const s=splat.select(qw,p[0],p[1], st.mode==='global'? {radius:st.radius,mobMin:0.1,uniform:true} : {radius:st.radius,mobMin:0.25});
-      if(!s) return; st.grab=s; st.cursor=p; cvRe.setPointerCapture(e.pointerId); cvRe.style.cursor='grabbing'; e.preventDefault();
-    });
-    cvRe.addEventListener('pointermove',e=>{ st.hover=toImg(e); if(st.grab) st.cursor=st.hover; });
-    cvRe.addEventListener('pointerleave',()=>{ if(!st.grab) st.hover=null; });
-    const ungrab=()=>{ st.grab=null; dyn.F.fill(0); cvRe.style.cursor='grab'; };
-    cvRe.addEventListener('pointerup',ungrab); cvRe.addEventListener('pointercancel',ungrab);
-
-    // ── panneaux ───────────────────────────────────────────────────────────────
-    function setup2D(cv){
-      const w=cv.clientWidth,h=cv.clientHeight,dpr=Math.min(devicePixelRatio||1,2);
-      if(cv.width!==w*dpr||cv.height!==h*dpr){cv.width=w*dpr;cv.height=h*dpr;}
-      const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);
-      return {x,w,h};
-    }
-    function drawState(){
-      const {x,w,h}=setup2D(cvSt);
-      const pad=4, lane=(h-2*pad)/d;
-      for(let k=0;k<d;k++){
-        const y0=pad+k*lane, y1=y0+lane, lo=P.q_range[0][k], hi=P.q_range[1][k];
-        const Y=v=>y1-2-(v-lo)/(hi-lo)*(lane-4);
-        x.strokeStyle='rgba(0,0,0,0.10)'; x.lineWidth=1; x.beginPath(); x.moveTo(0,Y(0)); x.lineTo(w,Y(0)); x.stroke();
-        if(hist.length>1){
-          x.save(); x.beginPath(); x.rect(0,y0,w,lane); x.clip();
-          x.strokeStyle=COLS[k%COLS.length]; x.lineWidth=1.4; x.beginPath();
-          for(let i=0;i<hist.length;i++){ const px=w-(hist.length-1-i)/(HIST-1)*w, py=Y(hist[i][k]); if(i===0)x.moveTo(px,py); else x.lineTo(px,py); }
-          x.stroke(); x.restore();
-        }
-        x.fillStyle=COLS[k%COLS.length]; x.font='600 10px ui-monospace,monospace';
-        x.fillText('q'+(k+1)+' '+(100*P.var_share[k]).toFixed(0)+'%', 5, y0+11);
-      }
-    }
-    function drawOverlay(){
-      const {x,w,h}=setup2D(cvOv);
-      if(showMask) splat.drawMask(x,w,h,[27,58,107,70]);    // fond immobile teinté (bleu marine translucide)
-      const c=st.grab? st.cursor : st.hover;                 // disque d'application de la force
-      if(c){
-        x.strokeStyle=st.mode==='global'?'rgba(27,58,107,0.55)':'rgba(255,122,24,0.55)'; x.lineWidth=1; x.setLineDash([4,3]);
-        x.beginPath(); x.ellipse(c[0]/splat.W*w, c[1]/splat.H*h, st.radius/splat.W*w, st.radius/splat.H*h, 0, 0, 6.284); x.stroke();
-        x.setLineDash([]);
-      }
-      if(!st.grab||!st.cursor) return;
-      dyn.whitened(qw); const p=splat.pointOf(qw,st.grab);
-      const ax=p[0]/splat.W*w, ay=p[1]/splat.H*h, bx=st.cursor[0]/splat.W*w, by=st.cursor[1]/splat.H*h;
-      x.strokeStyle='#ff7a18'; x.fillStyle='#ff7a18'; x.lineWidth=2;
-      x.beginPath(); x.moveTo(ax,ay); x.lineTo(bx,by); x.stroke();
-      const a=Math.atan2(by-ay,bx-ax), s=8;
-      x.beginPath(); x.moveTo(bx,by); x.lineTo(bx-s*Math.cos(a-0.4),by-s*Math.sin(a-0.4)); x.lineTo(bx-s*Math.cos(a+0.4),by-s*Math.sin(a+0.4)); x.closePath(); x.fill();
-      x.beginPath(); x.arc(ax,ay,3.2,0,6.284); x.fill();
-    }
-
-    // ── boucle : pas de modèle à FPS fixe, rendu plafonné ──────────────────────
-    release();
-    let last=performance.now(), acc=0, accR=0;
-    const vis=(typeof watchVisible==='function')? watchVisible(['cPState','cPRecon']) : null;
-    function loop(now){
-      requestAnimationFrame(loop);
-      if(vis&&typeof visActive==='function'&&!visActive(vis)) { last=now; return; }
-      const el=Math.min((now-last)/1000,0.1); last=now;
-      if(st.running||st.grab){
-        acc+=el*st.speed;
-        let n=0;
-        while(acc>=dyn.dt&&n<8){
-          if(st.grab){
-            dyn.whitened(qw); const p=splat.pointOf(qw,st.grab);
-            const f=[KGRAB*(st.cursor[0]-p[0]),KGRAB*(st.cursor[1]-p[1])];
-            const F=latentForce(splat.jacobian(st.grab),f);
-            let s=0; for(let j=0;j<d;j++){ F[j]*=GAIN*st.fmul; s+=Math.pow(F[j]*P.q_std[j],2); }   // plafond (unités blanchies·raideur)
-            const kref=P.K[0][0], lim=FMAX_W*kref*Math.max(1,st.fmul); s=Math.sqrt(s)/Math.max(1,P.q_std[0]);
-            const sc=s>lim? lim/s:1; for(let j=0;j<d;j++) dyn.F[j]=F[j]*sc;
-          }
-          dyn.step(4); acc-=dyn.dt; n++;
-          hist.push(Array.from(dyn.q)); if(hist.length>HIST) hist.shift();
-        }
-        if(n===8) acc=0;
-      }
-      accR+=el;
-      if(accR<1/RENDER_HZ) return;
-      accR=0;
-      dyn.whitened(qw); splat.render(qw); drawState(); drawOverlay();
-    }
-    requestAnimationFrame(loop);
+    return Math.max(s/D,1e-3);
   })();
+  const SPAN_U=(function(){ let s=0; for(let k=0;k<D;k++) s+=P.u_traj_stats.max[k]-P.u_traj_stats.min[k]; return s/D; })();
+  const JREF=(function(){
+    const data=splat.data, Wi=P.whiten.W_inv, off=SP.layoutOf(META).sxz_szzi[0], out=[];
+    for(let k=0;k<META.K;k+=7){
+      const o=k*META.stride; let s=0;
+      for(let r=0;r<2;r++) for(let i=0;i<D;i++){ let m=0; for(let j=0;j<D;j++) m+=Wi[i][j]*data[o+off+r*D+j]; s+=m*m; }
+      if(s>0) out.push(Math.sqrt(s));
+    }
+    out.sort((a,b)=>a-b);
+    return out.length? out[Math.floor(0.85*(out.length-1))] : 1;
+  })();
+  const GRAB_FORCE=0.8, FGRAB_MAX=0.35, FMAX=STIFF_U*1.2*SPAN_U;
+  const selOpt={radius:0.05, sharp:3.0, wzMin:1e-3, jmin:0.0};
+
+  const st={running:true, fmul:1.0, u:null, ud:null, Fu:null, grab:false, sel:null,
+            mouse:[0,0], anchorImg:null, tipImg:null, pres:1, pres0:1, armed:true};
+  function release(){ st.u=Float64Array.from(P.take9.u0); st.ud=Float64Array.from(P.take9.v0); hist.length=0; st.armed=true; }
+  function rest(){ st.u=Float64Array.from(P.energy.u_eq); st.ud=new Float64Array(D); hist.length=0; st.armed=true; }
+  const HIST=Math.round(6*P.fps), hist=[];
+
+  $('tPlay').addEventListener('click',()=>{ st.running=!st.running; $('tPlay').textContent=st.running?'⏸':'▶'; st.armed=true; });
+  $('tForce').addEventListener('input',e=>{ st.fmul=+e.target.value/100; $('tVf').textContent='×'+st.fmul.toFixed(1); });
+  $('tRelease').addEventListener('click',()=>{ release(); if(!st.running){ st.running=true; $('tPlay').textContent='⏸'; } });
+  $('tRest').addEventListener('click',rest);
+
+  // ── saisie : ancrage matériel (le point d'application suit les gaussiennes saisies) ──
+  function updateGrab(z){
+    if(!st.grab||!st.sel){ st.Fu=null; return; }
+    const ap=splat.pointOf(z, st.sel);
+    if(!ap||!Number.isFinite(ap[0])){ st.Fu=null; return; }
+    st.anchorImg=ap;
+    st.pres=Math.min(1, splat.presence(z, st.sel)/Math.max(st.pres0,1e-9));
+    let fx=st.mouse[0]-ap[0], fy=st.mouse[1]-ap[1];
+    const n=Math.hypot(fx,fy);
+    if(n>FGRAB_MAX){ fx*=FGRAB_MAX/n; fy*=FGRAB_MAX/n; }
+    st.tipImg=[ap[0]+fx, ap[1]+fy];
+    const J=st.sel.J, scale=st.fmul*st.pres*GRAB_FORCE*STIFF_U*SPAN_U/Math.max(JREF,1e-6);
+    const Fz=new Float64Array(D);
+    for(let i=0;i<D;i++) Fz[i]=scale*(J[i]*fx + J[D+i]*fy);      // Jᵀf
+    const Fu=L.forceToU(P,Fz);
+    let m=0; for(let i=0;i<D;i++) m+=Fu[i]*Fu[i]; m=Math.sqrt(m);
+    const lim=FMAX*Math.max(1,st.fmul);
+    if(m>lim) for(let i=0;i<D;i++) Fu[i]*=lim/m;
+    st.Fu=Fu;
+  }
+  const localXY=e=>{ const r=cvRec.getBoundingClientRect(); return [(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height]; };
+  cvOv.style.pointerEvents='none';
+  cvRec.style.touchAction='none'; cvRec.style.cursor='grab';
+  cvRec.addEventListener('contextmenu',e=>e.preventDefault());
+  cvRec.addEventListener('pointerdown',e=>{
+    const c=localXY(e), img=splat.toImage(c[0],c[1]);
+    if(!img) return;
+    const sel=splat.select(L.toZ(P,st.u), img[0], img[1], selOpt);
+    if(!sel) return;
+    e.preventDefault();
+    cvRec.setPointerCapture(e.pointerId); cvRec.style.cursor='grabbing';
+    st.grab=true; st.sel=sel; st.pres0=sel.wsum/sel.kernsum; st.mouse=img; st.anchorImg=img;
+    if(!st.running){ st.running=true; $('tPlay').textContent='⏸'; }
+  });
+  cvRec.addEventListener('pointermove',e=>{ if(!st.grab) return; const c=localXY(e); st.mouse=splat.toImage(c[0],c[1],true); });
+  const ungrab=()=>{ st.grab=false; st.sel=null; st.Fu=null; st.anchorImg=null; st.armed=true; cvRec.style.cursor='grab'; };
+  cvRec.addEventListener('pointerup',ungrab); cvRec.addEventListener('pointercancel',ungrab);
+
+  // ── dessin ──────────────────────────────────────────────────────────────────
+  function setup2D(cv){
+    const dpr=Math.min(devicePixelRatio||1,2), w=cv.clientWidth, h=cv.clientHeight;
+    if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){ cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr); }
+    const x=cv.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0,0,w,h);
+    return {x,w,h};
+  }
+  const LO=P.u_traj_stats.p01, HI=P.u_traj_stats.p99;
+  function drawState(){
+    const {x,w,h}=setup2D(cvSt), pad=4, lane=(h-2*pad)/D;
+    for(let k=0;k<D;k++){
+      const y0=pad+k*lane, c=(LO[k]+HI[k])/2, s=Math.max((HI[k]-LO[k])/2*1.25,1e-6);
+      const Y=v=>y0+lane/2-(v-c)/s*(lane/2-2);
+      x.strokeStyle='rgba(0,0,0,0.10)'; x.lineWidth=1; x.beginPath(); x.moveTo(0,Y(P.energy.u_eq[k])); x.lineTo(w,Y(P.energy.u_eq[k])); x.stroke();
+      if(hist.length>1){
+        x.save(); x.beginPath(); x.rect(0,y0,w,lane); x.clip();
+        x.strokeStyle=COLS[k]; x.lineWidth=1.4; x.beginPath();
+        for(let i=0;i<hist.length;i++){ const px=w-(hist.length-1-i)/(HIST-1)*w, py=Y(hist[i][k]); if(i) x.lineTo(px,py); else x.moveTo(px,py); }
+        x.stroke(); x.restore();
+      }
+      x.fillStyle=COLS[k]; x.font='600 10px ui-monospace,monospace'; x.fillText('q'+(k+1), 5, y0+11);
+    }
+  }
+  function drawOverlay(){
+    const {x,w,h}=setup2D(cvOv);
+    if(!st.grab||!st.Fu||!st.anchorImg||!st.tipImg) return;
+    const A=splat.fromImage(st.anchorImg[0],st.anchorImg[1]), B=splat.fromImage(st.tipImg[0],st.tipImg[1]);
+    const ax=A[0]*w, ay=A[1]*h, bx=B[0]*w, by=B[1]*h;
+    x.strokeStyle=FORCE_CSS; x.fillStyle=FORCE_CSS; x.lineWidth=1.5+1.4*Math.min(1,st.pres);
+    x.beginPath(); x.moveTo(ax,ay); x.lineTo(bx,by); x.stroke();
+    const a=Math.atan2(by-ay,bx-ax), s=8;
+    x.beginPath(); x.moveTo(bx,by); x.lineTo(bx-s*Math.cos(a-0.4),by-s*Math.sin(a-0.4)); x.lineTo(bx-s*Math.cos(a+0.4),by-s*Math.sin(a+0.4)); x.closePath(); x.fill();
+    x.beginPath(); x.arc(ax,ay,3.2,0,6.284); x.fill();
+  }
+
+  // ── boucle : 40 Hz au plus, pas d'une frame du LNN (stable hors des données) ──
+  release();
+  const vis=(typeof watchVisible==='function')? watchVisible(['tGl','tState']) : null;
+  let last=performance.now(), acc=0;
+  function loop(now){
+    requestAnimationFrame(loop);
+    if(vis&&!visActive(vis)){ last=now; return; }
+    if(vis&&vis.resumed){ vis.resumed=false; last=now; acc=0; return; }
+    acc+=(now-last)/1000; last=now;
+    if(acc<1/40) return;
+    const dts=Math.min(acc,0.1); acc=0;
+    if(!st.running&&!st.grab&&!st.armed) return;
+    st.armed=false;
+    let z=L.toZ(P,st.u);
+    updateGrab(z);
+    if(st.running){
+      const nf=dts*P.fps, steps=Math.max(1,Math.min(Math.ceil(nf),8)), h=nf/steps;
+      for(let i=0;i<steps;i++){ const s=L.step(P,st.u,st.ud,{F:st.Fu},h); st.u=s.q; st.ud=s.v; }
+      hist.push(Array.from(st.u)); if(hist.length>HIST) hist.splice(0,hist.length-HIST);
+      z=L.toZ(P,st.u);
+    }
+    splat.render(z); drawState(); drawOverlay();
+  }
+  requestAnimationFrame(()=>{ last=performance.now(); requestAnimationFrame(loop); });
+})();
+</script>
+
+<script>
+"use strict";
+/* Colonne sans entrainement : portage de LaGS/code_new_3D/zero_train/demo/zt_splats.html.
+ * Gaussiennes SHARP 3D (une seule image de repos), deplacees par le champ u(p, q) = A(p) q
+ * releve en 3D a profondeur constante ; dynamique lineaire q'' = -K q - C q' + M^-1 F (ARX).
+ * Assets (~23 Mo) charges automatiquement a l'ouverture : demo/zt_sapin_data.js (window.ZT, encodeur keypoints seul)
+ * et demo/zt_sapin_splats.js (window.ZTS, 400 000 gaussiennes). */
+(function(){
+  const $=id=>document.getElementById(id);
+  const isFr=()=>document.documentElement.lang==='fr';
+  function setTxt(el,en,fr){ el.dataset.en=en; el.dataset.fr=fr; el.innerHTML=isFr()?fr:en; }
+  const msg=(en,fr)=>setTxt($('zMsg'),en,fr);
+  function loadScript(src){ return new Promise((ok,ko)=>{ const s=document.createElement('script'); s.src=src; s.onload=ok; s.onerror=()=>ko(src); document.body.appendChild(s); }); }
+
+  // Chargement automatique à l'ouverture de la page (~23 Mo) ; #zLoad n'est qu'un indicateur.
+  (function load(){
+    const b=$('zLoad');
+    if(!document.createElement('canvas').getContext('webgl2')){ b.style.display='none'; msg('WebGL2 is not available in this browser','WebGL2 n\'est pas disponible dans ce navigateur'); return; }
+    loadScript('./demo/zt_sapin_data.js').then(()=>loadScript('./demo/zt_sapin_splats.js')).then(()=>{
+      b.style.display='none'; msg('','');
+      try{ start(); }catch(err){ console.error('[tree/zt]',err); msg('the 3D demo failed to start','la démo 3D n\'a pas pu démarrer'); }
+    }).catch(src=>{ b.style.display='none'; msg('could not load '+src,'impossible de charger '+src); });
+  })();
+
+  function start(){
+  const Z=window.ZT, ZS=window.ZTS, S=Z.S;
+  function b64ToBuf(s){const bin=atob(s);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u.buffer}
+  const mat=rows=>rows.map(r=>Float64Array.from(r));
+  function inv(M){const n=M.length,A=M.map((r,i)=>{const x=new Float64Array(2*n);x.set(r);x[n+i]=1;return x});
+    for(let c=0;c<n;c++){let p=c;for(let r=c+1;r<n;r++)if(Math.abs(A[r][c])>Math.abs(A[p][c]))p=r;[A[c],A[p]]=[A[p],A[c]];
+      const d=A[c][c];for(let k=0;k<2*n;k++)A[c][k]/=d;for(let r=0;r<n;r++)if(r!==c){const f=A[r][c];if(f)for(let k=0;k<2*n;k++)A[r][k]-=f*A[c][k]}}
+    return A.map(r=>r.slice(n))}
+
+  // ── encodeur keypoints : champ A (int16), u0, matrices de la dynamique ──────────
+  const e=Z.enc.kp, d=e.d;
+  const E=(function(){
+    const raw=new Int16Array(b64ToBuf(e.A)), A=new Float32Array(raw.length);
+    for(let i=0;i<raw.length;i++)A[i]=raw[i]*e.A_scale;
+    const u0=new Float32Array(b64ToBuf(e.u0)), ub=Float32Array.from(u0);
+    for(let k=0;k<d;k++){const off=k*S*S*2,c=e.qrest[k];for(let i=0;i<S*S*2;i++)ub[i]+=c*A[off+i]}
+    const K=mat(e.K),C=mat(e.C),M=mat(e.M);let tr=0;for(let i=0;i<d;i++)tr+=K[i][i];
+    return {A,ub,K,C,Minv:inv(M),kref:tr/d};
+  })();
+
+  // ── WebGL2 : gaussiennes 3D ────────────────────────────────────────────────────
+  const gl=$('zGl').getContext('webgl2',{antialias:false,premultipliedAlpha:true});
+  function sh(t,s){const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(x);return x}
+  function program(vs,fs){const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,vs));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);
+    if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw gl.getProgramInfoLog(p);return p}
+  const NS=ZS.n, TW=2048, TH=Math.ceil(NS/TW), FPX=ZS.fpx, WI=ZS.W;
+  const FIELD_GLSL=`
+uniform sampler2D uUb, uA0, uA1, uA2, uA3; uniform float uq[8]; uniform int uNT;
+vec2 field(vec2 uv){ vec4 a; vec2 du = vec2(0);
+  a = texture(uA0, uv); du += uq[0]*a.xy + uq[1]*a.zw;
+  if (uNT > 1) { a = texture(uA1, uv); du += uq[2]*a.xy + uq[3]*a.zw; }
+  if (uNT > 2) { a = texture(uA2, uv); du += uq[4]*a.xy + uq[5]*a.zw; }
+  if (uNT > 3) { a = texture(uA3, uv); du += uq[6]*a.xy + uq[7]*a.zw; }
+  return texture(uUb, uv).xy + du; }`;
+  const VS3=`#version 300 es
+precision highp float; precision highp int;
+in vec2 corner; in uint idx;
+uniform highp sampler2D uPos, uCov0, uCov1; uniform lowp sampler2D uCol;
+uniform mat4 uView; uniform float uF, uFi, uWi, uS, uVp, uCovS, uGain;
+out vec4 vCol; out vec2 vPos;
+${FIELD_GLSL}
+void main(){
+  ivec2 tc = ivec2(int(idx % ${TW}u), int(idx / ${TW}u));
+  vec3 X = texelFetch(uPos, tc, 0).xyz;
+  vec4 c0 = texelFetch(uCov0, tc, 0) / uCovS, c1 = texelFetch(uCov1, tc, 0);
+  vCol = texelFetch(uCol, tc, 0);
+  vec2 uvr = (uFi * X.xy / X.z + 0.5*uWi) / uWi;
+  vec2 u = field(uvr), ub = texture(uUb, uvr).xy;
+  u = ub + uGain*(u - ub);
+  X.xy += (X.z * uWi / (uS * uFi)) * c1.w * u;
+  vec4 pc = uView * vec4(X, 1.0);
+  if (pc.z < 0.02) { gl_Position = vec4(0,0,2,1); return; }
+  mat3 Sw = mat3(c0.x, c0.y, c0.z,  c0.y, c0.w, c1.x/uCovS,  c0.z, c1.x/uCovS, c1.y/uCovS);
+  mat3 R = mat3(uView);
+  mat3 Sc = R * Sw * transpose(R);
+  float iz = 1.0/pc.z;
+  mat3 J = mat3(uF*iz, 0.0, 0.0,  0.0, uF*iz, 0.0,  -uF*pc.x*iz*iz, -uF*pc.y*iz*iz, 0.0);
+  mat3 c2 = J * Sc * transpose(J);
+  float a = c2[0][0] + 0.3, b = c2[0][1], d = c2[1][1] + 0.3;
+  float mid = 0.5*(a+d), rad = length(vec2(0.5*(a-d), b));
+  float l1 = mid + rad, l2 = max(mid - rad, 0.1);
+  vec2 ax = normalize(vec2(b, l1 - a)); if (abs(b) < 1e-9) ax = a >= d ? vec2(1,0) : vec2(0,1);
+  vec2 major = min(sqrt(2.0*l1), 1024.0) * ax, minor = min(sqrt(2.0*l2), 1024.0) * vec2(ax.y, -ax.x);
+  vec2 cpx = vec2(uF*pc.x*iz + 0.5*uVp, uF*pc.y*iz + 0.5*uVp);
+  vec2 ppx = cpx + corner.x*major + corner.y*minor;
+  vPos = corner;
+  gl_Position = vec4(ppx.x/uVp*2.0-1.0, 1.0-ppx.y/uVp*2.0, 0.0, 1.0);
+}`;
+  const FS3=`#version 300 es
+precision highp float; in vec4 vCol; in vec2 vPos; out vec4 o;
+void main(){ float A = -dot(vPos, vPos); if (A < -4.0) discard; float B = exp(A) * vCol.a; o = vec4(B * vCol.rgb, B); }`;
+  const P3=program(VS3,FS3); gl.useProgram(P3);
+  const vao=gl.createVertexArray(); gl.bindVertexArray(vao);
+  { const cb=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,cb);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-2,-2,2,-2,-2,2,2,2]),gl.STATIC_DRAW);
+    const lc=gl.getAttribLocation(P3,'corner'); gl.enableVertexAttribArray(lc); gl.vertexAttribPointer(lc,2,gl.FLOAT,false,0,0); }
+  const idxBuf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,idxBuf); gl.bufferData(gl.ARRAY_BUFFER,NS*4,gl.DYNAMIC_DRAW);
+  { const li=gl.getAttribLocation(P3,'idx'); gl.enableVertexAttribArray(li); gl.vertexAttribIPointer(li,1,gl.UNSIGNED_INT,0,0); gl.vertexAttribDivisor(li,1); }
+  const tex=(ifmt,fmt,type,data,ch)=>{ const t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t);
+    const full=new data.constructor(TW*TH*ch); full.set(data);
+    gl.texImage2D(gl.TEXTURE_2D,0,ifmt,TW,TH,0,fmt,type,full);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST); return t; };
+  const posArr=new Float32Array(b64ToBuf(ZS.pos));
+  const pos4=new Float32Array(NS*4); for(let i=0;i<NS;i++){pos4[4*i]=posArr[3*i];pos4[4*i+1]=posArr[3*i+1];pos4[4*i+2]=posArr[3*i+2]}
+  const texPos=tex(gl.RGBA32F,gl.RGBA,gl.FLOAT,pos4,4);
+  const texCov0=tex(gl.RGBA16F,gl.RGBA,gl.HALF_FLOAT,new Uint16Array(b64ToBuf(ZS.cov0)),4);
+  const cov1=new Uint16Array(b64ToBuf(ZS.cov1)); const texCov1=tex(gl.RGBA16F,gl.RGBA,gl.HALF_FLOAT,cov1,4);
+  const texCol=tex(gl.RGBA8,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array(b64ToBuf(ZS.rgba)),4);
+  function half2f(h){const s=(h&0x8000)?-1:1,ex=(h>>10)&31,f=h&1023;return ex===0?s*f*Math.pow(2,-24):ex===31?(f?NaN:s*Infinity):s*(1+f/1024)*Math.pow(2,ex-15)}
+  const wMob=new Float32Array(NS); for(let i=0;i<NS;i++) wMob[i]=half2f(cov1[4*i+3]);   // poids mobile (saisie)
+  const field=(function(){                                  // champ A et u_b en textures RGBA16F
+    const mk=data=>{const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA16F,S,S,0,gl.RGBA,gl.FLOAT,data);
+      for(const [k,v] of [[gl.TEXTURE_MIN_FILTER,gl.LINEAR],[gl.TEXTURE_MAG_FILTER,gl.LINEAR],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])gl.texParameteri(gl.TEXTURE_2D,k,v);return t};
+    const nt=Math.ceil(d/2), tx=[];
+    for(let j=0;j<nt;j++){const buf=new Float32Array(S*S*4);
+      for(let c=0;c<2;c++){const k=2*j+c;if(k>=d)continue;const off=k*S*S*2;for(let p=0;p<S*S;p++){buf[4*p+2*c]=E.A[off+2*p];buf[4*p+2*c+1]=E.A[off+2*p+1]}}
+      tx.push(mk(buf))}
+    const ubt=new Float32Array(S*S*4);for(let p=0;p<S*S;p++){ubt[4*p]=E.ub[2*p];ubt[4*p+1]=E.ub[2*p+1]}
+    return {nt,tex:tx,ubTex:mk(ubt)};
+  })();
+
+  // ── caméra (repère monde = caméra d'origine, OpenCV) ──────────────────────────
+  const cam={yaw:0,pitch:0,dist:ZS.zmed,target:[0,0,ZS.zmed]};
+  function viewMat(){
+    const cy=Math.cos(cam.yaw),sy=Math.sin(cam.yaw),cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch);
+    const f=[-sy*cp,-sp,cy*cp], t=cam.target, c=[t[0]-cam.dist*f[0],t[1]-cam.dist*f[1],t[2]-cam.dist*f[2]];
+    let r=[f[2],0,-f[0]]; const rn=Math.hypot(r[0],r[2]); r=[r[0]/rn,0,r[2]/rn];
+    const dn=[f[1]*r[2]-f[2]*r[1], f[2]*r[0]-f[0]*r[2], f[0]*r[1]-f[1]*r[0]];
+    const R=[r,dn,f], tr=R.map(row=>-(row[0]*c[0]+row[1]*c[1]+row[2]*c[2]));
+    return {R,t:tr,c,m:new Float32Array([R[0][0],R[1][0],R[2][0],0, R[0][1],R[1][1],R[2][1],0, R[0][2],R[1][2],R[2][2],0, tr[0],tr[1],tr[2],1])};
+  }
+  const VP=768, FV=()=>FPX*VP/WI;
+  let order=null, lastSortKey='';
+  function sortSplats(V){                                    // tri par profondeur, seulement si la caméra bouge
+    const key=`${cam.yaw.toFixed(3)},${cam.pitch.toFixed(3)},${cam.dist.toFixed(3)}`;
+    if(key===lastSortKey) return; lastSortKey=key;
+    const P=posArr, R=V.R, t=V.t, depth=new Float32Array(NS); let mn=Infinity, mx=-Infinity;
+    for(let i=0;i<NS;i++){const z=R[2][0]*P[3*i]+R[2][1]*P[3*i+1]+R[2][2]*P[3*i+2]+t[2];depth[i]=z;if(z<mn)mn=z;if(z>mx)mx=z}
+    const NB=65536, cnt=new Uint32Array(NB), key16=new Uint16Array(NS), sc=(NB-1)/Math.max(1e-9,mx-mn);
+    for(let i=0;i<NS;i++){const k=((depth[i]-mn)*sc)|0;key16[i]=k;cnt[k]++}
+    for(let i=1;i<NB;i++)cnt[i]+=cnt[i-1];
+    order=order||new Uint32Array(NS);
+    for(let i=NS-1;i>=0;i--)order[--cnt[key16[i]]]=i;
+    gl.bindBuffer(gl.ARRAY_BUFFER,idxBuf); gl.bufferSubData(gl.ARRAY_BUFFER,0,order);
+  }
+
+  // ── état et dynamique ───────────────────────────────────────────────────────────
+  let mode='sim', drag='push', grab=null, orbit=null, replayT=0, simTime=0;
+  const dq=new Float64Array(8), v=new Float64Array(8), hist=[];
+  const gain=()=>+$('zGain').value;
+  function sampleJ(x,y){x=Math.min(Math.max(x,0),S-1.001);y=Math.min(Math.max(y,0),S-1.001);
+    const x0=Math.floor(x),y0=Math.floor(y),fx=x-x0,fy=y-y0,w=[(1-fx)*(1-fy),fx*(1-fy),(1-fx)*fy,fx*fy],ids=[y0*S+x0,y0*S+x0+1,(y0+1)*S+x0,(y0+1)*S+x0+1];
+    const J=[],ub=[0,0];for(let k=0;k<d;k++){let jx=0,jy=0;const off=k*S*S*2;for(let i=0;i<4;i++){jx+=w[i]*E.A[off+2*ids[i]];jy+=w[i]*E.A[off+2*ids[i]+1]}J.push([jx,jy])}
+    for(let i=0;i<4;i++){ub[0]+=w[i]*E.ub[2*ids[i]];ub[1]+=w[i]*E.ub[2*ids[i]+1]}return {J,ub}}
+  function gaussPos(i){const P=posArr,X=[P[3*i],P[3*i+1],P[3*i+2]];   // même formule que le vertex shader
+    const px=(FPX*X[0]/X[2]+0.5*WI)/WI*S-0.5, py=(FPX*X[1]/X[2]+0.5*WI)/WI*S-0.5;
+    const {J,ub}=sampleJ(px,py);let ux=0,uy=0;for(let k=0;k<d;k++){ux+=dq[k]*J[k][0];uy+=dq[k]*J[k][1]}
+    const s=X[2]*WI/(S*FPX)*wMob[i];return {X:[X[0]+s*(ub[0]+gain()*ux),X[1]+s*(ub[1]+gain()*uy),X[2]],p0:[px,py],s}}
+  function project(V,X){const R=V.R,t=V.t,pc=[0,1,2].map(r=>R[r][0]*X[0]+R[r][1]*X[1]+R[r][2]*X[2]+t[r]);const f=FV();
+    return pc[2]>0.02?[f*pc[0]/pc[2]+VP/2,f*pc[1]/pc[2]+VP/2,pc[2]]:null}
+  function clampQ(){for(let k=0;k<d;k++){const lo=e.qmin[k]-e.qrest[k],hi=e.qmax[k]-e.qrest[k];
+    if(dq[k]<lo){dq[k]=lo;v[k]=Math.max(v[k],0)}if(dq[k]>hi){dq[k]=hi;v[k]=Math.min(v[k],0)}}}
+  // effort : ressort entre la gaussienne saisie et le point du rayon souris à sa profondeur,
+  // ramené en pixels de l'image de repos, puis F = A(p0)ᵀ f
+  function grabForce(V){
+    const g=gaussPos(grab.i), X=g.X, f=FV(), R=V.R, c=V.c;
+    const dc=[(grab.mouse[0]-VP/2)/f,(grab.mouse[1]-VP/2)/f,1], dw=[0,1,2].map(j=>R[0][j]*dc[0]+R[1][j]*dc[1]+R[2][j]*dc[2]);
+    const tt=(X[2]-c[2])/dw[2], T=[c[0]+tt*dw[0],c[1]+tt*dw[1]];
+    grab.cur=X;
+    const f2=[(T[0]-X[0])/g.s/gain(),(T[1]-X[1])/g.s/gain()];
+    const {J}=sampleJ(g.p0[0],g.p0[1]);return J.map(j=>j[0]*f2[0]+j[1]*f2[1])}
+  const KGRAB=0.6;
+  function step(h,V){const F=grab?grabForce(V):null,g=KGRAB*E.kref;
+    for(let i=0;i<d;i++){let a=0;for(let j=0;j<d;j++){a+=-E.K[i][j]*dq[j]-E.C[i][j]*v[j];if(F)a+=g*E.Minv[i][j]*F[j]}v[i]+=h*a}
+    for(let i=0;i<d;i++)dq[i]+=h*v[i];clampQ()}
+  function kick(){for(let k=0;k<d;k++)v[k]+=(Math.random()*2-1)*e.qstd[k]*12}
+
+  // ── interface ──────────────────────────────────────────────────────────────────
+  const fq=e.freqs.map(x=>x.toFixed(2));
+  setTxt($('zInfo'),
+    `d = <b>${d}</b> · eigenfrequencies <b>${fq.join(', ')}</b> Hz · held-out rollout NRMSE <b>${e.nrmse.toFixed(2)}</b> · <b>${NS.toLocaleString('en')}</b> Gaussians`,
+    `d = <b>${d}</b> · fréquences propres <b>${fq.map(x=>x.replace('.',',')).join(' ; ')}</b> Hz · NRMSE du rollout de test <b>${e.nrmse.toFixed(2).replace('.',',')}</b> · <b>${NS.toLocaleString('fr')}</b> gaussiennes`);
+  function seg(id,cb){const el=$(id);el.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;for(const x of el.children)x.classList.toggle('on',x===b);cb(b.dataset.v)})}
+  seg('zModeSeg',m=>{
+    mode=m; replayT=0; grab=null; dq.fill(0); v.fill(0); hist.length=0;
+    if(m==='sim'){
+      setTxt($('zTitleModel'),'SHARP Gaussians driven by q','Gaussiennes SHARP pilotées par q');
+      setTxt($('zTagRight'),'latent state','état latent');
+      setTxt($('zTitleRight'),'Six latent coordinates, last 6 s','Les six coordonnées latentes, 6 dernières s');
+      setTxt($('zSubRight'),'one lane per coordinate, scaled to three standard deviations of the data','une bande par coordonnée, à l\'échelle de trois écarts types des données');
+    }else{
+      setTxt($('zTitleModel'), m==='roll'?'Gaussians driven by the rollout':'Gaussians driven by the measured q', m==='roll'?'Gaussiennes pilotées par le rollout':'Gaussiennes pilotées par le q mesuré');
+      setTxt($('zTagRight'),'take 9 of 30 · held out','prise 9 sur 30 · mise de côté');
+      setTxt($('zTitleRight'),'Filmed video','Vidéo filmée');
+      setTxt($('zSubRight'), m==='roll'?'left: oscillator started from the measured state of the first frame, nothing else read from the take':'left: q measured on each frame by the keypoint SVD, decoded by the Gaussians',
+                             m==='roll'?'à gauche : oscillateur lancé depuis l\'état mesuré de la première image, rien d\'autre n\'est lu dans la prise':'à gauche : q mesuré sur chaque image par la SVD des keypoints, décodé par les gaussiennes');
+    }
+    $('zTrace').style.display=m==='sim'?'':'none'; $('zReal').style.display=m==='sim'?'none':'';
+  });
+  const ov=$('zOv');
+  seg('zDragSeg',m=>{ drag=m; ov.classList.toggle('orbit',m==='orbit'); });
+  $('zGain').addEventListener('input',()=>{ $('zGainV').textContent='×'+(+$('zGain').value).toFixed(1); });
+  $('zRest').addEventListener('click',()=>{ dq.fill(0); v.fill(0); });
+  $('zKick').addEventListener('click',()=>{ if(mode==='sim') kick(); });
+  $('zHome').addEventListener('click',()=>{ cam.yaw=0; cam.pitch=0; cam.dist=ZS.zmed; });
+
+  function evPx(ev){const r=ov.getBoundingClientRect();return [(ev.clientX-r.left)/r.width*VP,(ev.clientY-r.top)/r.height*VP]}
+  ov.addEventListener('contextmenu',ev=>ev.preventDefault());
+  ov.addEventListener('pointerdown',ev=>{
+    const m=evPx(ev); ev.preventDefault();
+    if(drag==='orbit'||ev.button===2||ev.ctrlKey){ ov.setPointerCapture(ev.pointerId); orbit={m,yaw:cam.yaw,pitch:cam.pitch}; return; }
+    if(mode!=='sim') return;
+    // saisie : gaussienne mobile la plus proche du pointeur, la plus en avant parmi celles à < 6 px (12 px au doigt)
+    const tol=ev.pointerType==='touch'?144:36;
+    const V=viewMat();let best=-1,bz=Infinity,bd=Infinity;const P=posArr,R=V.R,t=V.t,f=FV();
+    for(let i=0;i<NS;i++){if(wMob[i]<0.5)continue;const x=P[3*i],y=P[3*i+1],z=P[3*i+2];
+      const zc=R[2][0]*x+R[2][1]*y+R[2][2]*z+t[2];if(zc<0.02)continue;
+      const sx=f*(R[0][0]*x+R[0][1]*y+R[0][2]*z+t[0])/zc+VP/2,sy=f*(R[1][0]*x+R[1][1]*y+R[1][2]*z+t[1])/zc+VP/2;
+      const dd=(sx-m[0])**2+(sy-m[1])**2;if(dd<tol){if(zc<bz-0.02||(Math.abs(zc-bz)<0.02&&dd<bd)){bz=zc;bd=dd;best=i}}}
+    if(best>=0){ ov.setPointerCapture(ev.pointerId); grab={i:best,mouse:m}; ov.classList.add('grab'); }
+  });
+  ov.addEventListener('pointermove',ev=>{const m=evPx(ev);
+    if(orbit){cam.yaw=orbit.yaw-(m[0]-orbit.m[0])*0.004;cam.pitch=Math.max(-0.6,Math.min(0.6,orbit.pitch+(m[1]-orbit.m[1])*0.004))}
+    if(grab)grab.mouse=m});
+  const end=()=>{grab=null;orbit=null;ov.classList.remove('grab')};
+  ov.addEventListener('pointerup',end); ov.addEventListener('pointercancel',end);
+  // molette : zoom en mode « tourner » seulement (en mode « tirer » elle fait défiler la page)
+  ov.addEventListener('wheel',ev=>{ if(drag!=='orbit') return; ev.preventDefault();
+    cam.dist=Math.max(0.2*ZS.zmed,Math.min(3*ZS.zmed,cam.dist*Math.exp(ev.deltaY*0.001))); },{passive:false});
+
+  // ── dessin ─────────────────────────────────────────────────────────────────────
+  const COLS=['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b'];
+  const sprite=new Image(); sprite.src=Z.holdout.sprite;
+  function drawOverlay(V){const ctx=ov.getContext('2d');ctx.clearRect(0,0,VP,VP);
+    if(!grab||!grab.cur) return; const a=project(V,grab.cur),b=grab.mouse; if(!a) return;
+    ctx.strokeStyle='#ff7a18';ctx.fillStyle='#ff7a18';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
+    const an=Math.atan2(b[1]-a[1],b[0]-a[0]);ctx.beginPath();ctx.moveTo(b[0],b[1]);ctx.lineTo(b[0]-14*Math.cos(an-.4),b[1]-14*Math.sin(an-.4));ctx.lineTo(b[0]-14*Math.cos(an+.4),b[1]-14*Math.sin(an+.4));ctx.fill();
+    ctx.beginPath();ctx.arc(a[0],a[1],5,0,7);ctx.fillStyle='#fff';ctx.fill();ctx.lineWidth=2;ctx.stroke()}
+  function render3D(V){sortSplats(V);
+    gl.viewport(0,0,VP,VP);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.enable(gl.BLEND);
+    gl.blendFuncSeparate(gl.ONE_MINUS_DST_ALPHA,gl.ONE,gl.ONE_MINUS_DST_ALPHA,gl.ONE);gl.useProgram(P3);
+    const L=n=>gl.getUniformLocation(P3,n);
+    [[texPos,'uPos'],[texCov0,'uCov0'],[texCov1,'uCov1'],[texCol,'uCol']].forEach(([t,n],i)=>{gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,t);gl.uniform1i(L(n),i)});
+    const U=4; field.tex.forEach((t,i)=>{gl.activeTexture(gl.TEXTURE0+U+1+i);gl.bindTexture(gl.TEXTURE_2D,t)});
+    gl.activeTexture(gl.TEXTURE0+U);gl.bindTexture(gl.TEXTURE_2D,field.ubTex);
+    gl.uniform1i(L('uUb'),U);for(let i=0;i<4;i++)gl.uniform1i(L('uA'+i),U+1+Math.min(i,field.nt-1));
+    const q8=new Float32Array(8);for(let k=0;k<d;k++)q8[k]=dq[k];gl.uniform1fv(L('uq'),q8);gl.uniform1i(L('uNT'),field.nt);
+    gl.uniformMatrix4fv(L('uView'),false,V.m);gl.uniform1f(L('uF'),FV());gl.uniform1f(L('uFi'),FPX);gl.uniform1f(L('uWi'),WI);gl.uniform1f(L('uS'),S);
+    gl.uniform1f(L('uVp'),VP);gl.uniform1f(L('uCovS'),ZS.cov_scale);gl.uniform1f(L('uGain'),gain());
+    gl.drawArraysInstanced(gl.TRIANGLE_STRIP,0,4,NS)}
+  function drawReal(j){
+    if(!sprite.complete) return; const H=Z.holdout, ctx=$('zReal').getContext('2d');
+    ctx.drawImage(sprite,(j%H.cols)*256,Math.floor(j/H.cols)*256,256,256,0,0,512,512);
+    ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(8,8,104,24);ctx.fillStyle='#fff';ctx.font='13px ui-monospace,monospace';ctx.fillText(`t = ${H.t[j].toFixed(2)} s`,16,25)}
+  function drawTrace(){
+    const cv=$('zTrace'), w=cv.clientWidth, h=cv.clientHeight, dpr=Math.min(devicePixelRatio||1,2);
+    if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);}
+    const x=cv.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0,0,w,h);
+    const pad=4, lane=(h-2*pad)/d, tN=hist.length?hist[hist.length-1][0]:0;
+    for(let k=0;k<d;k++){
+      const y0=pad+k*lane, s=3*e.qstd[k], Y=val=>y0+lane/2-val/s*(lane/2-2);
+      x.strokeStyle='rgba(0,0,0,0.10)'; x.lineWidth=1; x.beginPath(); x.moveTo(0,Y(0)); x.lineTo(w,Y(0)); x.stroke();
+      if(hist.length>1){
+        x.save(); x.beginPath(); x.rect(0,y0,w,lane); x.clip();
+        x.strokeStyle=COLS[k%COLS.length]; x.lineWidth=1.4; x.beginPath();
+        hist.forEach((hh,i)=>{const px=w-(tN-hh[0])/6*w, py=Y(hh[1+k]); i?x.lineTo(px,py):x.moveTo(px,py);});
+        x.stroke(); x.restore();
+      }
+      x.fillStyle=COLS[k%COLS.length]; x.font='600 10px ui-monospace,monospace'; x.fillText('q'+(k+1), 5, y0+11);
+    }
+  }
+
+  // ── boucle ─────────────────────────────────────────────────────────────────────
+  const vis=(typeof watchVisible==='function')? watchVisible(['zGl','zTrace','zReal']) : null;
+  let last=performance.now();
+  kick();                                                   // le sapin bouge dès l'ouverture
+  function frame(now){
+    requestAnimationFrame(frame);
+    if(vis&&typeof visActive==='function'&&!visActive(vis)){ last=now; return; }
+    const dtw=Math.min(0.05,(now-last)/1000); last=now; const V=viewMat(); let j=0;
+    if(mode==='sim'){ const n=16; for(let i=0;i<n;i++) step(dtw/n,V); }
+    else{ const H=Z.holdout; replayT+=dtw; if(replayT>H.t[H.n-1]+0.8) replayT=0; while(j<H.n-1&&H.t[j+1]<=replayT) j++;
+      const src=mode==='roll'?e.q_roll[j]:e.q_meas[j]; for(let k=0;k<d;k++){ dq[k]=src[k]-e.qrest[k]; v[k]=0; } }
+    simTime+=dtw; hist.push([simTime,...dq.slice(0,d)]); while(hist.length&&simTime-hist[0][0]>6) hist.shift();
+    render3D(V); drawOverlay(V);
+    if(mode==='sim') drawTrace(); else drawReal(j);
+  }
+  requestAnimationFrame(frame);
+  }
 })();
 </script>
 
