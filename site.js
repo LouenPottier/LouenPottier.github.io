@@ -43,26 +43,39 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbo
 // Seuil mobile synchronisé avec le breakpoint CSS (style.css @media max-width: 720px)
 const MOBILE_BREAKPOINT = 720;
 
-// Déplace .card-links hors du .card-body sur mobile (s'affiche sous l'image)
+// Déplace .card-links (et le « Cited by » qui le suit) hors du .card-body sur
+// mobile, pour les afficher sous l'image. Ordre conservé : liens puis citations.
 function setupMobileLinks() {
   const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
   document.querySelectorAll('.card').forEach(card => {
     const body = card.querySelector('.card-body');
     const links = card.querySelector('.card-links');
     if (!body || !links) return;
+    const cited = card.querySelector('.cited-by');
     if (isMobile) {
       if (!card.querySelector(':scope > .card-links')) {
-        links.remove();
         card.appendChild(links);
+        if (cited) card.appendChild(cited);
       }
     } else {
       if (card.querySelector(':scope > .card-links')) {
-        links.remove();
         body.appendChild(links);
+        if (cited) body.appendChild(cited);
       }
     }
   });
 }
+
+// Autoplay robuste sur mobile : relance play() une fois les métadonnées
+// chargées. Si le navigateur refuse (économie d'énergie…), le poster reste.
+function setupAutoplayVideos() {
+  document.querySelectorAll('.card-video video[autoplay]').forEach(v => {
+    v.muted = true;
+    const tryPlay = () => { const p = v.play(); if (p && p.catch) p.catch(() => {}); };
+    if (v.readyState >= 1) tryPlay(); else v.addEventListener('loadedmetadata', tryPlay, { once: true });
+  });
+}
+setupAutoplayVideos();
 
 // Clone les logos de .card-logo-col dans .tech-pills sur mobile (projects.html)
 function setupMobileLogos() {

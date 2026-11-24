@@ -693,6 +693,18 @@ main {
   border-radius: inherit;
 }
 
+/* iOS/Android : masquer le bouton play natif quand l'autoplay est refusé
+   (mode économie d'énergie, économiseur de données) — le poster reste affiché */
+.card-video video::-webkit-media-controls-start-playback-button,
+.highlight-media video::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  -webkit-appearance: none;
+}
+.card-video video::-webkit-media-controls,
+.highlight-media video::-webkit-media-controls {
+  display: none !important;
+}
+
 /* Figure sur fond clair (planche d'article) : montrer le cadre entier, pas un recadrage */
 .card-video-figure {
   background: var(--surface);
@@ -937,6 +949,7 @@ footer {
   .card-body { order: 1; }
   .card-logo-col { order: 3; }
   .card > .card-links { order: 4; }
+  .card > .cited-by { order: 5; margin-top: -1.3rem; } /* compense le gap de grille (2rem) */
   .card-caption { max-width: 100%; }
 
   .card-logo-col { display: none; }
