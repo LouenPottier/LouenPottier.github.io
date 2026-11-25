@@ -803,7 +803,7 @@ main {
   margin-bottom: 0.9rem;
 }
 
-.card-links { display: flex; gap: 1rem; }
+.card-links { display: flex; gap: 1rem; align-items: center; }
 .card-links a {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.72rem;
