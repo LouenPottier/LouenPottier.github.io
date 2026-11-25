@@ -836,12 +836,12 @@ a.code-btn:hover .n, a.code-btn:hover .n::before { color: var(--navy); border-co
 a.code-btn.hf .c::before { -webkit-mask: none; mask: none; background: url("img/hf-logo.svg") center / contain no-repeat; width: 13px; height: 12px; }
 a.code-btn .n.dl i { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Zm2.53-9.47 2.97 2.97V.75a.75.75 0 0 1 1.5 0V7.5l2.97-2.97a.749.749 0 0 1 1.06 1.06L8.53 9.28a.75.75 0 0 1-1.06 0L3.22 5.59a.749.749 0 0 1 1.06-1.06Z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Zm2.53-9.47 2.97 2.97V.75a.75.75 0 0 1 1.5 0V7.5l2.97-2.97a.749.749 0 0 1 1.06 1.06L8.53 9.28a.75.75 0 0 1-1.06 0L3.22 5.59a.749.749 0 0 1 1.06-1.06Z'/%3E%3C/svg%3E"); }
 .lags-meta a.code-btn, .lags-meta a.card-link-pdf, .lags-meta a.ax-badge { vertical-align: middle; }
-/* Badge arXiv (en-têtes lagsplat / xrdays) : « arXiv » sur le rouge arXiv + numéro sur bleu clair. */
+/* Badge arXiv (en-têtes lagsplat / xrdays) : « arXiv » sur bleu moyen + numéro sur bleu clair. */
 .lags-meta a.ax-badge { display: inline-flex; align-items: stretch; padding: 0 !important; border-bottom: none !important; border-radius: 2px; overflow: hidden; text-transform: none; letter-spacing: 0.04em; line-height: 1.5; }
 .lags-meta a.ax-badge span { padding: 0.1rem 0.45rem; transition: background 0.15s, color 0.15s; }
-.lags-meta a.ax-badge .l { background: #b31b1b; color: #fff; border: 1px solid #b31b1b; border-radius: 2px 0 0 2px; }
+.lags-meta a.ax-badge .l { background: var(--navy-light); color: #fff; border: 1px solid var(--navy-light); border-radius: 2px 0 0 2px; }
 .lags-meta a.ax-badge .r { background: #e8eef5; color: var(--navy-mid); border: 1px solid #c5d3e0; border-left: none; border-radius: 0 2px 2px 0; }
-.lags-meta a.ax-badge:hover .l { background: #8f1515; border-color: #8f1515; }
+.lags-meta a.ax-badge:hover .l { background: var(--navy); border-color: var(--navy); }
 .lags-meta a.ax-badge:hover .r { background: var(--navy-light); color: #fff; border-color: var(--navy-light); }
 .lags-meta a.card-link-pdf { display: inline-flex; align-items: center; font-size: inherit !important; letter-spacing: inherit; line-height: 1.5; padding: 0.1rem 0.45rem; }
 /* Variante LinkedIn (« Post ») : même bouton, logo LinkedIn ; bulle .n.like statique
