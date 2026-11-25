@@ -123,6 +123,7 @@ Le HTML du lightbox doit être présent dans chaque page qui charge `site.js` :
 ## Ajouter du contenu
 
 - **Nouvelle publication** : copier le bloc `<article class="card">` dans `publications.html`, adapter textes, image, liens PDF.
+- **« Cited by » (publications.html)** : un bloc `<details class="cited-by">` par article, commentaire `<!-- cited-by: <id> (updated AAAA-MM-JJ) -->`. On n'affiche le compteur que s'il y a **au moins une citation externe** : un article cité uniquement par mes propres travaux garde son bloc à jour mais avec l'attribut `hidden` (ex. `lagsplat`), à retirer dès la première citation externe.
 - **Nouveau projet** : copier dans `projects.html`, utiliser `.card-with-logo` si logo institution dispo.
 - **Nouvelle entrée timeline** : voir `index.html`, section `<!-- TIMELINE -->`, copier un bloc `.timeline-item`.
 - **Nouveau logo** : déposer un PNG fond transparent dans `logos/`, taille ~200px de large.
