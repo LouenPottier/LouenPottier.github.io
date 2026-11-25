@@ -815,6 +815,8 @@ main {
   transition: color 0.15s, border-color 0.15s;
 }
 .card-links a:hover { color: var(--navy); border-color: var(--navy); }
+.card-links a.gh-stars { border-bottom: none; line-height: 0; }
+.card-links a.gh-stars img { height: 20px; vertical-align: middle; }
 
 /* ── TEACHING GRID ── */
 .teaching-grid {
