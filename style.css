@@ -815,8 +815,13 @@ main {
   transition: color 0.15s, border-color 0.15s;
 }
 .card-links a:hover { color: var(--navy); border-color: var(--navy); }
-.card-links a.gh-stars { border-bottom: none; line-height: 0; }
-.card-links a.gh-stars img { height: 20px; vertical-align: middle; }
+/* Lien « Code » + compteur d'étoiles (gh-stars.js) : un seul lien ; le soulignement
+   est porté par le texte seulement, le compteur est une petite pastille à côté. */
+.card-links a.has-stars, .lags-meta a.has-stars { border-bottom: none; padding-bottom: 0; display: inline-flex; align-items: baseline; gap: 0.45em; }
+.card-links a.has-stars > span[data-en], .lags-meta a.has-stars > span[data-en] { border-bottom: 1px solid var(--border); padding-bottom: 1px; transition: border-color 0.15s; }
+.card-links a.has-stars:hover > span[data-en], .lags-meta a.has-stars:hover > span[data-en] { border-color: var(--navy); }
+.gh-stars { font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; letter-spacing: 0.02em; color: var(--text-muted); border: 1px solid var(--border); border-radius: 999px; padding: 0 0.5em; line-height: 1.5; white-space: nowrap; transition: color 0.15s, border-color 0.15s; }
+a.has-stars:hover .gh-stars { color: var(--navy); border-color: var(--navy); }
 
 /* ── TEACHING GRID ── */
 .teaching-grid {

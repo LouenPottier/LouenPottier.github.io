@@ -124,6 +124,7 @@ Le HTML du lightbox doit être présent dans chaque page qui charge `site.js` :
 
 - **Nouvelle publication** : copier le bloc `<article class="card">` dans `publications.html`, adapter textes, image, liens PDF.
 - **« Cited by » (publications.html)** : un bloc `<details class="cited-by">` par article, commentaire `<!-- cited-by: <id> (updated AAAA-MM-JJ) -->`. On n'affiche le compteur que s'il y a **au moins une citation externe** : un article cité uniquement par mes propres travaux garde son bloc à jour mais avec l'attribut `hidden` (ex. `lagsplat`, `gacrnn`), à retirer dès la première citation externe.
+- **Étoiles GitHub** : `gh-stars.js` (chargé sur publications, projects, lagsplat) ajoute `★ N` dans tout lien `<a class="has-stars" data-gh-stars="Owner/Repo">` ; le texte du lien va dans un `<span data-en data-fr>` (sinon lang.js efface le compteur). API GitHub, cache localStorage 6 h. Pas de badge shields.io (double lien, soulignement).
 - **Nouveau projet** : copier dans `projects.html`, utiliser `.card-with-logo` si logo institution dispo.
 - **Nouvelle entrée timeline** : voir `index.html`, section `<!-- TIMELINE -->`, copier un bloc `.timeline-item`.
 - **Nouveau logo** : déposer un PNG fond transparent dans `logos/`, taille ~200px de large.
