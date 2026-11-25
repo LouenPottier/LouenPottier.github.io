@@ -296,6 +296,33 @@
   border:1px solid var(--border);border-radius:var(--radius);
   background:#fff;padding:14px;box-sizing:border-box;
 }
+/* ── mobile (≤ 720 px) ── */
+@media(max-width:720px){
+  /* en-tête : liens sur plusieurs lignes sans points orphelins */
+  .lags-meta{display:flex;flex-wrap:wrap;align-items:center;gap:7px 10px;line-height:1.5;}
+  .lags-meta > i{display:none}
+  /* schéma : réduit à la largeur de l'écran (moins de marge intérieure) */
+  .lags-arch img{padding:6px;}
+  /* expérience 2 : vidéo originale + vues synthétisées masquées, pour passer direct de la 2D à la 3D */
+  #lags-demo .rock3d-layout > .rock3d-media{display:none}
+  #lags-demo #rockReset{display:none}  /* ne sert qu'à resynchroniser la vidéo masquée */
+  /* expérience 4 : courbes q(t), puis reconstruction, puis pression (reconstruction visible avec l'un ou l'autre) */
+  #lags-demo .kr-block{display:flex;flex-direction:column;gap:10px;}
+  #lags-demo .kr-block > *{margin-top:0;margin-bottom:0;}
+  #lags-demo .kr-block > .kr-grid{display:contents;}
+  #lags-demo .kr-block > .rock-controls{order:1}
+  #lags-demo .kr-block .kr-latent{order:2}
+  #lags-demo .kr-block .kr-decoder{order:3}
+  #lags-demo .kr-block > .kr-press{order:4}
+  /* panneaux : en-têtes compacts, scènes un peu moins hautes */
+  #lags-demo .phead{padding:8px 12px 7px;}
+  #lags-demo .phead .tag{font-size:.54rem;}
+  #lags-demo .phead h2{font-size:.92rem;margin:2px 0 1px;}
+  #lags-demo .phead .sub{font-size:.7rem;line-height:1.35;}
+  #lags-demo .stage canvas{height:230px;}
+  #lags-demo .stage.short canvas{height:200px;}
+  #lags-demo .grid,#lags-demo .col{gap:10px;}
+}
 .lags-arch figcaption{
   margin-top:.7rem;font-size:.82rem;line-height:1.55;color:var(--text-muted);
 }
@@ -428,8 +455,8 @@
 }
 #lags-demo .viewer-play-overlay:hover{background:var(--navy);transform:translate(-50%,-50%) scale(1.07);}
 #lags-demo .rock3d-viewer.playing .viewer-play-overlay{display:none;}
-.lags-head{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;}
-.lags-head .page-title{margin-bottom:.5rem;}
+.lags-head{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;flex-wrap:nowrap;}
+.lags-head .page-title{margin-bottom:.5rem;flex:1 1 auto;min-width:0;}
 .lags-affil{flex:0 0 auto;}
 .lags-affil img{height:46px;width:auto;display:block;object-fit:contain;}
 @media(max-width:720px){
@@ -654,8 +681,8 @@
     </div>
 
     <p class="link-text"
-       data-en="The Gaussian Splatting decoder, trained on a single-view reconstruction, only renders 2D images from that one viewpoint. By synthesising novel views with ml-sharp, we can train a second GS decoder that reconstructs a full 3D scene directly from the latent coordinate. On the left, the original video and the ml-sharp novel views used for training; on the right, the resulting interactive 3D scene. A 3D force can then be applied at any point of the scene."
-       data-fr="Le décodeur Gaussian Splatting, entraîné sur une reconstruction monovue, ne produit que des images 2D de ce seul point de vue. En synthétisant de nouvelles vues avec ml-sharp, on peut entraîner un second décodeur GS qui reconstruit une scène 3D complète directement à partir de la coordonnée latente. À gauche, la vidéo originale et les vues nouvelles ml-sharp ayant servi à l'entraînement ; à droite, la scène 3D interactive obtenue. Un effort 3D peut ensuite être appliqué en n'importe quel point de la scène.">
+       data-en="The Gaussian Splatting decoder, trained on a single-view reconstruction, only renders 2D images from that one viewpoint. By synthesising novel views with ml-sharp, we can train a second GS decoder that reconstructs a full 3D scene directly from the latent coordinate. <span class='hide-mobile'>On the left, the original video and the ml-sharp novel views used for training; on the right, the resulting interactive 3D scene.</span> A 3D force can then be applied at any point of the scene."
+       data-fr="Le décodeur Gaussian Splatting, entraîné sur une reconstruction monovue, ne produit que des images 2D de ce seul point de vue. En synthétisant de nouvelles vues avec ml-sharp, on peut entraîner un second décodeur GS qui reconstruit une scène 3D complète directement à partir de la coordonnée latente. <span class='hide-mobile'>À gauche, la vidéo originale et les vues nouvelles ml-sharp ayant servi à l'entraînement ; à droite, la scène 3D interactive obtenue.</span> Un effort 3D peut ensuite être appliqué en n'importe quel point de la scène.">
     </p>
 
     <div class="gs3d" id="rock3d">
@@ -804,6 +831,7 @@
       <span class="cal">&#x2112;</span> = <span class="cal">&#x1D4AF;</span> &minus; <span class="cal">&#x1D4B1;</span> and <span class="cal">&#x1D49F;</span> are the learned kinetic, potential and dissipation terms, <i>P</i> the four chamber pressures set by the sliders, and <i>f</i> a force applied by dragging in the image, transported to the latent space by the decoder Jacobian <i>J</i>(<i>q</i>).
     </p>
 
+    <div class="kr-block">  <!-- regroupe contrôles / pression / panneaux : réordonnés sur mobile -->
     <div class="rock-controls">
       <button id="kPlay" title="play / pause"
         style="font-family:var(--mono);font-size:1rem;font-weight:600;color:#fff;background:var(--navy);border:none;border-radius:var(--radius);padding:8px 14px;cursor:pointer;min-width:44px;line-height:1;">⏸</button>
@@ -880,8 +908,8 @@
     </div>
 
     -->
-    <div class="rock-grid">
-      <section class="panel q">
+    <div class="rock-grid kr-grid">
+      <section class="panel q kr-latent">
         <div class="phead">
           <div class="tag" data-en="LaGSplat · latent state" data-fr="LaGSplat · état latent">LaGSplat · latent state</div>
           <h2 data-en="Four latent coordinates over time" data-fr="Les quatre coordonnées latentes au cours du temps">Four latent coordinates over time</h2>
@@ -894,7 +922,7 @@
         <div class="stage recon"><canvas id="cKrState"></canvas></div>
       </section>
 
-      <section class="panel q">
+      <section class="panel q kr-decoder">
         <div class="phead">
           <div class="tag" data-en="live GS decoder" data-fr="décodeur GS en direct">live GS decoder</div>
           <h2 data-en="GS decoder output" data-fr="Sortie du décodeur GS">GS decoder output</h2>
@@ -907,6 +935,7 @@
         </div>
         <div class="pfoot video"><span data-en="<b style='color:#ff7a18'>&#10230;</b> Interactive user applied force <i>f</i>, pulled back to the latent space through <i>J</i>&#7488;<i>f</i> &mdash; on top of the pressure the chambers are already applying." data-fr="<b style='color:#ff7a18'>&#10230;</b> Force <i>f</i> appliquée interactivement par l'utilisateur, rapatriée dans l'espace latent par <i>J</i>&#7488;<i>f</i> &mdash; en plus de la pression qu'exercent déjà les chambres."><b style='color:#ff7a18'>&#10230;</b> Interactive user applied force <i>f</i>, pulled back to the latent space through <i>J</i>&#7488;<i>f</i> — on top of the pressure the chambers are already applying.</span></div>
       </section>
+    </div>
     </div>
 
   </div>
