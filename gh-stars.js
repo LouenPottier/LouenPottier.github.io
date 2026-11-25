@@ -1,24 +1,23 @@
-/* gh-stars.js — compteur d'étoiles GitHub accolé à un lien « Code ».
+/* gh-stars.js — bulle « ★ N » à côté des boutons « Code » (style.css : a.code-btn).
  *
- * Usage : <a class="has-stars" data-gh-stars="Owner/Repo" href="https://github.com/Owner/Repo">
- *           <span data-en="Code" data-fr="Code">Code</span></a>
- * Le texte traduit va dans un <span> (lang.js réécrit l'innerHTML des éléments data-en :
- * posé sur le <a>, il effacerait le compteur). Le script ajoute <span class="gh-stars">★ N</span>
- * DANS le même lien : un seul lien, un seul clic. Le soulignement est porté par le span texte
- * seulement (style.css), pas par le compteur.
- * Nombre lu sur l'API GitHub (60 req/h/IP sans jeton), mis en cache 6 h dans localStorage.
- * En cas d'échec : dernière valeur en cache, sinon rien (le lien « Code » reste seul).
+ * Usage : <a class="code-btn" data-gh-stars="Owner/Repo" href="https://github.com/Owner/Repo">
+ *           <span class="c"><span data-en="Code" data-fr="Code">Code</span></span></a>
+ * Le texte traduit est dans un <span> à part (lang.js réécrit l'innerHTML des éléments data-en).
+ * Règle : la bulle n'apparaît que si le dépôt a au moins MIN étoiles (10) ; en dessous, le bouton
+ * reste seul. Nombre lu sur l'API GitHub (60 req/h/IP sans jeton), cache localStorage 6 h ;
+ * en cas d'échec, dernière valeur en cache, sinon pas de bulle.
  */
 (function () {
-  const TTL = 6 * 3600 * 1000;
+  const TTL = 6 * 3600 * 1000, MIN = 10;
   const fmt = n => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k' : String(n);
   function read(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
   function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   function show(links, n) {
     links.forEach(a => {
-      let s = a.querySelector('.gh-stars');
-      if (!s) { s = document.createElement('span'); s.className = 'gh-stars'; a.appendChild(s); }
-      s.textContent = '★ ' + fmt(n);
+      let s = a.querySelector('.n');
+      if (n < MIN) { if (s) s.remove(); return; }
+      if (!s) { s = document.createElement('span'); s.className = 'n'; a.appendChild(s); }
+      s.innerHTML = '<i aria-hidden="true"></i>' + fmt(n);
       s.title = n + ' GitHub stars';
     });
   }
