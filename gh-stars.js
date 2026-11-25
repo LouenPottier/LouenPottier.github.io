@@ -10,11 +10,11 @@
  *   → bulle « ⤓ N » seulement si N ≥ 100. (« models/… » ou « spaces/… » marchent aussi.)
  *
  * Le texte traduit est dans un <span> à part (lang.js réécrit l'innerHTML des éléments data-en).
- * Nombres lus sur les API publiques, cache localStorage 6 h ; en cas d'échec, dernière valeur
+ * Nombres lus sur les API publiques, cache localStorage 1 h ; en cas d'échec, dernière valeur
  * en cache, sinon pas de bulle.
  */
 (function () {
-  const TTL = 6 * 3600 * 1000;
+  const TTL = 3600 * 1000;
   const fmt = n => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k' : String(n);
   function read(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
   function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
